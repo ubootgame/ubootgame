@@ -1,0 +1,23 @@
+name: Publish WASM to Github pages
+on: [push]
+jobs:
+  publish-wasm-to-gh-pages:
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go 1.21
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21.x
+      - run: env GOOS=js GOARCH=wasm go build -o dist/uboot.wasm
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'dist'
+      - uses: actions/deploy-pages@v4
