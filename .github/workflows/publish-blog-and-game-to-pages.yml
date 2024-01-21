@@ -17,18 +17,17 @@ jobs:
           go-version-file: 'go.mod'
       - run: env GOOS=js GOARCH=wasm go build -o dist/uboot.wasm cmd/main.go
       - run: cp -r static/. dist
-      - name: Checkout
-        uses: actions/checkout@v3
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Build
         uses: actions/jekyll-build-pages@v1
         with:
+          source: "./blog"
           destination: "./dist/blog"
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'dist'
+          path: './dist'
       - uses: actions/deploy-pages@v4
     environment:
       name: github-pages
