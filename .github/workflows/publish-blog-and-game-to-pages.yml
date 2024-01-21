@@ -1,4 +1,4 @@
-name: Publish WASM to Github pages
+name: Publish blog and game to Github pages
 on: [push]
 permissions:
   contents: read
