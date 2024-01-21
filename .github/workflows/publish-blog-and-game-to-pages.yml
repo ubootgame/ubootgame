@@ -1,0 +1,46 @@
+name: Publish WASM to Github pages
+on: [push]
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+jobs:
+  build-wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+      - run: env GOOS=js GOARCH=wasm go build -o dist/uboot.wasm cmd/main.go
+      - run: cp -r static/. dist
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'dist'
+  build-jekyll:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      - name: Build
+        uses: actions/jekyll-build-pages@v1
+        with:
+          destination: "./dist/blog"
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+  deploy-to-pages:
+    runs-on: ubuntu-latest
+    needs: 
+      - build-jekyll
+      - build-wasm
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v4
