@@ -2,6 +2,7 @@ package scenes
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	resource "github.com/quasilyte/ebitengine-resource"
 	"github.com/ubootgame/ubootgame/internal/entities"
 	"github.com/ubootgame/ubootgame/internal/resolv"
 	"github.com/ubootgame/ubootgame/internal/systems"
@@ -11,12 +12,13 @@ import (
 )
 
 type GameScene struct {
-	ecs  *ecs.ECS
-	once sync.Once
+	ecs            *ecs.ECS
+	once           sync.Once
+	resourceLoader *resource.Loader
 }
 
-func NewGameScene() *GameScene {
-	return &GameScene{}
+func NewGameScene(resourceLoader *resource.Loader) *GameScene {
+	return &GameScene{resourceLoader: resourceLoader}
 }
 
 func (scene *GameScene) Update() {
@@ -32,10 +34,12 @@ func (scene *GameScene) setup() {
 	world := donburi.NewWorld()
 	scene.ecs = ecs.NewECS(world)
 
+	scene.ecs.AddRenderer(ecs.LayerDefault, systems.DrawShip)
 	scene.ecs.AddRenderer(ecs.LayerDefault, systems.DrawDebug)
 
 	//gw, gh := float64(config.C.Width), float64(config.C.Height)
 	space := entities.CreateSpace(scene.ecs)
 
-	resolv.Add(space)
+	resolv.Add(space,
+		entities.CreateShip(scene.ecs, scene.resourceLoader))
 }
