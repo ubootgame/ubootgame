@@ -1,0 +1,11 @@
+services:
+    jekyll-server:
+        image: jvconseil/jekyll-docker
+        volumes:
+            - .:/srv/jekyll:Z
+            - ./vendor/bundle:/usr/local/bundle:Z # cache for offline work
+        ports:
+            - 4000:4000 # server port
+            - 35729:35729 # livereload port
+        command: jekyll serve # runs jekyll local server
+        # ↑ --drafts --livereload --incremental   you can add optional arguments
