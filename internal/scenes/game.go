@@ -2,6 +2,8 @@ package scenes
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/ubootgame/ubootgame/internal/entities"
+	"github.com/ubootgame/ubootgame/internal/resolv"
 	"github.com/ubootgame/ubootgame/internal/systems"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -31,4 +33,9 @@ func (scene *GameScene) setup() {
 	scene.ecs = ecs.NewECS(world)
 
 	scene.ecs.AddRenderer(ecs.LayerDefault, systems.DrawDebug)
+
+	//gw, gh := float64(config.C.Width), float64(config.C.Height)
+	space := entities.CreateSpace(scene.ecs)
+
+	resolv.Add(space)
 }
