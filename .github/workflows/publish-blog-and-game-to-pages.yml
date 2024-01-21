@@ -34,6 +34,8 @@ jobs:
           destination: "./dist/blog"
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
+        with:
+          path: "./dist/blog"
   deploy-to-pages:
     runs-on: ubuntu-latest
     needs: 
