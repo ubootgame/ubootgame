@@ -34,6 +34,8 @@ func (scene *GameScene) setup() {
 	world := donburi.NewWorld()
 	scene.ecs = ecs.NewECS(world)
 
+	scene.ecs.AddSystem(systems.UpdateShip)
+	scene.ecs.AddSystem(systems.UpdateObjects)
 	scene.ecs.AddRenderer(ecs.LayerDefault, systems.DrawShip)
 	scene.ecs.AddRenderer(ecs.LayerDefault, systems.DrawDebug)
 

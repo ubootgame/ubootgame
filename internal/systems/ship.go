@@ -9,6 +9,29 @@ import (
 	"github.com/yohamta/donburi/filter"
 )
 
+func UpdateShip(ecs *ecs.ECS) {
+	shipEntry, _ := entities.ShipTag.First(ecs.World)
+
+	acceleration := 0.1
+	friction := 0.05
+	maxSpeed := 3.0
+
+	velocityData := components.Velocity.Get(shipEntry)
+	object := dresolv.GetObject(shipEntry)
+
+	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
+		velocityData.X -= acceleration
+		velocityData.X = max(velocityData.X, -maxSpeed)
+	} else if ebiten.IsKeyPressed(ebiten.KeyRight) {
+		velocityData.X += acceleration
+		velocityData.X = min(velocityData.X, maxSpeed)
+	} else {
+		velocityData.X *= 1 - friction
+	}
+
+	object.X += velocityData.X
+}
+
 func DrawShip(e *ecs.ECS, screen *ebiten.Image) {
 	shipEntry, _ := ecs.NewQuery(ecs.LayerDefault, filter.Contains(entities.ShipTag)).First(e.World)
 
