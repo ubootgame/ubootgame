@@ -2,9 +2,9 @@ package systems
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/ubootgame/ubootgame/internal/components"
-	"github.com/ubootgame/ubootgame/internal/entities"
 	dresolv "github.com/ubootgame/ubootgame/internal/resolv"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/filter"
 )

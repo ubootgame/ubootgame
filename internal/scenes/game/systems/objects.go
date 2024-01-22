@@ -1,8 +1,8 @@
 package systems
 
 import (
-	"github.com/ubootgame/ubootgame/internal/components"
 	dresolv "github.com/ubootgame/ubootgame/internal/resolv"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 )

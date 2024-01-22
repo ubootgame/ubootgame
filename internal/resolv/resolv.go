@@ -2,7 +2,7 @@ package resolv
 
 import (
 	"github.com/solarlune/resolv"
-	"github.com/ubootgame/ubootgame/internal/components"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/yohamta/donburi"
 )
 

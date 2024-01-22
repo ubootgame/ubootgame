@@ -1,12 +1,12 @@
 package entities
 
 import (
-	resource "github.com/quasilyte/ebitengine-resource"
 	"github.com/solarlune/resolv"
-	"github.com/ubootgame/ubootgame/internal/assets"
-	"github.com/ubootgame/ubootgame/internal/components"
 	dresolv "github.com/ubootgame/ubootgame/internal/resolv"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/utility"
+	"github.com/ubootgame/ubootgame/internal/utility/resources"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 )
@@ -21,10 +21,10 @@ var Ship = utility.NewArchetype(
 	components.Velocity,
 )
 
-func CreateShip(ecs *ecs.ECS, resourceLoader *resource.Loader) *donburi.Entry {
+func CreateShip(ecs *ecs.ECS, registry *resources.Registry) *donburi.Entry {
 	ship := Ship.Spawn(ecs)
 
-	sprite := resourceLoader.LoadImage(assets.ImageBattleship)
+	sprite := registry.LoadImage(assets.ImageBattleship)
 	components.Sprite.SetValue(ship, components.SpriteData{Image: sprite.Data})
 
 	obj := resolv.NewObject(0, 0, 64, 32)

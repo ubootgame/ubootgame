@@ -2,8 +2,8 @@ package entities
 
 import (
 	"github.com/solarlune/resolv"
-	"github.com/ubootgame/ubootgame/internal/components"
 	"github.com/ubootgame/ubootgame/internal/config"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"

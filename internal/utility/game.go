@@ -1,11 +1,13 @@
-package main
+package utility
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/ubootgame/ubootgame/internal/utility/resources"
 	"image"
 )
 
 type Scene interface {
+	Assets() resources.Library
 	Update()
 	Draw(screen *ebiten.Image)
 }
