@@ -5,6 +5,7 @@ import (
 	"github.com/ubootgame/ubootgame/internal/resolv"
 	assets2 "github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems"
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
 	"github.com/yohamta/donburi"
@@ -32,7 +33,7 @@ func (scene *Scene) Update() {
 }
 
 func (scene *Scene) Draw(screen *ebiten.Image) {
-	scene.ecs.DrawLayer(ecs.LayerDefault, screen)
+	scene.ecs.Draw(screen)
 }
 
 func (scene *Scene) setup() {
@@ -41,10 +42,14 @@ func (scene *Scene) setup() {
 
 	scene.ecs.AddSystem(systems.UpdateShip)
 	scene.ecs.AddSystem(systems.UpdateObjects)
-	scene.ecs.AddRenderer(ecs.LayerDefault, systems.DrawShip)
-	scene.ecs.AddRenderer(ecs.LayerDefault, systems.DrawDebug)
+	scene.ecs.AddRenderer(layers.Water, systems.DrawWater)
+	scene.ecs.AddRenderer(layers.Foreground, systems.DrawShip)
+	scene.ecs.AddRenderer(layers.Hud, systems.DrawDebug)
 
 	//gw, gh := float64(config.C.Width), float64(config.C.Height)
+
+	_ = entities.CreateWater(scene.ecs, scene.resourceRegistry)
+
 	space := entities.CreateSpace(scene.ecs)
 
 	resolv.Add(space,
