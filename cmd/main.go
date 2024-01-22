@@ -4,13 +4,14 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/ubootgame/ubootgame/internal/assets"
+	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes"
 	"github.com/ubootgame/ubootgame/internal/utility"
 	"log"
 )
 
 func main() {
-	ebiten.SetWindowSize(640, 480)
+	ebiten.SetWindowSize(config.C.Width, config.C.Height)
 	ebiten.SetWindowTitle("U-Boot")
 
 	audioContext := audio.NewContext(44100)

@@ -27,10 +27,8 @@ func CreateShip(ecs *ecs.ECS, resourceLoader *resource.Loader) *donburi.Entry {
 	sprite := resourceLoader.LoadImage(assets.ImageBattleship)
 	components.Sprite.SetValue(ship, components.SpriteData{Image: sprite.Data})
 
-	obj := resolv.NewObject(32, 128, 16, 24)
+	obj := resolv.NewObject(0, 0, 64, 32)
 	dresolv.SetObject(ship, obj)
-
-	obj.SetShape(resolv.NewRectangle(0, 0, 16, 24))
 
 	return ship
 }

@@ -16,7 +16,16 @@ func DrawShip(e *ecs.ECS, screen *ebiten.Image) {
 
 	object := dresolv.GetObject(shipEntry)
 
-	options := &ebiten.DrawImageOptions{}
-	options.GeoM.Translate(object.X, object.Y)
-	screen.DrawImage(spriteData.Image, options)
+	sw, sh := float64(screen.Bounds().Dx()), float64(screen.Bounds().Dy())
+	w, h := float64(spriteData.Image.Bounds().Dx()), float64(spriteData.Image.Bounds().Dy())
+	sizeScale := 0.1 * (sw / w)
+	deviceScale := ebiten.DeviceScaleFactor()
+
+	op := &ebiten.DrawImageOptions{}
+
+	op.GeoM.Translate(float64(-w)/2, float64(-h)/2)
+	op.GeoM.Scale(sizeScale*deviceScale, sizeScale*deviceScale)
+	op.GeoM.Translate(float64(sw)/2+object.X, float64(sh)/2+object.Y)
+
+	screen.DrawImage(spriteData.Image, op)
 }

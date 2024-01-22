@@ -9,7 +9,7 @@ var C *Config
 
 func init() {
 	C = &Config{
-		Width:  640,
-		Height: 360,
+		Width:  1200,
+		Height: 800,
 	}
 }
