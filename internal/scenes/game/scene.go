@@ -3,7 +3,7 @@ package game
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal/resolv"
-	assets2 "github.com/ubootgame/ubootgame/internal/scenes/game/assets"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems"
@@ -23,8 +23,8 @@ func NewGameScene(resourceRegistry *resources.Registry) *Scene {
 	return &Scene{resourceRegistry: resourceRegistry}
 }
 
-func (scene *Scene) Assets() resources.Library {
-	return assets2.Assets
+func (scene *Scene) Assets() *resources.Library {
+	return assets.Assets
 }
 
 func (scene *Scene) Update() {

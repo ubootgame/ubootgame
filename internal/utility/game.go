@@ -7,7 +7,7 @@ import (
 )
 
 type Scene interface {
-	Assets() resources.Library
+	Assets() *resources.Library
 	Update()
 	Draw(screen *ebiten.Image)
 }

@@ -16,20 +16,27 @@ type Tile struct {
 	X, Y, Width, Height int
 }
 
-func LoadTileSheet(path string) (TileSheet, error) {
-	xmlFile, err := os.Open(path)
-	// if we os.Open returns an error then handle it
-	if err != nil {
-		return TileSheet{}, err
-	}
-	defer func(xmlFile *os.File) {
-		_ = xmlFile.Close()
-	}(xmlFile)
+func LoadTileSheet(path string, library *Library) (TileSheet, error) {
+	var byteValue []byte
 
-	byteValue, _ := io.ReadAll(xmlFile)
+	if data, ok := library.Data[path]; ok {
+		byteValue = data
+	} else {
+
+		xmlFile, err := os.Open(path)
+		// if we os.Open returns an error then handle it
+		if err != nil {
+			return TileSheet{}, err
+		}
+		defer func(xmlFile *os.File) {
+			_ = xmlFile.Close()
+		}(xmlFile)
+
+		byteValue, _ = io.ReadAll(xmlFile)
+	}
 
 	var textureAtlas TextureAtlas
-	err = xml.Unmarshal(byteValue, &textureAtlas)
+	err := xml.Unmarshal(byteValue, &textureAtlas)
 	if err != nil {
 		return TileSheet{}, err
 	}

@@ -2,6 +2,7 @@ package resources
 
 import (
 	"bufio"
+	"bytes"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/quasilyte/ebitengine-resource"
@@ -19,6 +20,7 @@ type TileSheetInfo struct {
 }
 
 type Library struct {
+	Data       map[string][]byte
 	Images     map[string]ImageInfo
 	Audio      map[string]AudioInfo
 	TileSheets map[string]TileSheetInfo
@@ -31,25 +33,36 @@ type Registry struct {
 	imageIDs       map[string]resource.ImageID
 	audioIDs       map[string]resource.AudioID
 	tileSheets     map[string]TileSheet
+	data           map[string][]byte
 }
 
 func NewRegistry(audioContext *audio.Context) *Registry {
 	l := resource.NewLoader(audioContext)
 
-	l.OpenAssetFunc = func(path string) io.ReadCloser {
-		f := lo.Must(os.Open(path))
-		reader := bufio.NewReader(f)
-
-		return io.NopCloser(reader)
-	}
-
-	return &Registry{l: l,
+	registry := Registry{l: l,
 		imageIDs:   map[string]resource.ImageID{},
 		audioIDs:   map[string]resource.AudioID{},
 		tileSheets: map[string]TileSheet{}}
+
+	l.OpenAssetFunc = registry.openAsset
+
+	return &registry
 }
 
-func (registry *Registry) RegisterResources(library Library) error {
+func (registry *Registry) openAsset(path string) io.ReadCloser {
+	if data, ok := registry.data[path]; ok {
+		return io.NopCloser(bytes.NewReader(data))
+	}
+
+	f := lo.Must(os.Open(path))
+	reader := bufio.NewReader(f)
+
+	return io.NopCloser(reader)
+}
+
+func (registry *Registry) RegisterResources(library *Library) error {
+	registry.data = library.Data
+
 	if library.Images != nil {
 		for key, info := range library.Images {
 			registry.RegisterImage(key, info)
@@ -62,7 +75,7 @@ func (registry *Registry) RegisterResources(library Library) error {
 	}
 	if library.TileSheets != nil {
 		for key, info := range library.TileSheets {
-			tileSheet, err := LoadTileSheet(info.Path)
+			tileSheet, err := LoadTileSheet(info.Path, library)
 			if err != nil {
 				return err
 			}
@@ -79,18 +92,18 @@ func (registry *Registry) RegisterResources(library Library) error {
 	return nil
 }
 
-func (registry *Registry) RegisterAudio(key string, info AudioInfo) {
-	audioID := resource.AudioID(registry.highestAudioID)
-	registry.audioIDs[key] = audioID
-	registry.l.AudioRegistry.Set(audioID, info)
-	registry.highestAudioID++
-}
-
 func (registry *Registry) RegisterImage(key string, info ImageInfo) {
 	imageID := resource.ImageID(registry.highestImageID)
 	registry.imageIDs[key] = imageID
 	registry.l.ImageRegistry.Set(imageID, info)
 	registry.highestImageID++
+}
+
+func (registry *Registry) RegisterAudio(key string, info AudioInfo) {
+	audioID := resource.AudioID(registry.highestAudioID)
+	registry.audioIDs[key] = audioID
+	registry.l.AudioRegistry.Set(audioID, info)
+	registry.highestAudioID++
 }
 
 func (registry *Registry) LoadImage(id string) resource.Image {
