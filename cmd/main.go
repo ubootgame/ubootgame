@@ -14,6 +14,7 @@ import (
 func main() {
 	ebiten.SetWindowSize(config.C.Width, config.C.Height)
 	ebiten.SetWindowTitle("U-Boot")
+	ebiten.SetTPS(config.C.TargetTPS)
 
 	audioContext := audio.NewContext(44100)
 	resourceRegistry := resources.NewRegistry(audioContext)

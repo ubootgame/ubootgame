@@ -2,6 +2,7 @@ package systems
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
 	"github.com/yohamta/donburi/ecs"
@@ -26,5 +27,5 @@ func DrawAnimatedWater(e *ecs.ECS, screen *ebiten.Image) {
 func UpdateAnimatedWater(e *ecs.ECS) {
 	waterEntry, _ := entities.AnimatedWaterTag.First(e.World)
 	spriteData := components.AnimatedSprite.Get(waterEntry)
-	spriteData.Player.Update(float32(0.024 / 3))
+	spriteData.Player.Update(1.0 / float32(config.C.TargetTPS) / 2)
 }
