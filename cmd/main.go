@@ -7,6 +7,7 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game"
 	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
+	_ "image/png"
 	"log"
 )
 
