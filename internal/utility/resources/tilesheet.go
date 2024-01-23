@@ -3,8 +3,9 @@ package resources
 import (
 	"encoding/xml"
 	"github.com/samber/lo"
+	"github.com/ubootgame/ubootgame/assets"
 	"io"
-	"os"
+	"io/fs"
 )
 
 type TileSheet struct {
@@ -17,23 +18,13 @@ type Tile struct {
 }
 
 func LoadTileSheet(path string, library *Library) (TileSheet, error) {
-	var byteValue []byte
 
-	if data, ok := library.Data[path]; ok {
-		byteValue = data
-	} else {
+	xmlFile := lo.Must(assets.FS.Open(path))
+	defer func(xmlFile fs.File) {
+		_ = xmlFile.Close()
+	}(xmlFile)
 
-		xmlFile, err := os.Open(path)
-		// if we os.Open returns an error then handle it
-		if err != nil {
-			return TileSheet{}, err
-		}
-		defer func(xmlFile *os.File) {
-			_ = xmlFile.Close()
-		}(xmlFile)
-
-		byteValue, _ = io.ReadAll(xmlFile)
-	}
+	byteValue, _ := io.ReadAll(xmlFile)
 
 	var textureAtlas TextureAtlas
 	err := xml.Unmarshal(byteValue, &textureAtlas)

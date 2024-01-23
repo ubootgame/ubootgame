@@ -2,14 +2,13 @@ package resources
 
 import (
 	"bufio"
-	"bytes"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/quasilyte/ebitengine-resource"
 	"github.com/samber/lo"
+	"github.com/ubootgame/ubootgame/assets"
 	"image"
 	"io"
-	"os"
 	"path"
 )
 
@@ -20,7 +19,6 @@ type TileSheetInfo struct {
 }
 
 type Library struct {
-	Data       map[string][]byte
 	Images     map[string]ImageInfo
 	Audio      map[string]AudioInfo
 	TileSheets map[string]TileSheetInfo
@@ -33,7 +31,6 @@ type Registry struct {
 	imageIDs       map[string]resource.ImageID
 	audioIDs       map[string]resource.AudioID
 	tileSheets     map[string]TileSheet
-	data           map[string][]byte
 }
 
 func NewRegistry(audioContext *audio.Context) *Registry {
@@ -50,19 +47,13 @@ func NewRegistry(audioContext *audio.Context) *Registry {
 }
 
 func (registry *Registry) openAsset(path string) io.ReadCloser {
-	if data, ok := registry.data[path]; ok {
-		return io.NopCloser(bytes.NewReader(data))
-	}
-
-	f := lo.Must(os.Open(path))
+	f := lo.Must(assets.FS.Open(path))
 	reader := bufio.NewReader(f)
 
 	return io.NopCloser(reader)
 }
 
 func (registry *Registry) RegisterResources(library *Library) error {
-	registry.data = library.Data
-
 	if library.Images != nil {
 		for key, info := range library.Images {
 			registry.RegisterImage(key, info)
