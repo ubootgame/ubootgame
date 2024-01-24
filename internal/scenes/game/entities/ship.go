@@ -17,7 +17,6 @@ var Ship = utility.NewArchetype(
 	ShipTag,
 	components.Object,
 	components.Sprite,
-	components.Position,
 	components.Velocity,
 )
 

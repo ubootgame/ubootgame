@@ -17,7 +17,6 @@ func UpdateShip(ecs *ecs.ECS) {
 	maxSpeed := 3.0
 
 	velocityData := components.Velocity.Get(shipEntry)
-	object := dresolv.GetObject(shipEntry)
 
 	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
 		velocityData.X -= acceleration
@@ -28,8 +27,6 @@ func UpdateShip(ecs *ecs.ECS) {
 	} else {
 		velocityData.X *= 1 - friction
 	}
-
-	object.X += velocityData.X
 }
 
 func DrawShip(e *ecs.ECS, screen *ebiten.Image) {

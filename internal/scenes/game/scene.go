@@ -41,6 +41,7 @@ func (scene *Scene) setup() {
 	scene.ecs = ecs.NewECS(world)
 
 	scene.ecs.AddSystem(systems.UpdateShip)
+	scene.ecs.AddSystem(systems.UpdateMovement)
 	scene.ecs.AddSystem(systems.UpdateObjects)
 	scene.ecs.AddSystem(systems.UpdateAnimatedWater)
 	scene.ecs.AddRenderer(layers.Water, systems.DrawWater)
