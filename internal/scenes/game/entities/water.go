@@ -19,7 +19,7 @@ var Water = utility.NewArchetype(
 func CreateWater(ecs *ecs.ECS, registry *resources.Registry) *donburi.Entry {
 	water := Water.Spawn(ecs)
 
-	sprite := registry.LoadTile(assets.TileSheetWater, "fishTile_088.png")
+	sprite := registry.LoadTile(assets.Water, "fishTile_088.png")
 	components.Sprite.SetValue(water, components.SpriteData{Image: sprite.Data})
 
 	return water

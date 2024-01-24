@@ -12,20 +12,20 @@ import (
 func DrawAnimatedWater(e *ecs.ECS, screen *ebiten.Image) {
 	waterEntry, _ := entities.AnimatedWaterTag.First(e.World)
 
-	spriteData := components.AnimatedSprite.Get(waterEntry)
+	spriteData := components.Aseprite.Get(waterEntry)
 
 	sw, sh := float64(screen.Bounds().Dx()), float64(screen.Bounds().Dy())
 
 	opts := &ebiten.DrawImageOptions{}
 	opts.GeoM.Translate(sw/2, sh/2)
 
-	sub := spriteData.Image.SubImage(image.Rect(spriteData.Player.CurrentFrameCoords()))
+	sub := spriteData.Aseprite.Image.SubImage(image.Rect(spriteData.Aseprite.Player.CurrentFrameCoords()))
 
 	screen.DrawImage(sub.(*ebiten.Image), opts)
 }
 
 func UpdateAnimatedWater(e *ecs.ECS) {
 	waterEntry, _ := entities.AnimatedWaterTag.First(e.World)
-	spriteData := components.AnimatedSprite.Get(waterEntry)
-	spriteData.Player.Update(1.0 / float32(config.C.TargetTPS) / 2)
+	spriteData := components.Aseprite.Get(waterEntry)
+	spriteData.Aseprite.Player.Update(1.0 / float32(config.C.TargetTPS) / 2)
 }

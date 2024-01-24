@@ -23,7 +23,7 @@ var Ship = utility.NewArchetype(
 func CreateShip(ecs *ecs.ECS, registry *resources.Registry) *donburi.Entry {
 	ship := Ship.Spawn(ecs)
 
-	sprite := registry.LoadImage(assets.ImageBattleship)
+	sprite := registry.LoadImage(assets.Battleship)
 	components.Sprite.SetValue(ship, components.SpriteData{Image: sprite.Data})
 
 	obj := resolv.NewObject(0, 0, 64, 32)

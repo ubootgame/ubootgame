@@ -6,16 +6,26 @@ import (
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
 )
 
-const ImageBattleship = "battleship"
-const TileSheetWater = "water"
-const ImageAnimatedWater = "ImageAnimatedWater"
+const (
+	Battleship resources.ImageID = iota
+)
+
+const (
+	Water resources.TilesheetID = iota
+)
+
+const (
+	AnimatedWater resources.AsepriteID = iota
+)
 
 var Assets = &resources.Library{
-	Images: map[string]resource.ImageInfo{
-		ImageBattleship:    {Path: "military-boats-collection/ship1.png"},
-		ImageAnimatedWater: {Path: "water/water.png"},
+	Images: map[resources.ImageID]resource.ImageInfo{
+		Battleship: {Path: "military-boats-collection/ship1.png"},
 	},
-	TileSheets: map[string]resources.TileSheetInfo{
-		TileSheetWater: {Path: "water/fishSpritesheet.xml"},
+	Tilesheets: map[resources.TilesheetID]resources.TilesheetInfo{
+		Water: {Path: "water/fishSpritesheet.xml"},
+	},
+	Aseprites: map[resources.AsepriteID]resources.AsepriteInfo{
+		AnimatedWater: {Path: "water/water.json"},
 	},
 }

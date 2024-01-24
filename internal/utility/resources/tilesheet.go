@@ -4,36 +4,43 @@ import (
 	"encoding/xml"
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/assets"
-	"io"
-	"io/fs"
+	"path"
 )
 
-type TileSheet struct {
-	Path  string
-	Tiles map[string]Tile
+type TilesheetID int
+
+type TilesheetInfo struct {
+	Path string
+}
+
+type TilesheetEntry struct {
+	ImageID ImageID
+	Tiles   map[string]Tile
 }
 
 type Tile struct {
 	X, Y, Width, Height int
 }
 
-func LoadTileSheet(path string, library *Library) (TileSheet, error) {
-
-	xmlFile := lo.Must(assets.FS.Open(path))
-	defer func(xmlFile fs.File) {
-		_ = xmlFile.Close()
-	}(xmlFile)
-
-	byteValue, _ := io.ReadAll(xmlFile)
+func LoadTileSheet(info TilesheetInfo, registry *Registry) (TilesheetEntry, error) {
+	xmlFile := lo.Must(assets.FS.ReadFile(info.Path))
 
 	var textureAtlas TextureAtlas
-	err := xml.Unmarshal(byteValue, &textureAtlas)
+	err := xml.Unmarshal(xmlFile, &textureAtlas)
 	if err != nil {
-		return TileSheet{}, err
+		return TilesheetEntry{}, err
 	}
 
-	tileSheet := TileSheet{
-		Path: textureAtlas.ImagePath,
+	dir := path.Dir(info.Path)
+	imagePath := path.Join(dir, textureAtlas.ImagePath)
+	imageInfo := ImageInfo{Path: imagePath}
+
+	imageID := registry.NextImageID()
+
+	registry.RegisterImage(imageID, imageInfo)
+
+	tileSheet := TilesheetEntry{
+		ImageID: imageID,
 		Tiles: lo.Associate(textureAtlas.SubTextures, func(item SubTexture) (string, Tile) {
 			return item.Name, Tile{
 				X:      item.X,

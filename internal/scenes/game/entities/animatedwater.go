@@ -1,8 +1,6 @@
 package entities
 
 import (
-	"github.com/solarlune/goaseprite"
-	"github.com/ubootgame/ubootgame/assets"
 	assets2 "github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/utility"
@@ -15,21 +13,16 @@ var AnimatedWaterTag = donburi.NewTag().SetName("Animated Water")
 
 var AnimatedWater = utility.NewArchetype(
 	AnimatedWaterTag,
-	components.AnimatedSprite,
+	components.Aseprite,
 )
 
 func CreateAnimatedWater(ecs *ecs.ECS, registry *resources.Registry) *donburi.Entry {
-	animatedWater := AnimatedWater.Spawn(ecs)
-	json, _ := assets.FS.ReadFile("water/water.json")
-	sprite := goaseprite.Read(json)
-	player := sprite.CreatePlayer()
-	components.AnimatedSprite.SetValue(animatedWater, components.AnimatedSpriteData{
-		Sprite: sprite,
-		Player: player,
-		Image:  registry.LoadImage(assets2.ImageAnimatedWater).Data,
-	})
+	water := AnimatedWater.Spawn(ecs)
 
-	player.Play("")
+	aseprite := registry.LoadAseprite(assets2.AnimatedWater)
+	components.Aseprite.SetValue(water, components.AsepriteData{Aseprite: aseprite})
 
-	return animatedWater
+	_ = aseprite.Player.Play("")
+
+	return water
 }
