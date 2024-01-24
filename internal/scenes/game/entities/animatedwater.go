@@ -20,7 +20,7 @@ func CreateAnimatedWater(ecs *ecs.ECS, registry *resources.Registry) *donburi.En
 	water := AnimatedWater.Spawn(ecs)
 
 	aseprite := registry.LoadAseprite(assets2.AnimatedWater)
-	components.Aseprite.SetValue(water, components.AsepriteData{Aseprite: aseprite})
+	components.Aseprite.SetValue(water, components.AsepriteData{Aseprite: aseprite, Speed: 0.5})
 
 	_ = aseprite.Player.Play("")
 

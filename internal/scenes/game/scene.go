@@ -43,7 +43,7 @@ func (scene *Scene) setup() {
 	scene.ecs.AddSystem(systems.UpdateShip)
 	scene.ecs.AddSystem(systems.UpdateMovement)
 	scene.ecs.AddSystem(systems.UpdateObjects)
-	scene.ecs.AddSystem(systems.UpdateAnimatedWater)
+	scene.ecs.AddSystem(systems.UpdateAseprites)
 	scene.ecs.AddRenderer(layers.Water, systems.DrawWater)
 	scene.ecs.AddRenderer(layers.Water, systems.DrawAnimatedWater)
 	scene.ecs.AddRenderer(layers.Foreground, systems.DrawShip)

@@ -7,6 +7,7 @@ import (
 
 type AsepriteData struct {
 	Aseprite resources.Aseprite
+	Speed    float32
 }
 
 var Aseprite = donburi.NewComponentType[AsepriteData]()
