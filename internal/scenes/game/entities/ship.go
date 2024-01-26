@@ -17,6 +17,7 @@ var Ship = utility.NewArchetype(
 	ShipTag,
 	components.Object,
 	components.Sprite,
+	components.Position,
 	components.Velocity,
 )
 
@@ -26,7 +27,10 @@ func CreateShip(ecs *ecs.ECS, registry *resources.Registry) *donburi.Entry {
 	sprite := registry.LoadImage(assets.Battleship)
 	components.Sprite.SetValue(ship, components.SpriteData{Image: sprite.Data})
 
-	obj := resolv.NewObject(0, 0, 64, 32)
+	positionData := components.PositionData{}
+	components.Position.SetValue(ship, positionData)
+
+	obj := resolv.NewObject(positionData.X, positionData.Y, 64, 32)
 	dresolv.SetObject(ship, obj)
 
 	return ship

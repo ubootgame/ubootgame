@@ -1,7 +1,6 @@
 package systems
 
 import (
-	dresolv "github.com/ubootgame/ubootgame/internal/resolv"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -9,10 +8,11 @@ import (
 )
 
 func UpdateMovement(e *ecs.ECS) {
-	donburi.NewQuery(filter.Contains(components.Object, components.Velocity)).Each(e.World, func(entry *donburi.Entry) {
+	donburi.NewQuery(filter.Contains(components.Position, components.Velocity)).Each(e.World, func(entry *donburi.Entry) {
 		velocityData := components.Velocity.Get(entry)
-		object := dresolv.GetObject(entry)
+		positionData := components.Position.Get(entry)
 
-		object.X += velocityData.X
+		positionData.X += velocityData.X
+		positionData.Y += velocityData.Y
 	})
 }

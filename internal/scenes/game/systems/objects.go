@@ -5,11 +5,17 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
+	"github.com/yohamta/donburi/filter"
 )
 
-func UpdateObjects(ecs *ecs.ECS) {
-	components.Object.Each(ecs.World, func(e *donburi.Entry) {
-		obj := dresolv.GetObject(e)
-		obj.Update()
+func UpdateObjects(e *ecs.ECS) {
+	donburi.NewQuery(filter.Contains(components.Position, components.Object)).Each(e.World, func(entry *donburi.Entry) {
+		positionData := components.Position.Get(entry)
+		object := dresolv.GetObject(entry)
+
+		object.X = positionData.X
+		object.Y = positionData.Y
+
+		object.Update()
 	})
 }
