@@ -10,6 +10,7 @@ import (
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
+	"image/color"
 	"sync"
 )
 
@@ -33,6 +34,7 @@ func (scene *Scene) Update() {
 }
 
 func (scene *Scene) Draw(screen *ebiten.Image) {
+	screen.Fill(color.RGBA{R: 4, G: 0, B: 43, A: 255})
 	scene.ecs.Draw(screen)
 }
 
@@ -49,7 +51,7 @@ func (scene *Scene) setup() {
 	scene.ecs.AddRenderer(layers.Foreground, systems.DrawShip)
 	scene.ecs.AddRenderer(layers.Hud, systems.DrawDebug)
 
-	//gw, gh := float64(config.C.Width), float64(config.C.Height)
+	//gw, gh := float64(config.C.DefaultWidth), float64(config.C.DefaultHeight)
 
 	_ = entities.CreateWater(scene.ecs, scene.resourceRegistry)
 	_ = entities.CreateAnimatedWater(scene.ecs, scene.resourceRegistry)

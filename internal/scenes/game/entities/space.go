@@ -17,7 +17,7 @@ func CreateSpace(ecs *ecs.ECS) *donburi.Entry {
 	space := Space.Spawn(ecs)
 
 	cfg := config.C
-	spaceData := resolv.NewSpace(cfg.Width, cfg.Height, 16, 16)
+	spaceData := resolv.NewSpace(cfg.DefaultWidth, cfg.DefaultHeight, 16, 16)
 	components.Space.Set(space, spaceData)
 
 	return space
