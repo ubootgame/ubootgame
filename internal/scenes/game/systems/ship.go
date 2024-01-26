@@ -46,6 +46,7 @@ func DrawShip(e *ecs.ECS, screen *ebiten.Image) {
 	op.GeoM.Translate(float64(-w)/2, float64(-h)/2)
 	op.GeoM.Scale(sizeScale*deviceScale, sizeScale*deviceScale)
 	op.GeoM.Translate(float64(sw)/2+object.X, float64(sh)/2+object.Y)
+	op.Filter = ebiten.FilterLinear
 
 	screen.DrawImage(spriteData.Image, op)
 }
