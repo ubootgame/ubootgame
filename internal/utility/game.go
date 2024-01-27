@@ -2,8 +2,8 @@ package utility
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
-	"image"
 )
 
 type Scene interface {
@@ -13,14 +13,12 @@ type Scene interface {
 }
 
 type Game struct {
-	bounds image.Rectangle
-	scene  Scene
+	scene Scene
 }
 
 func NewGame(scene Scene) *Game {
 	g := &Game{
-		bounds: image.Rectangle{},
-		scene:  scene,
+		scene: scene,
 	}
 
 	return g
@@ -37,6 +35,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	g.bounds = image.Rect(0, 0, outsideWidth, outsideHeight)
-	return outsideWidth, outsideHeight
+	config.C.ActualOuterSize.X, config.C.ActualOuterSize.Y = float64(outsideWidth), float64(outsideHeight)
+	return int(config.C.VirtualResolution.X), int(config.C.VirtualResolution.Y)
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/solarlune/resolv"
 	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -14,10 +15,10 @@ var Space = utility.NewArchetype(
 )
 
 func CreateSpace(ecs *ecs.ECS) *donburi.Entry {
-	space := Space.Spawn(ecs)
+	space := Space.Spawn(ecs, layers.Foreground)
 
 	cfg := config.C
-	spaceData := resolv.NewSpace(cfg.Width, cfg.Height, 16, 16)
+	spaceData := resolv.NewSpace(int(cfg.VirtualResolution.X), int(cfg.VirtualResolution.Y), 16, 16)
 	components.Space.Set(space, spaceData)
 
 	return space
