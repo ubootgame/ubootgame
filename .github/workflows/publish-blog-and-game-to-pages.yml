@@ -1,15 +1,12 @@
-name: Publish WASM to Github pages
+name: Publish blog and game to Github pages
 on: [push]
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 jobs:
-  publish-wasm-to-gh-pages:
+  build-wasm:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -20,8 +17,18 @@ jobs:
           go-version-file: 'go.mod'
       - run: env GOOS=js GOARCH=wasm go build -o dist/uboot.wasm cmd/main.go
       - run: cp -r static/. dist
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      - name: Build
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: "./blog"
+          destination: "./dist/blog"
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'dist'
+          path: './dist'
       - uses: actions/deploy-pages@v4
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
