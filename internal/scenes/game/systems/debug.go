@@ -6,18 +6,27 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/filter"
 	"image/color"
+	"strings"
 )
+
+var keys = make([]ebiten.Key, 0)
 
 func UpdateDebug(e *ecs.ECS) {
 	debugEntry, _ := components.Debug.First(e.World)
 	debugData := components.Debug.Get(debugEntry)
 
+	keys = inpututil.AppendPressedKeys(keys[:0])
+
+	if inpututil.IsKeyJustPressed(ebiten.KeySlash) {
+		config.C.Debug = !config.C.Debug
+	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyF1) {
 		debugData.DrawGrid = !debugData.DrawGrid
 	}
@@ -37,9 +46,11 @@ func DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 	cameraEntry, _ := donburi.NewQuery(filter.Contains(components.Camera)).First(e.World)
 	cameraData := components.Camera.Get(cameraEntry)
 
-	debugText := fmt.Sprintf(`FPS: %.1f
+	debugText := fmt.Sprintf(`(/ to toggle debug)
+FPS: %.1f
 TPS: %.1f
 VSync: %v
+Keys: %v
 Device scale factor: %.2f
 Draw grid (F1): %v
 Draw resolv (F2): %v
@@ -49,6 +60,9 @@ Camera rotation: %.2f`,
 		ebiten.ActualFPS(),
 		ebiten.ActualTPS(),
 		ebiten.IsVsyncEnabled(),
+		strings.Join(lo.Map(keys, func(item ebiten.Key, index int) string {
+			return item.String()
+		}), ", "),
 		ebiten.DeviceScaleFactor(),
 		debugData.DrawGrid,
 		debugData.DrawResolvLines,
