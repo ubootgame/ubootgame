@@ -16,13 +16,20 @@ import (
 	"strings"
 )
 
-var keys = make([]ebiten.Key, 0)
+type debug struct {
+	keys             []ebiten.Key
+	resolvLinesImage *ebiten.Image
+}
 
-func UpdateDebug(e *ecs.ECS) {
+var Debug = &debug{
+	keys: make([]ebiten.Key, 0),
+}
+
+func (system *debug) Update(e *ecs.ECS) {
 	debugEntry, _ := components.Debug.First(e.World)
 	debugData := components.Debug.Get(debugEntry)
 
-	keys = inpututil.AppendPressedKeys(keys[:0])
+	system.keys = inpututil.AppendPressedKeys(system.keys[:0])
 
 	if inpututil.IsKeyJustPressed(ebiten.KeySlash) {
 		config.C.Debug = !config.C.Debug
@@ -35,7 +42,7 @@ func UpdateDebug(e *ecs.ECS) {
 	}
 }
 
-func DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
+func (system *debug) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	if !config.C.Debug {
 		return
 	}
@@ -60,7 +67,7 @@ Camera rotation: %.2f`,
 		ebiten.ActualFPS(),
 		ebiten.ActualTPS(),
 		ebiten.IsVsyncEnabled(),
-		strings.Join(lo.Map(keys, func(item ebiten.Key, index int) string {
+		strings.Join(lo.Map(system.keys, func(item ebiten.Key, index int) string {
 			return item.String()
 		}), ", "),
 		ebiten.DeviceScaleFactor(),
@@ -73,15 +80,22 @@ Camera rotation: %.2f`,
 	printDebugTextAt(screen, debugText, ebiten.GeoM{})
 
 	if debugData.DrawResolvLines {
-		spaceEntry, _ := components.Space.First(e.World)
-		space := components.Space.Get(spaceEntry)
+		if system.resolvLinesImage == nil {
+			system.resolvLinesImage = ebiten.NewImageFromImage(screen)
+			system.resolvLinesImage.Clear()
 
-		for x := 0; x < space.Width(); x++ {
-			for y := 0; y < space.Height(); y++ {
-				sx, sy := space.SpaceToWorld(x, y)
-				vector.StrokeRect(screen, float32(sx), float32(sy), float32(space.CellWidth), float32(space.CellHeight), 1, color.RGBA{R: 10, G: 10, B: 10, A: 10}, false)
+			spaceEntry, _ := components.Space.First(e.World)
+			space := components.Space.Get(spaceEntry)
+
+			for x := 0; x < space.Width(); x++ {
+				for y := 0; y < space.Height(); y++ {
+					sx, sy := space.SpaceToWorld(x, y)
+					vector.StrokeRect(system.resolvLinesImage, float32(sx), float32(sy), float32(space.CellWidth), float32(space.CellHeight), 1, color.RGBA{R: 10, G: 10, B: 10, A: 10}, false)
+				}
 			}
 		}
+
+		screen.DrawImage(system.resolvLinesImage, nil)
 	}
 }
 

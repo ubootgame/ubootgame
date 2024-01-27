@@ -58,7 +58,7 @@ func (scene *Scene) setup() {
 	})
 
 	scene.ecs.AddSystem(systems.UpdateCamera)
-	scene.ecs.AddSystem(systems.UpdateDebug)
+	scene.ecs.AddSystem(systems.Debug.Update)
 	scene.ecs.AddSystem(systems.UpdateObjects)
 	scene.ecs.AddSystem(systems.UpdateMovement)
 	scene.ecs.AddSystem(systems.UpdateShip)
@@ -66,7 +66,7 @@ func (scene *Scene) setup() {
 	scene.ecs.AddRenderer(layers.Water, systems.DrawWater)
 	scene.ecs.AddRenderer(layers.Water, systems.DrawAnimatedWater)
 	scene.ecs.AddRenderer(layers.Foreground, systems.DrawSprites)
-	scene.ecs.AddRenderer(layers.Hud, systems.DrawDebug)
+	scene.ecs.AddRenderer(layers.Hud, systems.Debug.Draw)
 
 	_ = entities.CreateWater(scene.ecs, scene.resourceRegistry)
 	_ = entities.CreateAnimatedWater(scene.ecs, scene.resourceRegistry)
