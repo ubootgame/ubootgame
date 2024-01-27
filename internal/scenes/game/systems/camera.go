@@ -8,7 +8,7 @@ import (
 	"github.com/yohamta/donburi/filter"
 )
 
-const cameraSpeed = 30.0
+const cameraSpeed = 0.01
 
 func UpdateCamera(e *ecs.ECS) {
 	cameraEntry, _ := donburi.NewQuery(filter.Contains(components.Camera)).First(e.World)

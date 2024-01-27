@@ -10,9 +10,9 @@ import (
 func UpdateShip(ecs *ecs.ECS) {
 	shipEntry, _ := entities.ShipTag.First(ecs.World)
 
-	acceleration := 0.05
+	acceleration := 0.0001
 	friction := 0.05
-	maxSpeed := 5.0
+	maxSpeed := 0.005
 
 	velocityData := components.Velocity.Get(shipEntry)
 
