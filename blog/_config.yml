@@ -22,8 +22,7 @@ title: ubootgame
 author:
   name: ubootgame
   email: not@available.com
-description: >- # this means to ignore newlines until "baseurl:"
-  We are building a uboot game in public. 
+description:  We are building a uboot game in public. 
 baseurl: "/ubootgame/blog" # the subpath of your site, e.g. /blog
 url: "https://ubootgame.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 
