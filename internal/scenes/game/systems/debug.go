@@ -48,11 +48,11 @@ func DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 FPS: %.1f
 TPS: %.1f
 VSync: %v
-Device scale factor: %.2f,
+Device scale factor: %.2f
 Draw grid (F1): %v
 Draw resolv (F2): %v
-Camera position: %.1f, %.1f,
-Camera zoom: %.1f,
+Camera position: %.1f, %.1f
+Camera zoom: %.1f
 Camera rotation: %.1f`,
 		ebiten.ActualFPS(),
 		ebiten.ActualTPS(),
