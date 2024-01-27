@@ -47,7 +47,11 @@
     }
   ],
   "frontMatter.framework.id": "jekyll",
+<<<<<<< Updated upstream
   "frontMatter.content.publicFolder": "assets",
+=======
+  "frontMatter.content.publicFolder": "./ubootgame/blog/images",
+>>>>>>> Stashed changes
   "frontMatter.preview.host": "http://localhost:4000",
   "frontMatter.content.pageFolders": [
     {
