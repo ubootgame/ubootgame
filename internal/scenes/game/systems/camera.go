@@ -33,9 +33,17 @@ func UpdateCamera(e *ecs.ECS) {
 		cameraData.ZoomFactor = min(2.0, cameraData.ZoomFactor+0.1)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyQ) {
-		cameraData.Rotation -= 1
+		newCameraRotation := cameraData.Rotation - 1
+		if newCameraRotation < 0 {
+			newCameraRotation = 360 - newCameraRotation
+		}
+		cameraData.Rotation = newCameraRotation
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyE) {
-		cameraData.Rotation += 1
+		newCameraRotation := cameraData.Rotation + 1
+		if newCameraRotation >= 360 {
+			newCameraRotation = newCameraRotation - 360
+		}
+		cameraData.Rotation = newCameraRotation
 	}
 }
