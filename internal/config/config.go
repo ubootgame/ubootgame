@@ -14,7 +14,7 @@ func init() {
 	C = &Config{
 		DefaultOuterSize:  r2.Vec{X: 1280, Y: 720},
 		ActualOuterSize:   r2.Vec{X: 1280, Y: 720},
-		VirtualResolution: r2.Vec{X: 1920, Y: 1080},
+		VirtualResolution: r2.Vec{X: 1280, Y: 720},
 		TargetTPS:         60,
 		Debug:             true,
 	}
