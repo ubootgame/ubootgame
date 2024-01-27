@@ -19,14 +19,22 @@
 # in the templates via {{ site.myvariable }}.
 
 title: ubootgame
+author:
+  name: ubootgame
+  email: not@available.com
 description: >- # this means to ignore newlines until "baseurl:"
-  Write an awesome description for your new site here. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
+  We are building a uboot game in public. 
 baseurl: "/ubootgame/blog" # the subpath of your site, e.g. /blog
 url: "https://ubootgame.github.io" # the base hostname & protocol for your site, e.g. http://example.com
-twitter_username: jekyllrb
-github_username:  ubootgame
+
+minima:
+  social_links:
+    - { platform: github,  user_url: "https://github.com/ubootgame" }
+    - { platform: instagram, user_url: "https://instagram.com/ubootgame" }
+    - { platform: devto, user_url: "https://dev.to/uboot-game" }
+    - { platform: substack, user_url: "https://ubootgame.substack.com/" }
+    - { platform: medium, user_url: "https://medium.com/uboot-game" }
+    - { platform: rss, user_url: "https://ubootgame.github.io/ubootgame/blog/feed.xml" }
 
 # Build settings
 theme: minima
