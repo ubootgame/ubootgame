@@ -3,6 +3,7 @@ package entities
 import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
 	"github.com/yohamta/donburi"
@@ -17,7 +18,7 @@ var Water = utility.NewArchetype(
 )
 
 func CreateWater(ecs *ecs.ECS, registry *resources.Registry) *donburi.Entry {
-	water := Water.Spawn(ecs)
+	water := Water.Spawn(ecs, layers.Water)
 
 	sprite := registry.LoadTile(assets.Water, "fishTile_088.png")
 	components.Sprite.SetValue(water, components.SpriteData{Image: sprite.Data})

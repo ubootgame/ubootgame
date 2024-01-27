@@ -13,8 +13,8 @@ func UpdateObjects(e *ecs.ECS) {
 		positionData := components.Position.Get(entry)
 		object := dresolv.GetObject(entry)
 
-		object.X = positionData.X
-		object.Y = positionData.Y
+		object.X = positionData.Center.X
+		object.Y = positionData.Center.Y
 
 		object.Update()
 	})

@@ -12,7 +12,7 @@ func UpdateMovement(e *ecs.ECS) {
 		velocityData := components.Velocity.Get(entry)
 		positionData := components.Position.Get(entry)
 
-		positionData.X += velocityData.X
-		positionData.Y += velocityData.Y
+		positionData.Center.X += velocityData.X
+		positionData.Center.Y += velocityData.Y
 	})
 }

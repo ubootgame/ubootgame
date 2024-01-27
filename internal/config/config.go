@@ -1,19 +1,21 @@
 package config
 
+import "gonum.org/v1/gonum/spatial/r2"
+
 type Config struct {
-	DefaultWidth  int
-	DefaultHeight int
-	Ratio         float64
-	TargetTPS     int
+	DefaultOuterSize, ActualOuterSize, VirtualResolution r2.Vec
+	TargetTPS                                            int
+	Debug                                                bool
 }
 
 var C *Config
 
 func init() {
 	C = &Config{
-		DefaultWidth:  1200,
-		DefaultHeight: 800,
-		Ratio:         1200.0 / 800.0,
-		TargetTPS:     60,
+		DefaultOuterSize:  r2.Vec{X: 1280, Y: 720},
+		ActualOuterSize:   r2.Vec{X: 1280, Y: 720},
+		VirtualResolution: r2.Vec{X: 1920, Y: 1080},
+		TargetTPS:         60,
+		Debug:             true,
 	}
 }
