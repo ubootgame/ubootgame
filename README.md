@@ -1,5 +1,8 @@
 # ubootgame
 
+- Latest version on Github Pages: https://ubootgame.github.io/ubootgame/
+- Blog on Github Pages: https://ubootgame.github.io/ubootgame/blog/
+
 ## Blogs
 
 We use this [setup](https://t3st3ro.github.io/2022/11/02/self-contained-jekyll-with-docker.html) to avoid installing Jekyll locally.
