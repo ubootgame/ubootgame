@@ -1,5 +1,8 @@
 name: Publish blog and game to Github pages
-on: [push]
+on:
+  push:
+    branches:
+      - main
 permissions:
   contents: read
   pages: write
