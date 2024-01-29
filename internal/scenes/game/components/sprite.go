@@ -6,7 +6,8 @@ import (
 )
 
 type SpriteData struct {
-	Image *ebiten.Image
+	Image     *ebiten.Image
+	DebugText string
 }
 
 var Sprite = donburi.NewComponentType[SpriteData]()

@@ -12,8 +12,37 @@ import (
 	"github.com/yohamta/donburi/filter"
 )
 
-func DrawSprites(e *ecs.ECS, screen *ebiten.Image) {
-	ecs.NewQuery(layers.Foreground, filter.Contains(components.Sprite, components.Position)).Each(e.World, func(entry *donburi.Entry) {
+type sprites struct {
+	query     *donburi.Query
+	debugText string
+}
+
+var Sprites = &sprites{
+	query: ecs.NewQuery(layers.Foreground, filter.Contains(components.Sprite, components.Position)),
+}
+
+func (system *sprites) Update(e *ecs.ECS) {
+	if config.C.Debug {
+		system.query.Each(e.World, func(entry *donburi.Entry) {
+			spriteData := components.Sprite.Get(entry)
+			positionData := components.Position.Get(entry)
+
+			debugText := fmt.Sprintf("Position: %.2f, %.2f\nScale: %.2f",
+				positionData.Center.X, positionData.Center.Y,
+				positionData.Scale)
+
+			if entry.HasComponent(components.Velocity) {
+				velocityData := components.Velocity.Get(entry)
+				debugText += fmt.Sprintf("\nVelocity: %.3f, %.3f", velocityData.X, velocityData.Y)
+			}
+
+			spriteData.DebugText = debugText
+		})
+	}
+}
+
+func (system *sprites) Draw(e *ecs.ECS, screen *ebiten.Image) {
+	system.query.Each(e.World, func(entry *donburi.Entry) {
 		spriteData := components.Sprite.Get(entry)
 		positionData := components.Position.Get(entry)
 
@@ -43,22 +72,11 @@ func DrawSprites(e *ecs.ECS, screen *ebiten.Image) {
 		screen.DrawImage(spriteData.Image, op)
 
 		if config.C.Debug {
-			debugText := fmt.Sprintf("Position: %.2f, %.2f\nScale: %.2f",
-				positionData.Center.X, positionData.Center.Y,
-				positionData.Scale)
+			debugOpts := &ebiten.DrawImageOptions{}
+			debugOpts.GeoM.Translate(float64(sw)/2+(w/2*sizeScale)+(positionData.Center.X*sw), float64(sh)/2+(h/2*sizeScale)+(positionData.Center.Y*sh))
+			debugOpts.GeoM.Concat(utility.CameraMatrix(camera))
 
-			if entry.HasComponent(components.Velocity) {
-				velocityData := components.Velocity.Get(entry)
-				debugText += fmt.Sprintf("\nVelocity: %.3f, %.3f", velocityData.X, velocityData.Y)
-			}
-
-			geom := ebiten.GeoM{}
-
-			geom.Translate(-config.C.VirtualResolution.X/8, -config.C.VirtualResolution.Y/8)
-			geom.Translate(float64(sw)/2+(positionData.Center.X*sw), float64(sh)/2+(positionData.Center.Y*sh))
-			geom.Concat(utility.CameraMatrix(camera))
-
-			printDebugTextAt(screen, debugText, geom)
+			Debug.printDebugTextAt(screen, spriteData.DebugText, debugOpts)
 		}
 	})
 }

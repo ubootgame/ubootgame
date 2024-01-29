@@ -16,3 +16,13 @@ func CameraMatrix(camera *components.CameraData) ebiten.GeoM {
 	m.Translate(camera.ViewportCenter().X, camera.ViewportCenter().Y)
 	return m
 }
+
+func CalculateScalingFactor() float64 {
+	desiredRatio := config.C.VirtualResolution.X / config.C.VirtualResolution.Y
+	outerRatio := config.C.ActualOuterSize.X / config.C.ActualOuterSize.Y
+	scale := config.C.VirtualResolution.Y / config.C.ActualOuterSize.Y
+	if desiredRatio > outerRatio {
+		scale *= desiredRatio / outerRatio
+	}
+	return scale
+}
