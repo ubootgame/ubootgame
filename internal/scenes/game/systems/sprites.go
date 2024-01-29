@@ -52,12 +52,12 @@ func (system *sprites) Draw(e *ecs.ECS, screen *ebiten.Image) {
 		sw, sh := config.C.VirtualResolution.X, config.C.VirtualResolution.Y
 		w, h := float64(spriteData.Image.Bounds().Dx()), float64(spriteData.Image.Bounds().Dy())
 
-		sizeScale := ebiten.DeviceScaleFactor()
+		var sizeScale float64
 		switch positionData.ScaleDirection {
 		case components.Horizontal:
-			sizeScale *= positionData.Scale * (sw / w)
+			sizeScale = positionData.Scale * (sw / w)
 		case components.Vertical:
-			sizeScale *= positionData.Scale * (sh / h)
+			sizeScale = positionData.Scale * (sh / h)
 		}
 
 		op := &ebiten.DrawImageOptions{}
