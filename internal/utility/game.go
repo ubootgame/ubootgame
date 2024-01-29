@@ -36,5 +36,16 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	config.C.ActualOuterSize.X, config.C.ActualOuterSize.Y = float64(outsideWidth), float64(outsideHeight)
+
+	outerRatio := config.C.ActualOuterSize.X / config.C.ActualOuterSize.Y
+
+	if outerRatio <= config.C.Ratio {
+		config.C.VirtualResolution.X = float64(outsideWidth) * ebiten.DeviceScaleFactor()
+		config.C.VirtualResolution.Y = config.C.VirtualResolution.X / config.C.Ratio
+	} else {
+		config.C.VirtualResolution.Y = float64(outsideHeight) * ebiten.DeviceScaleFactor()
+		config.C.VirtualResolution.X = config.C.VirtualResolution.Y * config.C.Ratio
+	}
+
 	return int(config.C.VirtualResolution.X), int(config.C.VirtualResolution.Y)
 }

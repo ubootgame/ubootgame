@@ -45,6 +45,4 @@ func main() {
 	if err := ebiten.RunGame(utility.NewGame(gameScene)); err != nil {
 		log.Fatal(err)
 	}
-
-	select {}
 }

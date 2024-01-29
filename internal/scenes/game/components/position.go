@@ -6,16 +6,8 @@ import (
 )
 
 type PositionData struct {
-	Center         r2.Vec
-	Scale          float64
-	ScaleDirection ScaleDirection
+	Center r2.Vec
+	Size   r2.Vec
 }
 
 var Position = donburi.NewComponentType[PositionData]()
-
-type ScaleDirection int
-
-const (
-	Horizontal ScaleDirection = iota
-	Vertical
-)

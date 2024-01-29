@@ -9,11 +9,11 @@ import (
 
 func CameraMatrix(camera *components.CameraData) ebiten.GeoM {
 	m := ebiten.GeoM{}
-	m.Translate(-camera.Position.X*config.C.VirtualResolution.X, -camera.Position.Y*config.C.VirtualResolution.Y)
-	m.Translate(-camera.ViewportCenter().X, -camera.ViewportCenter().Y)
+	m.Translate(-(camera.Position.X), -(camera.Position.Y))
 	m.Scale(camera.ZoomFactor, camera.ZoomFactor)
 	m.Rotate(float64(camera.Rotation) * 2 * math.Pi / 360)
-	m.Translate(camera.ViewportCenter().X, camera.ViewportCenter().Y)
+	m.Translate(0.5, 0.5/config.C.Ratio)
+	m.Scale(config.C.VirtualResolution.X, config.C.VirtualResolution.X)
 	return m
 }
 

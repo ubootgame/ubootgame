@@ -23,21 +23,55 @@ var Ship = utility.NewArchetype(
 	components.Velocity,
 )
 
-func CreateShip(ecs *ecs.ECS, registry *resources.Registry) *donburi.Entry {
+func CreateShip(ecs *ecs.ECS, registry *resources.Registry, scaler Scaler) *donburi.Entry {
 	ship := Ship.Spawn(ecs, layers.Foreground)
 
 	sprite := registry.LoadImage(assets.Battleship)
-	components.Sprite.SetValue(ship, components.SpriteData{Image: sprite.Data})
+
+	size, scale := scaler.GetNormalSizeAndScale(r2.Vec{X: float64(sprite.Data.Bounds().Size().X), Y: float64(sprite.Data.Bounds().Size().Y)})
+
+	components.Sprite.SetValue(ship, components.SpriteData{
+		Image: sprite.Data,
+		Scale: scale,
+	})
 
 	positionData := components.PositionData{
-		Center:         r2.Vec{},
-		Scale:          0.1,
-		ScaleDirection: components.Horizontal,
+		Center: r2.Vec{},
+		Size:   size,
 	}
 	components.Position.SetValue(ship, positionData)
 
+	// TODO: Convert from world coordinates
 	obj := resolv.NewObject(0, 0, 64, 32)
 	dresolv.SetObject(ship, obj)
 
 	return ship
+}
+
+type Scaler interface {
+	GetNormalSizeAndScale(original r2.Vec) (r2.Vec, float64)
+}
+
+type hScaler struct{ scale float64 }
+
+func (s hScaler) GetNormalSizeAndScale(original r2.Vec) (r2.Vec, float64) {
+	ratio := original.X / original.Y
+	scale := 1.0 / original.X
+	return r2.Vec{X: s.scale, Y: s.scale / ratio}, scale
+}
+
+func HScaler(scale float64) Scaler {
+	return hScaler{scale}
+}
+
+type vScaler struct{ scale float64 }
+
+func (s vScaler) GetNormalSizeAndScale(original r2.Vec) (r2.Vec, float64) {
+	ratio := original.X / original.Y
+	scale := 1.0 / original.Y
+	return r2.Vec{X: s.scale * ratio, Y: s.scale}, scale
+}
+
+func VScaler(scale float64) Scaler {
+	return vScaler{scale}
 }

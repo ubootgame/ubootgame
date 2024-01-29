@@ -27,9 +27,9 @@ func (system *sprites) Update(e *ecs.ECS) {
 			spriteData := components.Sprite.Get(entry)
 			positionData := components.Position.Get(entry)
 
-			debugText := fmt.Sprintf("Position: %.2f, %.2f\nScale: %.2f",
+			debugText := fmt.Sprintf("Position: %.3f, %.3f\nSize: %.3f, %.3f",
 				positionData.Center.X, positionData.Center.Y,
-				positionData.Scale)
+				positionData.Size.X, positionData.Size.Y)
 
 			if entry.HasComponent(components.Velocity) {
 				velocityData := components.Velocity.Get(entry)
@@ -49,22 +49,11 @@ func (system *sprites) Draw(e *ecs.ECS, screen *ebiten.Image) {
 		cameraEntry, _ := components.Camera.First(e.World)
 		camera := components.Camera.Get(cameraEntry)
 
-		sw, sh := config.C.VirtualResolution.X, config.C.VirtualResolution.Y
-		w, h := float64(spriteData.Image.Bounds().Dx()), float64(spriteData.Image.Bounds().Dy())
-
-		var sizeScale float64
-		switch positionData.ScaleDirection {
-		case components.Horizontal:
-			sizeScale = positionData.Scale * (sw / w)
-		case components.Vertical:
-			sizeScale = positionData.Scale * (sh / h)
-		}
-
 		op := &ebiten.DrawImageOptions{}
 
-		op.GeoM.Translate(-w/2, -h/2)
-		op.GeoM.Scale(sizeScale, sizeScale)
-		op.GeoM.Translate(float64(sw)/2+(positionData.Center.X*sw), float64(sh)/2+(positionData.Center.Y*sh))
+		op.GeoM.Translate(-float64(spriteData.Image.Bounds().Size().X/2), -float64(spriteData.Image.Bounds().Size().Y/2))
+		op.GeoM.Scale(spriteData.Scale*positionData.Size.X, spriteData.Scale*positionData.Size.X)
+		op.GeoM.Translate(positionData.Center.X, positionData.Center.Y)
 		op.GeoM.Concat(utility.CameraMatrix(camera))
 
 		op.Filter = ebiten.FilterLinear
@@ -73,7 +62,8 @@ func (system *sprites) Draw(e *ecs.ECS, screen *ebiten.Image) {
 
 		if config.C.Debug {
 			debugOpts := &ebiten.DrawImageOptions{}
-			debugOpts.GeoM.Translate(float64(sw)/2+(w/2*sizeScale)+(positionData.Center.X*sw), float64(sh)/2+(h/2*sizeScale)+(positionData.Center.Y*sh))
+			debugOpts.GeoM.Scale(1/config.C.VirtualResolution.X, 1/config.C.VirtualResolution.X)
+			debugOpts.GeoM.Translate(positionData.Center.X+positionData.Size.X/2, positionData.Center.Y+positionData.Size.Y/2)
 			debugOpts.GeoM.Concat(utility.CameraMatrix(camera))
 
 			Debug.printDebugTextAt(screen, spriteData.DebugText, debugOpts)
