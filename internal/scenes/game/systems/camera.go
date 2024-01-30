@@ -2,13 +2,16 @@ package systems
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 )
 
-const cameraSpeed = 0.01
+const translationSpeed, zoomSpeed = 0.5, 0.1 // world unit
+const rotationSpeed = 2                      // degrees
+const minZoom, maxZoom = 0.5, 2.0
 
 type cameraSystem struct {
 	entry *donburi.Entry
@@ -29,32 +32,32 @@ func (system *cameraSystem) Update(e *ecs.ECS) {
 	utility.SetCameraMatrix(camera)
 
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
-		camera.Position.X -= cameraSpeed
+		camera.Position.X -= translationSpeed / float64(config.C.TargetTPS)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyD) {
-		camera.Position.X += cameraSpeed
+		camera.Position.X += translationSpeed / float64(config.C.TargetTPS)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyW) {
-		camera.Position.Y -= cameraSpeed
+		camera.Position.Y -= translationSpeed / float64(config.C.TargetTPS)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyS) {
-		camera.Position.Y += cameraSpeed
+		camera.Position.Y += translationSpeed / float64(config.C.TargetTPS)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyF) {
-		camera.ZoomFactor = max(0.5, camera.ZoomFactor-0.1)
+		camera.ZoomFactor = max(minZoom, camera.ZoomFactor-zoomSpeed)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyR) {
-		camera.ZoomFactor = min(2.0, camera.ZoomFactor+0.1)
+		camera.ZoomFactor = min(maxZoom, camera.ZoomFactor+zoomSpeed)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyQ) {
-		newCameraRotation := camera.Rotation - 1
+		newCameraRotation := camera.Rotation - rotationSpeed
 		if newCameraRotation < 0 {
 			newCameraRotation = 360 - newCameraRotation
 		}
 		camera.Rotation = newCameraRotation
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyE) {
-		newCameraRotation := camera.Rotation + 1
+		newCameraRotation := camera.Rotation + rotationSpeed
 		if newCameraRotation >= 360 {
 			newCameraRotation = newCameraRotation - 360
 		}

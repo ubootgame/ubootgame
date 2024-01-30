@@ -1,6 +1,7 @@
 package systems
 
 import (
+	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -20,7 +21,7 @@ func (system *movementSystem) Update(e *ecs.ECS) {
 		velocity := components.Velocity.Get(entry)
 		position := components.Position.Get(entry)
 
-		position.Center.X += velocity.X
-		position.Center.Y += velocity.Y
+		position.Center.X += velocity.X / float64(config.C.TargetTPS)
+		position.Center.Y += velocity.Y / float64(config.C.TargetTPS)
 	})
 }

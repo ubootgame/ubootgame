@@ -24,9 +24,9 @@ func (system *playerSystem) Update(e *ecs.ECS) {
 
 	velocity := components.Velocity.Get(system.entry)
 
-	acceleration := 0.0001
+	acceleration := 0.01
 	friction := 0.05
-	maxSpeed := 0.005
+	maxSpeed := 0.25
 
 	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
 		if velocity.X > 0 {

@@ -69,7 +69,8 @@ func (system *spriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 		if config.C.Debug {
 			debugOpts := &ebiten.DrawImageOptions{}
 			debugOpts.GeoM.Scale(1/config.C.VirtualResolution.X, 1/config.C.VirtualResolution.X)
-			debugOpts.GeoM.Translate(position.Center.X+math.Abs(position.Size.X)/2, position.Center.Y+position.Size.Y/2)
+			debugOpts.GeoM.Scale(1.0/camera.ZoomFactor, 1.0/camera.ZoomFactor)
+			debugOpts.GeoM.Translate(position.Center.X+math.Abs(position.Size.X)/2, position.Center.Y+math.Abs(position.Size.Y)/2)
 			debugOpts.GeoM.Concat(*camera.Matrix)
 
 			Debug.printDebugTextAt(screen, sprite.DebugText, debugOpts)
