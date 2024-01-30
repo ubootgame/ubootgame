@@ -1,21 +1,19 @@
 package utility
 
 import (
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"gonum.org/v1/gonum/spatial/r2"
 	"math"
 )
 
-func CameraMatrix(camera *components.CameraData) ebiten.GeoM {
-	m := ebiten.GeoM{}
-	m.Translate(-(camera.Position.X), -(camera.Position.Y))
-	m.Scale(camera.ZoomFactor, camera.ZoomFactor)
-	m.Rotate(float64(camera.Rotation) * 2 * math.Pi / 360)
-	m.Translate(0.5, 0.5/config.C.Ratio)
-	m.Scale(config.C.VirtualResolution.X, config.C.VirtualResolution.X)
-	return m
+func SetCameraMatrix(camera *components.CameraData) {
+	camera.Matrix.Reset()
+	camera.Matrix.Translate(-(camera.Position.X), -(camera.Position.Y))
+	camera.Matrix.Scale(camera.ZoomFactor, camera.ZoomFactor)
+	camera.Matrix.Rotate(float64(camera.Rotation) * 2 * math.Pi / 360)
+	camera.Matrix.Translate(0.5, 0.5/config.C.Ratio)
+	camera.Matrix.Scale(config.C.VirtualResolution.X, config.C.VirtualResolution.X)
 }
 
 func CalculateScreenScalingFactor() float64 {

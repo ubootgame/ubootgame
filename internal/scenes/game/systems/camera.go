@@ -3,6 +3,7 @@ package systems
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
+	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/filter"
@@ -13,6 +14,8 @@ const cameraSpeed = 0.01
 func UpdateCamera(e *ecs.ECS) {
 	cameraEntry, _ := donburi.NewQuery(filter.Contains(components.Camera)).First(e.World)
 	cameraData := components.Camera.Get(cameraEntry)
+
+	utility.SetCameraMatrix(cameraData)
 
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
 		cameraData.Position.X -= cameraSpeed

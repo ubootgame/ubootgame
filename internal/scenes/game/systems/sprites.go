@@ -6,7 +6,6 @@ import (
 	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
-	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/filter"
@@ -55,7 +54,7 @@ func (system *sprites) Draw(e *ecs.ECS, screen *ebiten.Image) {
 		op.GeoM.Translate(-float64(spriteData.Image.Bounds().Size().X/2), -float64(spriteData.Image.Bounds().Size().Y/2))
 		op.GeoM.Scale(spriteData.Scale*positionData.Size.X, spriteData.Scale*positionData.Size.X)
 		op.GeoM.Translate(positionData.Center.X, positionData.Center.Y)
-		op.GeoM.Concat(utility.CameraMatrix(camera))
+		op.GeoM.Concat(*camera.Matrix)
 
 		op.Filter = ebiten.FilterLinear
 
@@ -65,7 +64,7 @@ func (system *sprites) Draw(e *ecs.ECS, screen *ebiten.Image) {
 			debugOpts := &ebiten.DrawImageOptions{}
 			debugOpts.GeoM.Scale(1/config.C.VirtualResolution.X, 1/config.C.VirtualResolution.X)
 			debugOpts.GeoM.Translate(positionData.Center.X+math.Abs(positionData.Size.X)/2, positionData.Center.Y+positionData.Size.Y/2)
-			debugOpts.GeoM.Concat(utility.CameraMatrix(camera))
+			debugOpts.GeoM.Concat(*camera.Matrix)
 
 			Debug.printDebugTextAt(screen, spriteData.DebugText, debugOpts)
 		}

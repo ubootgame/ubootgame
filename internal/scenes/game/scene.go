@@ -57,6 +57,7 @@ func (scene *Scene) setup() {
 	components.Camera.SetValue(cameraEntry, components.CameraData{
 		Position:   r2.Vec{X: 0.0, Y: 0.0},
 		ZoomFactor: 1.0,
+		Matrix:     &ebiten.GeoM{},
 	})
 
 	// Update systems
