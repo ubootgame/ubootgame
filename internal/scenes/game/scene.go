@@ -9,6 +9,7 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems"
+	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -49,6 +50,7 @@ func (scene *Scene) setup() {
 	components.Debug.SetValue(debugEntry, components.DebugData{
 		DrawResolvLines: config.C.Debug,
 		DrawGrid:        config.C.Debug,
+		DrawPositions:   config.C.Debug,
 	})
 
 	cameraEntry := scene.ecs.World.Entry(scene.ecs.World.Create(components.Camera))
@@ -62,7 +64,7 @@ func (scene *Scene) setup() {
 	scene.ecs.AddSystem(systems.Debug.Update)
 	scene.ecs.AddSystem(systems.Objects.Update)
 	scene.ecs.AddSystem(systems.UpdateMovement)
-	scene.ecs.AddSystem(systems.UpdateShip)
+	scene.ecs.AddSystem(systems.UpdatePlayer)
 	scene.ecs.AddSystem(systems.Sprites.Update)
 	scene.ecs.AddSystem(systems.UpdateAseprites)
 
@@ -79,5 +81,8 @@ func (scene *Scene) setup() {
 	space := entities.CreateSpace(scene.ecs)
 
 	resolv.Add(space,
-		entities.CreateShip(scene.ecs, scene.resourceRegistry, entities.HScaler(0.1)))
+		entities.CreatePlayer(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1)),
+		entities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1), r2.Vec{X: -0.7, Y: 0.05}, r2.Vec{X: 0.001}),
+		entities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(-0.1), r2.Vec{X: 0.8, Y: 0.2}, r2.Vec{X: -0.001}),
+	)
 }

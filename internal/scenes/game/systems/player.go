@@ -7,14 +7,14 @@ import (
 	"github.com/yohamta/donburi/ecs"
 )
 
-func UpdateShip(ecs *ecs.ECS) {
-	shipEntry, _ := entities.ShipTag.First(ecs.World)
+func UpdatePlayer(ecs *ecs.ECS) {
+	entry, _ := entities.PlayerTag.First(ecs.World)
 
 	acceleration := 0.0001
 	friction := 0.05
 	maxSpeed := 0.005
 
-	velocityData := components.Velocity.Get(shipEntry)
+	velocityData := components.Velocity.Get(entry)
 
 	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
 		if velocityData.X > 0 {

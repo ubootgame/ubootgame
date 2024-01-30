@@ -73,13 +73,16 @@ func (system *debug) Update(e *ecs.ECS) {
 			system.resolvLinesImage = nil
 		}
 	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyF3) {
+		debugData.DrawPositions = !debugData.DrawPositions
+	}
 
 	if system.ticks%uint64(config.C.TargetTPS*2) == 0 {
 		runtime.ReadMemStats(system.memStats)
 	}
 	system.ticks++
 
-	scale := utility.CalculateScalingFactor()
+	scale := utility.CalculateScreenScalingFactor()
 
 	if scale != system.scale || system.fontFace == nil {
 		system.scale = scale

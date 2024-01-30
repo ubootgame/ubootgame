@@ -9,6 +9,7 @@ type SpriteData struct {
 	Image     *ebiten.Image
 	Scale     float64
 	DebugText string
+	FlipY     bool
 }
 
 var Sprite = donburi.NewComponentType[SpriteData]()

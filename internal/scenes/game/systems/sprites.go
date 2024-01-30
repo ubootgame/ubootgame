@@ -10,6 +10,7 @@ import (
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/filter"
+	"math"
 )
 
 type sprites struct {
@@ -63,7 +64,7 @@ func (system *sprites) Draw(e *ecs.ECS, screen *ebiten.Image) {
 		if config.C.Debug {
 			debugOpts := &ebiten.DrawImageOptions{}
 			debugOpts.GeoM.Scale(1/config.C.VirtualResolution.X, 1/config.C.VirtualResolution.X)
-			debugOpts.GeoM.Translate(positionData.Center.X+positionData.Size.X/2, positionData.Center.Y+positionData.Size.Y/2)
+			debugOpts.GeoM.Translate(positionData.Center.X+math.Abs(positionData.Size.X)/2, positionData.Center.Y+positionData.Size.Y/2)
 			debugOpts.GeoM.Concat(utility.CameraMatrix(camera))
 
 			Debug.printDebugTextAt(screen, spriteData.DebugText, debugOpts)
