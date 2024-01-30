@@ -15,13 +15,13 @@ jobs:
         with:
           lfs: true
       - name: Setup Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
       - run: env GOOS=js GOARCH=wasm go build -o dist/uboot.wasm cmd/main.go
       - run: cp -r static/. dist
       - name: Setup Pages
-        uses: actions/configure-pages@v3
+        uses: actions/configure-pages@v4
       - name: Build
         uses: actions/jekyll-build-pages@v1
         with:
