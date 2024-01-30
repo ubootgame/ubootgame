@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	if config.C.Debug {
+	if ok, _ := utility.GetEnvBool("DEBUG"); ok {
 		defer profile.Start(profile.CPUProfile, profile.MemProfile).Stop()
 
 		go func() {
