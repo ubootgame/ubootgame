@@ -61,19 +61,19 @@ func (scene *Scene) setup() {
 	})
 
 	// Update systems
-	scene.ecs.AddSystem(systems.UpdateCamera)
+	scene.ecs.AddSystem(systems.Camera.Update)
 	scene.ecs.AddSystem(systems.Debug.Update)
-	scene.ecs.AddSystem(systems.Objects.Update)
-	scene.ecs.AddSystem(systems.UpdateMovement)
-	scene.ecs.AddSystem(systems.UpdatePlayer)
-	scene.ecs.AddSystem(systems.Sprites.Update)
-	scene.ecs.AddSystem(systems.UpdateAseprites)
+	scene.ecs.AddSystem(systems.Movement.Update)
+	scene.ecs.AddSystem(systems.Resolv.Update)
+	scene.ecs.AddSystem(systems.Player.Update)
+	scene.ecs.AddSystem(systems.Sprite.Update)
+	scene.ecs.AddSystem(systems.Aseprite.Update)
 
 	// Draw systems
-	scene.ecs.AddRenderer(layers.Water, systems.DrawWater)
-	scene.ecs.AddRenderer(layers.Water, systems.DrawAnimatedWater)
-	scene.ecs.AddRenderer(layers.Foreground, systems.Sprites.Draw)
-	scene.ecs.AddRenderer(layers.Hud, systems.Objects.Draw)
+	scene.ecs.AddRenderer(layers.Water, systems.Water.Draw)
+	scene.ecs.AddRenderer(layers.Water, systems.AnimatedWater.Draw)
+	scene.ecs.AddRenderer(layers.Foreground, systems.Sprite.Draw)
+	scene.ecs.AddRenderer(layers.Hud, systems.Resolv.Draw)
 	scene.ecs.AddRenderer(layers.Hud, systems.Debug.Draw)
 
 	_ = entities.CreateWater(scene.ecs, scene.resourceRegistry)

@@ -7,12 +7,20 @@ import (
 	"github.com/yohamta/donburi/filter"
 )
 
-func UpdateMovement(e *ecs.ECS) {
-	donburi.NewQuery(filter.Contains(components.Position, components.Velocity)).Each(e.World, func(entry *donburi.Entry) {
-		velocityData := components.Velocity.Get(entry)
-		positionData := components.Position.Get(entry)
+type movementSystem struct {
+	query *donburi.Query
+}
 
-		positionData.Center.X += velocityData.X
-		positionData.Center.Y += velocityData.Y
+var Movement = movementSystem{
+	query: donburi.NewQuery(filter.Contains(components.Position, components.Velocity)),
+}
+
+func (system *movementSystem) Update(e *ecs.ECS) {
+	system.query.Each(e.World, func(entry *donburi.Entry) {
+		velocity := components.Velocity.Get(entry)
+		position := components.Position.Get(entry)
+
+		position.Center.X += velocity.X
+		position.Center.Y += velocity.Y
 	})
 }

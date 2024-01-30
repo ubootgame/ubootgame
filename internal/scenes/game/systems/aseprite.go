@@ -7,9 +7,13 @@ import (
 	"github.com/yohamta/donburi/ecs"
 )
 
-func UpdateAseprites(e *ecs.ECS) {
+type asepriteSystem struct{}
+
+var Aseprite = &asepriteSystem{}
+
+func (system *asepriteSystem) Update(e *ecs.ECS) {
 	components.Aseprite.Each(e.World, func(entry *donburi.Entry) {
-		asepriteData := components.Aseprite.Get(entry)
-		asepriteData.Aseprite.Player.Update(1.0 / float32(config.C.TargetTPS) * asepriteData.Speed)
+		aseprite := components.Aseprite.Get(entry)
+		aseprite.Aseprite.Player.Update(1.0 / float32(config.C.TargetTPS) * aseprite.Speed)
 	})
 }

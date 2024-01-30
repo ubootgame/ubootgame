@@ -4,16 +4,28 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
+	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 )
 
-func DrawWater(e *ecs.ECS, screen *ebiten.Image) {
-	waterEntry, _ := entities.WaterTag.First(e.World)
+type waterSystem struct {
+	entry *donburi.Entry
+}
 
-	spriteData := components.Sprite.Get(waterEntry)
+var Water = &waterSystem{}
+
+func (system *waterSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
+	if system.entry == nil {
+		var ok bool
+		if system.entry, ok = entities.WaterTag.First(e.World); !ok {
+			panic("no water found")
+		}
+	}
+
+	sprite := components.Sprite.Get(system.entry)
 
 	sw, sh := float64(screen.Bounds().Dx()), float64(screen.Bounds().Dy())
-	w, h := float64(spriteData.Image.Bounds().Size().X), float64(spriteData.Image.Bounds().Dy())
+	w, h := float64(sprite.Image.Bounds().Size().X), float64(sprite.Image.Bounds().Dy())
 	y := sh / 2
 
 	sizeScale := 0.1 * (sh / h)
@@ -27,7 +39,7 @@ func DrawWater(e *ecs.ECS, screen *ebiten.Image) {
 	op.ColorScale.ScaleAlpha(0.1)
 
 	for x := 0; x <= int(sw/(w*sizeScale)+1); x++ {
-		screen.DrawImage(spriteData.Image, op)
+		screen.DrawImage(sprite.Image, op)
 		op.GeoM.Translate(w*sizeScale, 0)
 	}
 }

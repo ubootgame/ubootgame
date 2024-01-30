@@ -12,61 +12,67 @@ import (
 	"math"
 )
 
-type sprites struct {
-	query     *donburi.Query
-	debugText string
+type spriteSystem struct {
+	cameraEntry *donburi.Entry
+	query       *donburi.Query
+	debugText   string
 }
 
-var Sprites = &sprites{
+var Sprite = &spriteSystem{
 	query: ecs.NewQuery(layers.Foreground, filter.Contains(components.Sprite, components.Position)),
 }
 
-func (system *sprites) Update(e *ecs.ECS) {
+func (system *spriteSystem) Update(e *ecs.ECS) {
+	if system.cameraEntry == nil {
+		var ok bool
+		if system.cameraEntry, ok = components.Camera.First(e.World); !ok {
+			panic("no camera found")
+		}
+	}
+
 	if config.C.Debug {
 		system.query.Each(e.World, func(entry *donburi.Entry) {
-			spriteData := components.Sprite.Get(entry)
-			positionData := components.Position.Get(entry)
+			sprite := components.Sprite.Get(entry)
+			position := components.Position.Get(entry)
 
 			debugText := fmt.Sprintf("Position: %.3f, %.3f\nSize: %.3f, %.3f",
-				positionData.Center.X, positionData.Center.Y,
-				positionData.Size.X, positionData.Size.Y)
+				position.Center.X, position.Center.Y,
+				position.Size.X, position.Size.Y)
 
 			if entry.HasComponent(components.Velocity) {
-				velocityData := components.Velocity.Get(entry)
-				debugText += fmt.Sprintf("\nVelocity: %.3f, %.3f", velocityData.X, velocityData.Y)
+				velocity := components.Velocity.Get(entry)
+				debugText += fmt.Sprintf("\nVelocity: %.3f, %.3f", velocity.X, velocity.Y)
 			}
 
-			spriteData.DebugText = debugText
+			sprite.DebugText = debugText
 		})
 	}
 }
 
-func (system *sprites) Draw(e *ecs.ECS, screen *ebiten.Image) {
+func (system *spriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	system.query.Each(e.World, func(entry *donburi.Entry) {
-		spriteData := components.Sprite.Get(entry)
-		positionData := components.Position.Get(entry)
-
-		cameraEntry, _ := components.Camera.First(e.World)
-		camera := components.Camera.Get(cameraEntry)
+		sprite := components.Sprite.Get(entry)
+		position := components.Position.Get(entry)
+		camera := components.Camera.Get(system.cameraEntry)
 
 		op := &ebiten.DrawImageOptions{}
 
-		op.GeoM.Translate(-float64(spriteData.Image.Bounds().Size().X/2), -float64(spriteData.Image.Bounds().Size().Y/2))
-		op.GeoM.Scale(spriteData.Scale*positionData.Size.X, spriteData.Scale*positionData.Size.X)
-		op.GeoM.Translate(positionData.Center.X, positionData.Center.Y)
+		op.GeoM.Translate(-float64(sprite.Image.Bounds().Size().X/2), -float64(sprite.Image.Bounds().Size().Y/2))
+		op.GeoM.Scale(sprite.Scale*position.Size.X, sprite.Scale*position.Size.X)
+		op.GeoM.Translate(position.Center.X, position.Center.Y)
 		op.GeoM.Concat(*camera.Matrix)
 
 		op.Filter = ebiten.FilterLinear
 
-		screen.DrawImage(spriteData.Image, op)
+		screen.DrawImage(sprite.Image, op)
 
 		if config.C.Debug {
 			debugOpts := &ebiten.DrawImageOptions{}
 			debugOpts.GeoM.Scale(1/config.C.VirtualResolution.X, 1/config.C.VirtualResolution.X)
-			debugOpts.GeoM.Translate(positionData.Center.X+math.Abs(positionData.Size.X)/2, positionData.Center.Y+positionData.Size.Y/2)
+			debugOpts.GeoM.Translate(position.Center.X+math.Abs(position.Size.X)/2, position.Center.Y+position.Size.Y/2)
 			debugOpts.GeoM.Concat(*camera.Matrix)
 
-			Debug.printDebugTextAt(screen, spriteData.DebugText, debugOpts)
+			Debug.printDebugTextAt(screen, sprite.DebugText, debugOpts)
 		}
 	})
 }

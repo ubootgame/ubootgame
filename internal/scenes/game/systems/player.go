@@ -4,31 +4,43 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
+	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 )
 
-func UpdatePlayer(ecs *ecs.ECS) {
-	entry, _ := entities.PlayerTag.First(ecs.World)
+type playerSystem struct {
+	entry *donburi.Entry
+}
+
+var Player = &playerSystem{}
+
+func (system *playerSystem) Update(e *ecs.ECS) {
+	if system.entry == nil {
+		var ok bool
+		if system.entry, ok = entities.PlayerTag.First(e.World); !ok {
+			panic("no player found")
+		}
+	}
+
+	velocity := components.Velocity.Get(system.entry)
 
 	acceleration := 0.0001
 	friction := 0.05
 	maxSpeed := 0.005
 
-	velocityData := components.Velocity.Get(entry)
-
 	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
-		if velocityData.X > 0 {
-			velocityData.X *= 1 - friction
+		if velocity.X > 0 {
+			velocity.X *= 1 - friction
 		}
-		velocityData.X -= acceleration
-		velocityData.X = max(velocityData.X, -maxSpeed)
+		velocity.X -= acceleration
+		velocity.X = max(velocity.X, -maxSpeed)
 	} else if ebiten.IsKeyPressed(ebiten.KeyRight) {
-		if velocityData.X < 0 {
-			velocityData.X *= 1 - friction
+		if velocity.X < 0 {
+			velocity.X *= 1 - friction
 		}
-		velocityData.X += acceleration
-		velocityData.X = min(velocityData.X, maxSpeed)
+		velocity.X += acceleration
+		velocity.X = min(velocity.X, maxSpeed)
 	} else {
-		velocityData.X *= 1 - friction
+		velocity.X *= 1 - friction
 	}
 }

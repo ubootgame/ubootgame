@@ -15,11 +15,11 @@ var Space = utility.NewArchetype(
 )
 
 func CreateSpace(ecs *ecs.ECS) *donburi.Entry {
-	space := Space.Spawn(ecs, layers.Foreground)
+	entry := Space.Spawn(ecs, layers.Foreground)
 
 	cfg := config.C
-	spaceData := resolv.NewSpace(int(cfg.VirtualResolution.X), int(cfg.VirtualResolution.Y), 16, 16)
-	components.Space.Set(space, spaceData)
+	space := resolv.NewSpace(int(cfg.VirtualResolution.X), int(cfg.VirtualResolution.Y), 16, 16)
+	components.Space.Set(entry, space)
 
-	return space
+	return entry
 }
