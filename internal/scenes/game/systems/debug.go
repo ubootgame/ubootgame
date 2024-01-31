@@ -165,15 +165,21 @@ func (system *debugSystem) updateDebugText(debug *components.DebugData, camera *
 
 	ms := system.memStats
 
+	cursorX, cursorY := ebiten.CursorPosition()
+	worldPosition := camera.ScreenToWorldPosition(r2.Vec{X: float64(cursorX), Y: float64(cursorY)})
+	screenPosition := camera.WorldToScreenPosition(worldPosition)
+
 	_, _ = fmt.Fprintf(builder, `(/ to toggle debugSystem)
 Draw grid (F1): %v
 Draw resolv (F2): %v
 FPS: %.1f
 TPS: %.1f
 VSync: %v
+Device scale factor: %.1f
 Keys: %v
-Device fontScale factor: %.2f
-Camera position: %.2f, %.2f
+Cursor screen position: %.0f, %.0f
+Cursor world position: %.3f, %.3f
+Camera position: %.3f, %.3f
 Camera zoom: %.2f
 Camera rotation: %.2f
 Alloc: %s
@@ -186,10 +192,12 @@ NumGC: %d`,
 		ebiten.ActualFPS(),
 		ebiten.ActualTPS(),
 		ebiten.IsVsyncEnabled(),
+		ebiten.DeviceScaleFactor(),
 		strings.Join(lo.Map(system.keys, func(item ebiten.Key, index int) string {
 			return item.String()
 		}), ", "),
-		ebiten.DeviceScaleFactor(),
+		screenPosition.X, screenPosition.Y,
+		worldPosition.X, worldPosition.Y,
 		camera.Position.X, camera.Position.Y,
 		camera.ZoomFactor,
 		camera.Rotation,
