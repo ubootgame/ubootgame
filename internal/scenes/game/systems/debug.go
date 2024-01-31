@@ -14,6 +14,7 @@ import (
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/gofont/gobold"
 	"golang.org/x/image/font/opentype"
+	"gonum.org/v1/gonum/spatial/r2"
 	"image/color"
 	"log"
 	"runtime"
@@ -82,6 +83,19 @@ func (system *debugSystem) Update(e *ecs.ECS) {
 	}
 
 	system.keys = inpututil.AppendPressedKeys(system.keys[:0])
+
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		cursorX, cursorY := ebiten.CursorPosition()
+		worldPosition := camera.ScreenToWorldPosition(r2.Vec{X: float64(cursorX), Y: float64(cursorY)})
+		screenPosition := camera.WorldToScreenPosition(worldPosition)
+
+		fmt.Printf(`Cursor position: %v, %v,
+World position: %.2f, %.2f
+Screen position: %.2f, %.2f`,
+			cursorX, cursorY,
+			worldPosition.X, worldPosition.Y,
+			screenPosition.X, screenPosition.Y)
+	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyF1) {
 		debug.DrawGrid = !debug.DrawGrid
@@ -156,13 +170,13 @@ func (system *debugSystem) updateDebugText(debug *components.DebugData, camera *
 	ms := system.memStats
 
 	_, _ = fmt.Fprintf(builder, `(/ to toggle debugSystem)
+Draw grid (F1): %v
+Draw resolv (F2): %v
 FPS: %.1f
 TPS: %.1f
 VSync: %v
 Keys: %v
 Device scale factor: %.2f
-Draw grid (F1): %v
-Draw resolv (F2): %v
 Camera position: %.2f, %.2f
 Camera zoom: %.2f
 Camera rotation: %.2f
@@ -171,6 +185,8 @@ Total: %s
 Sys: %s
 NextGC: %s
 NumGC: %d`,
+		debug.DrawGrid,
+		debug.DrawResolvLines,
 		ebiten.ActualFPS(),
 		ebiten.ActualTPS(),
 		ebiten.IsVsyncEnabled(),
@@ -178,8 +194,6 @@ NumGC: %d`,
 			return item.String()
 		}), ", "),
 		ebiten.DeviceScaleFactor(),
-		debug.DrawGrid,
-		debug.DrawResolvLines,
 		camera.Position.X, camera.Position.Y,
 		camera.ZoomFactor,
 		camera.Rotation,
