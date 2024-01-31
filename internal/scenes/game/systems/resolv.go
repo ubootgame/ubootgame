@@ -14,24 +14,24 @@ type resolvSystem struct {
 }
 
 var Resolv = &resolvSystem{
-	query: donburi.NewQuery(filter.Contains(components.Position, components.Object)),
+	query: donburi.NewQuery(filter.Contains(components.Transform, components.Object)),
 }
 
 func (system *resolvSystem) Update(e *ecs.ECS) {
 	system.query.Each(e.World, func(entry *donburi.Entry) {
-		position := components.Position.Get(entry)
+		transform := components.Transform.Get(entry)
 		object := dresolv.GetObject(entry)
 
-		object.X = position.Center.X
-		object.Y = position.Center.Y
+		object.X = transform.Center.X
+		object.Y = transform.Center.Y
 
 		object.Update()
 	})
 }
 
 func (system *resolvSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
-	//donburi.NewQuery(filter.Contains(components.Position, components.Object)).Each(e.World, func(debugEntry *donburi.Entry) {
-	//	positionData := components.Position.Get(debugEntry)
+	//donburi.NewQuery(filter.Contains(components.Transform, components.Object)).Each(e.World, func(debugEntry *donburi.Entry) {
+	//	positionData := components.Transform.Get(debugEntry)
 	//	object := dresolv.GetObject(debugEntry)
 	//
 	//	object.X = positionData.Center.X

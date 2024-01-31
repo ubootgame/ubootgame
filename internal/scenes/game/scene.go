@@ -84,6 +84,6 @@ func (scene *Scene) setup() {
 	resolv.Add(space,
 		entities.CreatePlayer(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1)),
 		entities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1), r2.Vec{X: -0.7, Y: 0.05}, r2.Vec{X: 0.1}),
-		entities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(-0.1), r2.Vec{X: 0.8, Y: 0.2}, r2.Vec{X: -0.05}),
+		entities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1), r2.Vec{X: 0.8, Y: 0.2}, r2.Vec{X: -0.05}),
 	)
 }

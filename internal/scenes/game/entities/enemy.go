@@ -19,7 +19,7 @@ var Enemy = utility.NewArchetype(
 	EnemyTag,
 	components.Object,
 	components.Sprite,
-	components.Position,
+	components.Transform,
 	components.Velocity,
 )
 
@@ -34,7 +34,7 @@ func CreateEnemy(ecs *ecs.ECS, registry *resources.Registry, scaler utility.Scal
 		Image: sprite.Data,
 		Scale: scale,
 	})
-	components.Position.SetValue(entry, components.PositionData{
+	components.Transform.SetValue(entry, components.TransformData{
 		Center: position,
 		Size:   size,
 	})

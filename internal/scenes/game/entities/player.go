@@ -19,7 +19,7 @@ var Player = utility.NewArchetype(
 	PlayerTag,
 	components.Object,
 	components.Sprite,
-	components.Position,
+	components.Transform,
 	components.Velocity,
 )
 
@@ -34,7 +34,7 @@ func CreatePlayer(ecs *ecs.ECS, registry *resources.Registry, scaler utility.Sca
 		Image: sprite.Data,
 		Scale: scale,
 	})
-	components.Position.SetValue(entry, components.PositionData{
+	components.Transform.SetValue(entry, components.TransformData{
 		Center: r2.Vec{},
 		Size:   size,
 	})

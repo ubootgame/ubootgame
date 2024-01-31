@@ -13,15 +13,27 @@ type movementSystem struct {
 }
 
 var Movement = movementSystem{
-	query: donburi.NewQuery(filter.Contains(components.Position, components.Velocity)),
+	query: donburi.NewQuery(filter.Contains(components.Transform, components.Velocity)),
 }
 
 func (system *movementSystem) Update(e *ecs.ECS) {
 	system.query.Each(e.World, func(entry *donburi.Entry) {
 		velocity := components.Velocity.Get(entry)
-		position := components.Position.Get(entry)
+		transform := components.Transform.Get(entry)
 
-		position.Center.X += velocity.X / float64(config.C.TargetTPS)
-		position.Center.Y += velocity.Y / float64(config.C.TargetTPS)
+		transform.Center.X += velocity.X / float64(config.C.TargetTPS)
+		transform.Center.Y += velocity.Y / float64(config.C.TargetTPS)
+
+		if velocity.X < 0 {
+			transform.FlipY = true
+		} else if velocity.X > 0 {
+			transform.FlipY = false
+		}
+
+		if velocity.Y < 0 {
+			transform.FlipX = true
+		} else if velocity.Y > 0 {
+			transform.FlipX = false
+		}
 	})
 }
