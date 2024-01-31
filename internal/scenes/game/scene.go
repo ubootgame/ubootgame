@@ -22,6 +22,7 @@ type Scene struct {
 	ecs              *ecs.ECS
 	once             sync.Once
 	resourceRegistry *resources.Registry
+	debugEntry       *donburi.Entry
 }
 
 func NewGameScene(resourceRegistry *resources.Registry) *Scene {
@@ -39,7 +40,21 @@ func (scene *Scene) Update() {
 
 func (scene *Scene) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{R: 4, G: 0, B: 43, A: 255})
-	scene.ecs.Draw(screen)
+
+	if scene.debugEntry == nil {
+		var ok bool
+		if scene.debugEntry, ok = components.Debug.First(scene.ecs.World); !ok {
+			panic("no debug found")
+		}
+	}
+
+	debug := components.Debug.Get(scene.debugEntry)
+
+	scene.ecs.DrawLayer(layers.Background, screen)
+	scene.ecs.DrawLayer(layers.Foreground, screen)
+	if debug.Enabled {
+		scene.ecs.DrawLayer(layers.Debug, screen)
+	}
 }
 
 func (scene *Scene) setup() {
@@ -48,17 +63,13 @@ func (scene *Scene) setup() {
 
 	debugEntry := scene.ecs.World.Entry(scene.ecs.World.Create(components.Debug))
 	components.Debug.SetValue(debugEntry, components.DebugData{
-		DrawResolvLines: config.C.Debug,
-		DrawGrid:        config.C.Debug,
-		DrawPositions:   config.C.Debug,
+		Enabled:         config.C.Debug,
+		DrawResolvLines: true,
+		DrawGrid:        true,
+		DrawPositions:   true,
 	})
 
-	cameraEntry := scene.ecs.World.Entry(scene.ecs.World.Create(components.Camera))
-	components.Camera.SetValue(cameraEntry, components.CameraData{
-		Position:   r2.Vec{X: 0.0, Y: 0.0},
-		ZoomFactor: 1.0,
-		Matrix:     &ebiten.GeoM{},
-	})
+	_ = scene.ecs.World.Entry(scene.ecs.World.Create(components.Camera))
 
 	// Update systems
 	scene.ecs.AddSystem(systems.Camera.Update)
@@ -70,11 +81,11 @@ func (scene *Scene) setup() {
 	scene.ecs.AddSystem(systems.Aseprite.Update)
 
 	// Draw systems
-	scene.ecs.AddRenderer(layers.Water, systems.Water.Draw)
-	scene.ecs.AddRenderer(layers.Water, systems.AnimatedWater.Draw)
+	scene.ecs.AddRenderer(layers.Background, systems.Water.Draw)
+	scene.ecs.AddRenderer(layers.Background, systems.AnimatedWater.Draw)
 	scene.ecs.AddRenderer(layers.Foreground, systems.Sprite.Draw)
-	scene.ecs.AddRenderer(layers.Hud, systems.Resolv.Draw)
-	scene.ecs.AddRenderer(layers.Hud, systems.Debug.Draw)
+	scene.ecs.AddRenderer(layers.Debug, systems.Resolv.Draw)
+	scene.ecs.AddRenderer(layers.Debug, systems.Debug.Draw)
 
 	_ = entities.CreateWater(scene.ecs, scene.resourceRegistry)
 	_ = entities.CreateAnimatedWater(scene.ecs, scene.resourceRegistry)

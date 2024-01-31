@@ -52,14 +52,6 @@ var Debug = &debugSystem{
 }
 
 func (system *debugSystem) Update(e *ecs.ECS) {
-	if inpututil.IsKeyJustPressed(ebiten.KeySlash) {
-		config.C.Debug = !config.C.Debug
-	}
-
-	if !config.C.Debug {
-		return
-	}
-
 	var ok bool
 	if system.debugEntry == nil {
 		if system.debugEntry, ok = components.Debug.First(e.World); !ok {
@@ -74,6 +66,14 @@ func (system *debugSystem) Update(e *ecs.ECS) {
 
 	debug := components.Debug.Get(system.debugEntry)
 	camera := components.Camera.Get(system.cameraEntry)
+
+	if inpututil.IsKeyJustPressed(ebiten.KeySlash) {
+		debug.Enabled = !debug.Enabled
+	}
+
+	if !debug.Enabled {
+		return
+	}
 
 	system.keys = inpututil.AppendPressedKeys(system.keys[:0])
 
@@ -107,15 +107,11 @@ func (system *debugSystem) Update(e *ecs.ECS) {
 }
 
 func (system *debugSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
-	if !config.C.Debug {
-		return
-	}
-
 	debug := components.Debug.Get(system.debugEntry)
 
 	system.printDebugTextAt(screen, system.debugText.String(), &ebiten.DrawImageOptions{})
 
-	if config.C.Debug && debug.DrawResolvLines {
+	if debug.Enabled && debug.DrawResolvLines {
 		if system.resolvLinesImage == nil {
 			system.resolvLinesImage = ebiten.NewImage(screen.Bounds().Size().X, screen.Bounds().Size().Y)
 			system.resolvLinesImage.Clear()

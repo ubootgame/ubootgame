@@ -12,9 +12,9 @@ import (
 )
 
 type spriteSystem struct {
-	cameraEntry *donburi.Entry
-	query       *donburi.Query
-	debugText   string
+	cameraEntry, debugEntry *donburi.Entry
+	query                   *donburi.Query
+	debugText               string
 }
 
 var Sprite = &spriteSystem{
@@ -22,14 +22,21 @@ var Sprite = &spriteSystem{
 }
 
 func (system *spriteSystem) Update(e *ecs.ECS) {
+	var ok bool
 	if system.cameraEntry == nil {
-		var ok bool
 		if system.cameraEntry, ok = components.Camera.First(e.World); !ok {
 			panic("no camera found")
 		}
 	}
+	if system.debugEntry == nil {
+		if system.debugEntry, ok = components.Debug.First(e.World); !ok {
+			panic("no debug found")
+		}
+	}
 
-	if config.C.Debug {
+	debug := components.Debug.Get(system.debugEntry)
+
+	if debug.Enabled && debug.DrawPositions {
 		system.query.Each(e.World, func(entry *donburi.Entry) {
 			sprite := components.Sprite.Get(entry)
 			transform := components.Transform.Get(entry)
@@ -49,6 +56,8 @@ func (system *spriteSystem) Update(e *ecs.ECS) {
 }
 
 func (system *spriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
+	debug := components.Debug.Get(system.debugEntry)
+
 	system.query.Each(e.World, func(entry *donburi.Entry) {
 		sprite := components.Sprite.Get(entry)
 		transform := components.Transform.Get(entry)
@@ -74,7 +83,7 @@ func (system *spriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 
 		screen.DrawImage(sprite.Image, op)
 
-		if config.C.Debug {
+		if debug.Enabled {
 			debugOpts := &ebiten.DrawImageOptions{}
 			debugOpts.GeoM.Scale(1/config.C.VirtualResolution.X, 1/config.C.VirtualResolution.X)
 			debugOpts.GeoM.Scale(1.0/camera.ZoomFactor, 1.0/camera.ZoomFactor)

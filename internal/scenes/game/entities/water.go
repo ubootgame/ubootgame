@@ -10,7 +10,7 @@ import (
 	"github.com/yohamta/donburi/ecs"
 )
 
-var WaterTag = donburi.NewTag().SetName("Water")
+var WaterTag = donburi.NewTag().SetName("Background")
 
 var Water = utility.NewArchetype(
 	WaterTag,
@@ -18,7 +18,7 @@ var Water = utility.NewArchetype(
 )
 
 func CreateWater(ecs *ecs.ECS, registry *resources.Registry) *donburi.Entry {
-	entry := Water.Spawn(ecs, layers.Water)
+	entry := Water.Spawn(ecs, layers.Background)
 
 	sprite := registry.LoadTile(assets.Water, "fishTile_088.png")
 	components.Sprite.SetValue(entry, components.SpriteData{Image: sprite.Data})

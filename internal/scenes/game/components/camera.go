@@ -14,8 +14,6 @@ type CameraData struct {
 }
 
 var Camera = donburi.NewComponentType[CameraData](CameraData{
-	Position:   r2.Vec{},
 	ZoomFactor: 1.0,
-	Rotation:   0.0,
 	Matrix:     &ebiten.GeoM{},
 })
