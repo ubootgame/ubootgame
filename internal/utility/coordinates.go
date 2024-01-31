@@ -1,29 +1,18 @@
 package utility
 
 import (
-	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"gonum.org/v1/gonum/spatial/r2"
 	"math"
 )
 
-func SetCameraMatrix(camera *components.CameraData) {
+func SetCameraMatrix(screen *components.DisplayData, camera *components.CameraData) {
 	camera.Matrix.Reset()
 	camera.Matrix.Translate(-(camera.Position.X), -(camera.Position.Y))
 	camera.Matrix.Scale(camera.ZoomFactor, camera.ZoomFactor)
 	camera.Matrix.Rotate(float64(camera.Rotation) * 2 * math.Pi / 360)
-	camera.Matrix.Translate(0.5, 0.5/config.C.Ratio)
-	camera.Matrix.Scale(config.C.VirtualResolution.X, config.C.VirtualResolution.X)
-}
-
-func CalculateScreenScalingFactor() float64 {
-	desiredRatio := config.C.VirtualResolution.X / config.C.VirtualResolution.Y
-	outerRatio := config.C.ActualOuterSize.X / config.C.ActualOuterSize.Y
-	scale := config.C.VirtualResolution.Y / config.C.ActualOuterSize.Y
-	if desiredRatio > outerRatio {
-		scale *= desiredRatio / outerRatio
-	}
-	return scale
+	camera.Matrix.Translate(0.5, 0.5/screen.Ratio())
+	camera.Matrix.Scale(screen.VirtualResolution.X, screen.VirtualResolution.X)
 }
 
 type Scaler interface {

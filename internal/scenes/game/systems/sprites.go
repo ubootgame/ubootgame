@@ -3,7 +3,6 @@ package systems
 import (
 	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/yohamta/donburi"
@@ -12,9 +11,9 @@ import (
 )
 
 type spriteSystem struct {
-	cameraEntry, debugEntry *donburi.Entry
-	query                   *donburi.Query
-	debugText               string
+	cameraEntry, debugEntry, displayEntry *donburi.Entry
+	query                                 *donburi.Query
+	debugText                             string
 }
 
 var Sprite = &spriteSystem{
@@ -31,6 +30,11 @@ func (system *spriteSystem) Update(e *ecs.ECS) {
 	if system.debugEntry == nil {
 		if system.debugEntry, ok = components.Debug.First(e.World); !ok {
 			panic("no debug found")
+		}
+	}
+	if system.displayEntry == nil {
+		if system.displayEntry, ok = components.Display.First(e.World); !ok {
+			panic("no display found")
 		}
 	}
 
@@ -57,11 +61,12 @@ func (system *spriteSystem) Update(e *ecs.ECS) {
 
 func (system *spriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	debug := components.Debug.Get(system.debugEntry)
+	camera := components.Camera.Get(system.cameraEntry)
+	display := components.Display.Get(system.displayEntry)
 
 	system.query.Each(e.World, func(entry *donburi.Entry) {
 		sprite := components.Sprite.Get(entry)
 		transform := components.Transform.Get(entry)
-		camera := components.Camera.Get(system.cameraEntry)
 
 		op := &ebiten.DrawImageOptions{}
 
@@ -85,7 +90,7 @@ func (system *spriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 
 		if debug.Enabled {
 			debugOpts := &ebiten.DrawImageOptions{}
-			debugOpts.GeoM.Scale(1/config.C.VirtualResolution.X, 1/config.C.VirtualResolution.X)
+			debugOpts.GeoM.Scale(1/display.VirtualResolution.X, 1/display.VirtualResolution.X)
 			debugOpts.GeoM.Scale(1.0/camera.ZoomFactor, 1.0/camera.ZoomFactor)
 			debugOpts.GeoM.Translate(transform.Center.X+transform.Size.X/2, transform.Center.Y+transform.Size.Y/2)
 			debugOpts.GeoM.Concat(*camera.Matrix)

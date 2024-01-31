@@ -34,14 +34,14 @@ func init() {
 }
 
 type debugSystem struct {
-	debugEntry, cameraEntry *donburi.Entry
-	keys                    []ebiten.Key
-	resolvLinesImage        *ebiten.Image
-	memStats                *runtime.MemStats
-	ticks                   uint64
-	scale                   float64
-	fontFace                font.Face
-	debugText               *strings.Builder
+	debugEntry, cameraEntry, displayEntry *donburi.Entry
+	keys                                  []ebiten.Key
+	resolvLinesImage                      *ebiten.Image
+	memStats                              *runtime.MemStats
+	ticks                                 uint64
+	scale                                 float64
+	fontFace                              font.Face
+	debugText                             *strings.Builder
 }
 
 var Debug = &debugSystem{
@@ -63,9 +63,15 @@ func (system *debugSystem) Update(e *ecs.ECS) {
 			panic("no camera found")
 		}
 	}
+	if system.displayEntry == nil {
+		if system.displayEntry, ok = components.Display.First(e.World); !ok {
+			panic("no display found")
+		}
+	}
 
 	debug := components.Debug.Get(system.debugEntry)
 	camera := components.Camera.Get(system.cameraEntry)
+	display := components.Display.Get(system.displayEntry)
 
 	if inpututil.IsKeyJustPressed(ebiten.KeySlash) {
 		debug.Enabled = !debug.Enabled
@@ -96,7 +102,7 @@ func (system *debugSystem) Update(e *ecs.ECS) {
 	}
 	system.ticks++
 
-	scale := utility.CalculateScreenScalingFactor()
+	scale := display.ScalingFactor()
 
 	if scale != system.scale || system.fontFace == nil {
 		system.scale = scale

@@ -14,22 +14,28 @@ const rotationSpeed = 2                      // degrees
 const minZoom, maxZoom = 0.5, 2.0
 
 type cameraSystem struct {
-	entry *donburi.Entry
+	cameraEntry, displayEntry *donburi.Entry
 }
 
 var Camera = &cameraSystem{}
 
 func (system *cameraSystem) Update(e *ecs.ECS) {
-	if system.entry == nil {
-		var ok bool
-		if system.entry, ok = components.Camera.First(e.World); !ok {
+	var ok bool
+	if system.cameraEntry == nil {
+		if system.cameraEntry, ok = components.Camera.First(e.World); !ok {
 			panic("no camera found")
 		}
 	}
+	if system.displayEntry == nil {
+		if system.displayEntry, ok = components.Display.First(e.World); !ok {
+			panic("no display found")
+		}
+	}
 
-	camera := components.Camera.Get(system.entry)
+	camera := components.Camera.Get(system.cameraEntry)
+	display := components.Display.Get(system.displayEntry)
 
-	utility.SetCameraMatrix(camera)
+	utility.SetCameraMatrix(display, camera)
 
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
 		camera.Position.X -= translationSpeed / float64(config.C.TargetTPS)

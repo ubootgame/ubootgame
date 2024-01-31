@@ -25,7 +25,7 @@ func main() {
 	}
 
 	ebiten.SetWindowTitle("U-Boot")
-	ebiten.SetWindowSize(int(config.C.DefaultOuterSize.X), int(config.C.DefaultOuterSize.Y))
+	ebiten.SetWindowSize(int(config.C.DefaultWindowSize.X), int(config.C.DefaultWindowSize.Y))
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.SetTPS(config.C.TargetTPS)
 	ebiten.SetVsyncEnabled(true)

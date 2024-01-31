@@ -13,6 +13,7 @@ import (
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
+	"github.com/yohamta/donburi/features/events"
 	"gonum.org/v1/gonum/spatial/r2"
 	"image/color"
 	"sync"
@@ -26,15 +27,29 @@ type Scene struct {
 }
 
 func NewGameScene(resourceRegistry *resources.Registry) *Scene {
-	return &Scene{resourceRegistry: resourceRegistry}
+	world := donburi.NewWorld()
+	return &Scene{
+		ecs:              ecs.NewECS(world),
+		resourceRegistry: resourceRegistry,
+	}
 }
 
 func (scene *Scene) Assets() *resources.Library {
 	return assets.Assets
 }
 
+func (scene *Scene) AdjustScreen(windowSize r2.Vec, virtualResolution r2.Vec) {
+	systems.ScreenUpdatedEvent.Publish(scene.ecs.World, systems.ScreenUpdatedEventData{
+		WindowSize:        windowSize,
+		VirtualResolution: virtualResolution,
+	})
+}
+
 func (scene *Scene) Update() {
 	scene.once.Do(scene.setup)
+
+	events.ProcessAllEvents(scene.ecs.World)
+
 	scene.ecs.Update()
 }
 
@@ -58,9 +73,6 @@ func (scene *Scene) Draw(screen *ebiten.Image) {
 }
 
 func (scene *Scene) setup() {
-	world := donburi.NewWorld()
-	scene.ecs = ecs.NewECS(world)
-
 	debugEntry := scene.ecs.World.Entry(scene.ecs.World.Create(components.Debug))
 	components.Debug.SetValue(debugEntry, components.DebugData{
 		Enabled:         config.C.Debug,
@@ -70,6 +82,9 @@ func (scene *Scene) setup() {
 	})
 
 	_ = scene.ecs.World.Entry(scene.ecs.World.Create(components.Camera))
+
+	displayEntry := scene.ecs.World.Entry(scene.ecs.World.Create(components.Display))
+	display := components.Display.Get(displayEntry)
 
 	// Update systems
 	scene.ecs.AddSystem(systems.Camera.Update)
@@ -87,10 +102,13 @@ func (scene *Scene) setup() {
 	scene.ecs.AddRenderer(layers.Debug, systems.Resolv.Draw)
 	scene.ecs.AddRenderer(layers.Debug, systems.Debug.Draw)
 
+	// Events
+	systems.ScreenUpdatedEvent.Subscribe(scene.ecs.World, systems.Display.UpdateScreen)
+
 	_ = entities.CreateWater(scene.ecs, scene.resourceRegistry)
 	_ = entities.CreateAnimatedWater(scene.ecs, scene.resourceRegistry)
 
-	space := entities.CreateSpace(scene.ecs)
+	space := entities.CreateSpace(scene.ecs, r2.Scale(2, display.VirtualResolution))
 
 	resolv.Add(space,
 		entities.CreatePlayer(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1)),
