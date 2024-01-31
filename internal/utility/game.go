@@ -4,10 +4,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
+	"gonum.org/v1/gonum/spatial/r2"
 )
 
 type Scene interface {
 	Assets() *resources.Library
+	AdjustScreen(windowSize r2.Vec, virtualResolution r2.Vec, scalingFactor float64)
 	Update()
 	Draw(screen *ebiten.Image)
 }
@@ -17,11 +19,7 @@ type Game struct {
 }
 
 func NewGame(scene Scene) *Game {
-	g := &Game{
-		scene: scene,
-	}
-
-	return g
+	return &Game{scene: scene}
 }
 
 func (g *Game) Update() error {
@@ -35,17 +33,20 @@ func (g *Game) Draw(screen *ebiten.Image) {
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	config.C.ActualOuterSize.X, config.C.ActualOuterSize.Y = float64(outsideWidth), float64(outsideHeight)
+	var windowSize, virtualResolution r2.Vec
 
-	outerRatio := config.C.ActualOuterSize.X / config.C.ActualOuterSize.Y
+	windowSize.X, windowSize.Y = float64(outsideWidth), float64(outsideHeight)
+	outerRatio := windowSize.X / windowSize.Y
 
 	if outerRatio <= config.C.Ratio {
-		config.C.VirtualResolution.X = float64(outsideWidth) * ebiten.DeviceScaleFactor()
-		config.C.VirtualResolution.Y = config.C.VirtualResolution.X / config.C.Ratio
+		virtualResolution.X = float64(outsideWidth) * ebiten.DeviceScaleFactor()
+		virtualResolution.Y = virtualResolution.X / config.C.Ratio
 	} else {
-		config.C.VirtualResolution.Y = float64(outsideHeight) * ebiten.DeviceScaleFactor()
-		config.C.VirtualResolution.X = config.C.VirtualResolution.Y * config.C.Ratio
+		virtualResolution.Y = float64(outsideHeight) * ebiten.DeviceScaleFactor()
+		virtualResolution.X = virtualResolution.Y * config.C.Ratio
 	}
 
-	return int(config.C.VirtualResolution.X), int(config.C.VirtualResolution.Y)
+	g.scene.AdjustScreen(windowSize, virtualResolution, ebiten.DeviceScaleFactor())
+
+	return int(virtualResolution.X), int(virtualResolution.Y)
 }

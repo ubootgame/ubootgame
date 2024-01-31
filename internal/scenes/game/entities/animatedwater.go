@@ -1,7 +1,7 @@
 package entities
 
 import (
-	assets2 "github.com/ubootgame/ubootgame/internal/scenes/game/assets"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility"
@@ -10,7 +10,7 @@ import (
 	"github.com/yohamta/donburi/ecs"
 )
 
-var AnimatedWaterTag = donburi.NewTag().SetName("Animated Water")
+var AnimatedWaterTag = donburi.NewTag().SetName("Animated Background")
 
 var AnimatedWater = utility.NewArchetype(
 	AnimatedWaterTag,
@@ -18,12 +18,12 @@ var AnimatedWater = utility.NewArchetype(
 )
 
 func CreateAnimatedWater(ecs *ecs.ECS, registry *resources.Registry) *donburi.Entry {
-	water := AnimatedWater.Spawn(ecs, layers.Water)
+	entry := AnimatedWater.Spawn(ecs, layers.Background)
 
-	aseprite := registry.LoadAseprite(assets2.AnimatedWater)
-	components.Aseprite.SetValue(water, components.AsepriteData{Aseprite: aseprite, Speed: 0.5})
+	aseprite := registry.LoadAseprite(assets.AnimatedWater)
+	components.Aseprite.SetValue(entry, components.AsepriteData{Aseprite: aseprite, Speed: 0.5})
 
 	_ = aseprite.Player.Play("")
 
-	return water
+	return entry
 }

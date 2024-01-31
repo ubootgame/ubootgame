@@ -8,11 +8,14 @@ import (
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/events"
 	"github.com/ubootgame/ubootgame/internal/utility"
+	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/gofont/gobold"
 	"golang.org/x/image/font/opentype"
+	"gonum.org/v1/gonum/spatial/r2"
 	"image/color"
 	"log"
 	"runtime"
@@ -32,46 +35,80 @@ func init() {
 	}
 }
 
-type debug struct {
-	keys             []ebiten.Key
-	resolvLinesImage *ebiten.Image
-	memStats         *runtime.MemStats
-	ticks            uint64
-	scale            float64
-	fontFace         font.Face
-	debugText        *strings.Builder
+type debugSystem struct {
+	debugEntry, cameraEntry, displayEntry *donburi.Entry
+	keys                                  []ebiten.Key
+	resolvLinesImage                      *ebiten.Image
+	memStats                              *runtime.MemStats
+	ticks                                 uint64
+	fontScale                             float64
+	fontFace                              font.Face
+	debugText                             *strings.Builder
 }
 
-var Debug = &debug{
+var Debug = &debugSystem{
 	keys:      make([]ebiten.Key, 0),
 	memStats:  &runtime.MemStats{},
-	scale:     1.0,
+	fontScale: 1.0,
 	debugText: &strings.Builder{},
 }
 
-func (system *debug) Update(e *ecs.ECS) {
-	if inpututil.IsKeyJustPressed(ebiten.KeySlash) {
-		config.C.Debug = !config.C.Debug
+func (system *debugSystem) Update(e *ecs.ECS) {
+	var ok bool
+	if system.debugEntry == nil {
+		if system.debugEntry, ok = components.Debug.First(e.World); !ok {
+			panic("no debug found")
+		}
+	}
+	if system.cameraEntry == nil {
+		if system.cameraEntry, ok = components.Camera.First(e.World); !ok {
+			panic("no camera found")
+		}
+	}
+	if system.displayEntry == nil {
+		if system.displayEntry, ok = components.Display.First(e.World); !ok {
+			panic("no display found")
+		}
 	}
 
-	if !config.C.Debug {
+	debug := components.Debug.Get(system.debugEntry)
+	camera := components.Camera.Get(system.cameraEntry)
+
+	if inpututil.IsKeyJustPressed(ebiten.KeySlash) {
+		debug.Enabled = !debug.Enabled
+	}
+
+	if !debug.Enabled {
 		return
 	}
 
-	debugEntry, _ := components.Debug.First(e.World)
-	debugData := components.Debug.Get(debugEntry)
-
 	system.keys = inpututil.AppendPressedKeys(system.keys[:0])
 
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		cursorX, cursorY := ebiten.CursorPosition()
+		worldPosition := camera.ScreenToWorldPosition(r2.Vec{X: float64(cursorX), Y: float64(cursorY)})
+		screenPosition := camera.WorldToScreenPosition(worldPosition)
+
+		fmt.Printf(`Cursor position: %v, %v,
+World position: %.2f, %.2f
+Screen position: %.2f, %.2f`,
+			cursorX, cursorY,
+			worldPosition.X, worldPosition.Y,
+			screenPosition.X, screenPosition.Y)
+	}
+
 	if inpututil.IsKeyJustPressed(ebiten.KeyF1) {
-		debugData.DrawGrid = !debugData.DrawGrid
+		debug.DrawGrid = !debug.DrawGrid
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyF2) {
-		debugData.DrawResolvLines = !debugData.DrawResolvLines
-		if !debugData.DrawResolvLines && system.resolvLinesImage != nil {
+		debug.DrawResolvLines = !debug.DrawResolvLines
+		if !debug.DrawResolvLines && system.resolvLinesImage != nil {
 			system.resolvLinesImage.Dispose()
 			system.resolvLinesImage = nil
 		}
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyF3) {
+		debug.DrawPositions = !debug.DrawPositions
 	}
 
 	if system.ticks%uint64(config.C.TargetTPS*2) == 0 {
@@ -79,29 +116,15 @@ func (system *debug) Update(e *ecs.ECS) {
 	}
 	system.ticks++
 
-	scale := utility.CalculateScalingFactor()
-
-	if scale != system.scale || system.fontFace == nil {
-		system.scale = scale
-		system.updateFontFace(scale)
-	}
+	system.updateDebugText(debug, camera, system.debugText)
 }
 
-func (system *debug) Draw(e *ecs.ECS, screen *ebiten.Image) {
-	if !config.C.Debug {
-		return
-	}
+func (system *debugSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
+	debug := components.Debug.Get(system.debugEntry)
 
-	debugEntry, _ := components.Debug.First(e.World)
-	debugData := components.Debug.Get(debugEntry)
-
-	cameraEntry, _ := components.Camera.First(e.World)
-	cameraData := components.Camera.Get(cameraEntry)
-
-	system.createDebugText(debugData, cameraData, system.debugText)
 	system.printDebugTextAt(screen, system.debugText.String(), &ebiten.DrawImageOptions{})
 
-	if config.C.Debug && debugData.DrawResolvLines {
+	if debug.Enabled && debug.DrawResolvLines {
 		if system.resolvLinesImage == nil {
 			system.resolvLinesImage = ebiten.NewImage(screen.Bounds().Size().X, screen.Bounds().Size().Y)
 			system.resolvLinesImage.Clear()
@@ -121,32 +144,35 @@ func (system *debug) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	}
 }
 
-func (system *debug) updateFontFace(scale float64) {
-	var err error
+func (system *debugSystem) UpdateFontFace(_ donburi.World, event events.DisplayUpdatedEventData) {
+	if system.fontScale != event.ScalingFactor || system.fontFace == nil {
+		var err error
 
-	system.fontFace, err = opentype.NewFace(debugFont, &opentype.FaceOptions{
-		Size:    defaultFontSize * scale,
-		DPI:     dpi,
-		Hinting: font.HintingVertical,
-	})
-	if err != nil {
-		log.Fatal(err)
+		system.fontScale = event.ScalingFactor
+		system.fontFace, err = opentype.NewFace(debugFont, &opentype.FaceOptions{
+			Size:    defaultFontSize * event.ScalingFactor,
+			DPI:     dpi,
+			Hinting: font.HintingVertical,
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
-func (system *debug) createDebugText(debugData *components.DebugData, cameraData *components.CameraData, builder *strings.Builder) {
+func (system *debugSystem) updateDebugText(debug *components.DebugData, camera *components.CameraData, builder *strings.Builder) {
 	builder.Reset()
 
 	ms := system.memStats
 
-	_, _ = fmt.Fprintf(builder, `(/ to toggle debug)
+	_, _ = fmt.Fprintf(builder, `(/ to toggle debugSystem)
+Draw grid (F1): %v
+Draw resolv (F2): %v
 FPS: %.1f
 TPS: %.1f
 VSync: %v
 Keys: %v
-Device scale factor: %.2f
-Draw grid (F1): %v
-Draw resolv (F2): %v
+Device fontScale factor: %.2f
 Camera position: %.2f, %.2f
 Camera zoom: %.2f
 Camera rotation: %.2f
@@ -155,6 +181,8 @@ Total: %s
 Sys: %s
 NextGC: %s
 NumGC: %d`,
+		debug.DrawGrid,
+		debug.DrawResolvLines,
 		ebiten.ActualFPS(),
 		ebiten.ActualTPS(),
 		ebiten.IsVsyncEnabled(),
@@ -162,15 +190,13 @@ NumGC: %d`,
 			return item.String()
 		}), ", "),
 		ebiten.DeviceScaleFactor(),
-		debugData.DrawGrid,
-		debugData.DrawResolvLines,
-		cameraData.Position.X, cameraData.Position.Y,
-		cameraData.ZoomFactor,
-		cameraData.Rotation,
+		camera.Position.X, camera.Position.Y,
+		camera.ZoomFactor,
+		camera.Rotation,
 		utility.FormatBytes(ms.Alloc), utility.FormatBytes(ms.TotalAlloc), utility.FormatBytes(ms.Sys),
 		utility.FormatBytes(ms.NextGC), ms.NumGC)
 }
 
-func (system *debug) printDebugTextAt(screen *ebiten.Image, debugText string, opts *ebiten.DrawImageOptions) {
+func (system *debugSystem) printDebugTextAt(screen *ebiten.Image, debugText string, opts *ebiten.DrawImageOptions) {
 	utility.DrawTextAtWithOptions(screen, debugText, system.fontFace, opts)
 }

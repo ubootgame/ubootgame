@@ -2,48 +2,71 @@ package systems
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
+	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
-	"github.com/yohamta/donburi/filter"
 )
 
-const cameraSpeed = 0.01
+const translationSpeed, zoomSpeed = 0.5, 0.1 // world unit
+const rotationSpeed = 2                      // degrees
+const minZoom, maxZoom = 0.5, 2.0
 
-func UpdateCamera(e *ecs.ECS) {
-	cameraEntry, _ := donburi.NewQuery(filter.Contains(components.Camera)).First(e.World)
-	cameraData := components.Camera.Get(cameraEntry)
+type cameraSystem struct {
+	cameraEntry, displayEntry *donburi.Entry
+}
+
+var Camera = &cameraSystem{}
+
+func (system *cameraSystem) Update(e *ecs.ECS) {
+	var ok bool
+	if system.cameraEntry == nil {
+		if system.cameraEntry, ok = components.Camera.First(e.World); !ok {
+			panic("no camera found")
+		}
+	}
+	if system.displayEntry == nil {
+		if system.displayEntry, ok = components.Display.First(e.World); !ok {
+			panic("no display found")
+		}
+	}
+
+	camera := components.Camera.Get(system.cameraEntry)
+	display := components.Display.Get(system.displayEntry)
+
+	utility.SetCameraMatrix(display, camera)
 
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
-		cameraData.Position.X -= cameraSpeed
+		camera.Position.X -= translationSpeed / float64(config.C.TargetTPS)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyD) {
-		cameraData.Position.X += cameraSpeed
+		camera.Position.X += translationSpeed / float64(config.C.TargetTPS)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyW) {
-		cameraData.Position.Y -= cameraSpeed
+		camera.Position.Y -= translationSpeed / float64(config.C.TargetTPS)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyS) {
-		cameraData.Position.Y += cameraSpeed
+		camera.Position.Y += translationSpeed / float64(config.C.TargetTPS)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyF) {
-		cameraData.ZoomFactor = max(0.5, cameraData.ZoomFactor-0.1)
+		camera.ZoomFactor = max(minZoom, camera.ZoomFactor-zoomSpeed)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyR) {
-		cameraData.ZoomFactor = min(2.0, cameraData.ZoomFactor+0.1)
+		camera.ZoomFactor = min(maxZoom, camera.ZoomFactor+zoomSpeed)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyQ) {
-		newCameraRotation := cameraData.Rotation - 1
+		newCameraRotation := camera.Rotation - rotationSpeed
 		if newCameraRotation < 0 {
 			newCameraRotation = 360 - newCameraRotation
 		}
-		cameraData.Rotation = newCameraRotation
+		camera.Rotation = newCameraRotation
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyE) {
-		newCameraRotation := cameraData.Rotation + 1
+		newCameraRotation := camera.Rotation + rotationSpeed
 		if newCameraRotation >= 360 {
 			newCameraRotation = newCameraRotation - 360
 		}
-		cameraData.Rotation = newCameraRotation
+		camera.Rotation = newCameraRotation
 	}
 }
