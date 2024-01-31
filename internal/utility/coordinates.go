@@ -6,13 +6,13 @@ import (
 	"math"
 )
 
-func SetCameraMatrix(screen *components.DisplayData, camera *components.CameraData) {
+func SetCameraMatrix(display *components.DisplayData, camera *components.CameraData) {
 	camera.Matrix.Reset()
 	camera.Matrix.Translate(-(camera.Position.X), -(camera.Position.Y))
 	camera.Matrix.Scale(camera.ZoomFactor, camera.ZoomFactor)
 	camera.Matrix.Rotate(float64(camera.Rotation) * 2 * math.Pi / 360)
-	camera.Matrix.Translate(0.5, 0.5/screen.Ratio())
-	camera.Matrix.Scale(screen.VirtualResolution.X, screen.VirtualResolution.X)
+	camera.Matrix.Translate(0.5, 0.5/display.Ratio())
+	camera.Matrix.Scale(display.VirtualResolution.X, display.VirtualResolution.X)
 }
 
 type Scaler interface {

@@ -7,13 +7,14 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/events"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems"
 	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
-	"github.com/yohamta/donburi/features/events"
+	devents "github.com/yohamta/donburi/features/events"
 	"gonum.org/v1/gonum/spatial/r2"
 	"image/color"
 	"sync"
@@ -38,17 +39,18 @@ func (scene *Scene) Assets() *resources.Library {
 	return assets.Assets
 }
 
-func (scene *Scene) AdjustScreen(windowSize r2.Vec, virtualResolution r2.Vec) {
-	systems.ScreenUpdatedEvent.Publish(scene.ecs.World, systems.ScreenUpdatedEventData{
+func (scene *Scene) AdjustScreen(windowSize r2.Vec, virtualResolution r2.Vec, scalingFactor float64) {
+	events.DisplayUpdatedEvent.Publish(scene.ecs.World, events.DisplayUpdatedEventData{
 		WindowSize:        windowSize,
 		VirtualResolution: virtualResolution,
+		ScalingFactor:     scalingFactor,
 	})
 }
 
 func (scene *Scene) Update() {
 	scene.once.Do(scene.setup)
 
-	events.ProcessAllEvents(scene.ecs.World)
+	devents.ProcessAllEvents(scene.ecs.World)
 
 	scene.ecs.Update()
 }
@@ -103,7 +105,8 @@ func (scene *Scene) setup() {
 	scene.ecs.AddRenderer(layers.Debug, systems.Debug.Draw)
 
 	// Events
-	systems.ScreenUpdatedEvent.Subscribe(scene.ecs.World, systems.Display.UpdateScreen)
+	events.DisplayUpdatedEvent.Subscribe(scene.ecs.World, systems.Display.UpdateDisplay)
+	events.DisplayUpdatedEvent.Subscribe(scene.ecs.World, systems.Debug.UpdateFontFace)
 
 	_ = entities.CreateWater(scene.ecs, scene.resourceRegistry)
 	_ = entities.CreateAnimatedWater(scene.ecs, scene.resourceRegistry)

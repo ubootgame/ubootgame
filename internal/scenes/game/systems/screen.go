@@ -2,9 +2,8 @@ package systems
 
 import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/events"
 	"github.com/yohamta/donburi"
-	"github.com/yohamta/donburi/features/events"
-	"gonum.org/v1/gonum/spatial/r2"
 )
 
 type displaySystem struct {
@@ -13,7 +12,7 @@ type displaySystem struct {
 
 var Display = &displaySystem{}
 
-func (system *displaySystem) UpdateScreen(w donburi.World, event ScreenUpdatedEventData) {
+func (system *displaySystem) UpdateDisplay(w donburi.World, event events.DisplayUpdatedEventData) {
 	if system.entry == nil {
 		var ok bool
 		if system.entry, ok = components.Display.First(w); !ok {
@@ -25,10 +24,5 @@ func (system *displaySystem) UpdateScreen(w donburi.World, event ScreenUpdatedEv
 
 	display.WindowSize = event.WindowSize
 	display.VirtualResolution = event.VirtualResolution
+	display.ScalingFactor = event.ScalingFactor
 }
-
-type ScreenUpdatedEventData struct {
-	WindowSize, VirtualResolution r2.Vec
-}
-
-var ScreenUpdatedEvent = events.NewEventType[ScreenUpdatedEventData]()

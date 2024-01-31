@@ -9,7 +9,7 @@ import (
 
 type Scene interface {
 	Assets() *resources.Library
-	AdjustScreen(windowSize r2.Vec, virtualResolution r2.Vec)
+	AdjustScreen(windowSize r2.Vec, virtualResolution r2.Vec, scalingFactor float64)
 	Update()
 	Draw(screen *ebiten.Image)
 }
@@ -46,7 +46,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 		virtualResolution.X = virtualResolution.Y * config.C.Ratio
 	}
 
-	g.scene.AdjustScreen(windowSize, virtualResolution)
+	g.scene.AdjustScreen(windowSize, virtualResolution, ebiten.DeviceScaleFactor())
 
 	return int(virtualResolution.X), int(virtualResolution.Y)
 }

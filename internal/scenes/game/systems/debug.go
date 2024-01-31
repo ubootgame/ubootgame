@@ -8,6 +8,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/events"
 	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -40,7 +41,7 @@ type debugSystem struct {
 	resolvLinesImage                      *ebiten.Image
 	memStats                              *runtime.MemStats
 	ticks                                 uint64
-	scale                                 float64
+	fontScale                             float64
 	fontFace                              font.Face
 	debugText                             *strings.Builder
 }
@@ -48,7 +49,7 @@ type debugSystem struct {
 var Debug = &debugSystem{
 	keys:      make([]ebiten.Key, 0),
 	memStats:  &runtime.MemStats{},
-	scale:     1.0,
+	fontScale: 1.0,
 	debugText: &strings.Builder{},
 }
 
@@ -72,7 +73,6 @@ func (system *debugSystem) Update(e *ecs.ECS) {
 
 	debug := components.Debug.Get(system.debugEntry)
 	camera := components.Camera.Get(system.cameraEntry)
-	display := components.Display.Get(system.displayEntry)
 
 	if inpututil.IsKeyJustPressed(ebiten.KeySlash) {
 		debug.Enabled = !debug.Enabled
@@ -116,13 +116,6 @@ Screen position: %.2f, %.2f`,
 	}
 	system.ticks++
 
-	scale := display.ScalingFactor()
-
-	if scale != system.scale || system.fontFace == nil {
-		system.scale = scale
-		system.updateFontFace(scale)
-	}
-
 	system.updateDebugText(debug, camera, system.debugText)
 }
 
@@ -151,16 +144,19 @@ func (system *debugSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	}
 }
 
-func (system *debugSystem) updateFontFace(scale float64) {
-	var err error
+func (system *debugSystem) UpdateFontFace(_ donburi.World, event events.DisplayUpdatedEventData) {
+	if system.fontScale != event.ScalingFactor || system.fontFace == nil {
+		var err error
 
-	system.fontFace, err = opentype.NewFace(debugFont, &opentype.FaceOptions{
-		Size:    defaultFontSize * scale,
-		DPI:     dpi,
-		Hinting: font.HintingVertical,
-	})
-	if err != nil {
-		log.Fatal(err)
+		system.fontScale = event.ScalingFactor
+		system.fontFace, err = opentype.NewFace(debugFont, &opentype.FaceOptions{
+			Size:    defaultFontSize * event.ScalingFactor,
+			DPI:     dpi,
+			Hinting: font.HintingVertical,
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
@@ -176,7 +172,7 @@ FPS: %.1f
 TPS: %.1f
 VSync: %v
 Keys: %v
-Device scale factor: %.2f
+Device fontScale factor: %.2f
 Camera position: %.2f, %.2f
 Camera zoom: %.2f
 Camera rotation: %.2f
