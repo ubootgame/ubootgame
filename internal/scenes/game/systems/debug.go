@@ -8,10 +8,13 @@ import (
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/events"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
+	"github.com/yohamta/donburi/filter"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/gofont/gobold"
 	"golang.org/x/image/font/opentype"
@@ -91,7 +94,7 @@ func (system *debugSystem) Update(e *ecs.ECS) {
 
 		fmt.Printf(`Cursor position: %v, %v,
 World position: %.2f, %.2f
-Screen position: %.2f, %.2f`,
+Screen position: %.2f, %.2f\n`,
 			cursorX, cursorY,
 			worldPosition.X, worldPosition.Y,
 			screenPosition.X, screenPosition.Y)
@@ -109,6 +112,13 @@ Screen position: %.2f, %.2f`,
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyF3) {
 		debug.DrawPositions = !debug.DrawPositions
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyF12) {
+		ecs.NewQuery(layers.Foreground, filter.Contains(entities.BulletTag)).Each(e.World, func(entry *donburi.Entry) {
+			transform := components.Transform.Get(entry)
+			velocity := components.Velocity.Get(entry)
+			fmt.Printf("%v %v\n", transform, velocity)
+		})
 	}
 
 	if system.ticks%uint64(config.C.TargetTPS*2) == 0 {
