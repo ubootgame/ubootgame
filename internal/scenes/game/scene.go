@@ -93,6 +93,7 @@ func (scene *Scene) setup() {
 	scene.ecs.AddSystem(systems.Player.Update)
 	scene.ecs.AddSystem(systems.Sprite.Update)
 	scene.ecs.AddSystem(systems.Aseprite.Update)
+	scene.ecs.AddSystem(systems.Bullet.Update)
 
 	// Draw systems
 	scene.ecs.AddRenderer(layers.Background, systems.Water.Draw)

@@ -2,6 +2,7 @@ package systems
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/quartercastle/vector"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
 	"github.com/yohamta/donburi"
@@ -21,17 +22,35 @@ var Bullet = &bulletSystem{
 	query: donburi.NewQuery(filter.Contains(entities.BulletTag)),
 }
 
-func (system *bulletSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
-	if system.image == nil {
-		system.image = ebiten.NewImage(2, 2)
-		system.image.Fill(colornames.White)
-	}
-
+func (system *bulletSystem) Update(e *ecs.ECS) {
 	if system.cameraEntry == nil {
 		var ok bool
 		if system.cameraEntry, ok = components.Camera.First(e.World); !ok {
 			panic("no camera found")
 		}
+	}
+
+	camera := components.Camera.Get(system.cameraEntry)
+
+	entities.BulletTag.Each(e.World, func(bulletEntry *donburi.Entry) {
+		transform := components.Transform.Get(bulletEntry)
+
+		bulletScreen := camera.WorldToScreenPosition(transform.Center)
+
+		entities.EnemyTag.Each(e.World, func(enemyEntry *donburi.Entry) {
+			shape := components.Shape.Get(enemyEntry)
+
+			if shape.PointInside(vector.Vector{bulletScreen.X, bulletScreen.Y}) {
+				e.World.Remove(enemyEntry.Entity())
+			}
+		})
+	})
+}
+
+func (system *bulletSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
+	if system.image == nil {
+		system.image = ebiten.NewImage(2, 2)
+		system.image.Fill(colornames.White)
 	}
 
 	camera := components.Camera.Get(system.cameraEntry)
