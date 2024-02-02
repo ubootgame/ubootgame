@@ -101,6 +101,7 @@ func (scene *Scene) setup() {
 	scene.ecs.AddRenderer(layers.Background, systems.Water.Draw)
 	scene.ecs.AddRenderer(layers.Background, systems.AnimatedWater.Draw)
 	scene.ecs.AddRenderer(layers.Foreground, systems.Sprite.Draw)
+	scene.ecs.AddRenderer(layers.Foreground, systems.Bullet.Draw)
 	scene.ecs.AddRenderer(layers.Debug, systems.Resolv.Draw)
 	scene.ecs.AddRenderer(layers.Debug, systems.Debug.Draw)
 
