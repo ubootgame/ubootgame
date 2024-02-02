@@ -1,8 +1,6 @@
 package entities
 
 import (
-	"github.com/solarlune/resolv"
-	dresolv "github.com/ubootgame/ubootgame/internal/resolv"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility"
@@ -15,7 +13,7 @@ var BulletTag = donburi.NewTag().SetName("Bullet")
 
 var Bullet = utility.NewArchetype(
 	BulletTag,
-	components.Object,
+	components.Shape,
 	components.Transform,
 	components.Velocity,
 )
@@ -30,10 +28,6 @@ func CreateBullet(ecs *ecs.ECS, from, to r2.Vec) *donburi.Entry {
 		Center: from,
 	})
 	components.Velocity.SetValue(entry, r2.Scale(1, velocity))
-
-	// TODO: Convert from world coordinates
-	obj := resolv.NewObject(0, 0, 64, 32)
-	dresolv.SetObject(entry, obj)
 
 	return entry
 }

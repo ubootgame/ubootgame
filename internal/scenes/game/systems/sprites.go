@@ -5,6 +5,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
+	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/filter"
@@ -88,14 +89,18 @@ func (system *spriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 
 		screen.DrawImage(sprite.Image, op)
 
-		if debug.Enabled {
-			debugOpts := &ebiten.DrawImageOptions{}
-			debugOpts.GeoM.Scale(1/display.VirtualResolution.X, 1/display.VirtualResolution.X)
-			debugOpts.GeoM.Scale(1.0/camera.ZoomFactor, 1.0/camera.ZoomFactor)
-			debugOpts.GeoM.Translate(transform.Center.X+transform.Size.X/2, transform.Center.Y+transform.Size.Y/2)
-			debugOpts.GeoM.Concat(*camera.Matrix)
-
-			Debug.printDebugTextAt(screen, sprite.DebugText, debugOpts)
+		if debug.Enabled && debug.DrawPositions {
+			system.drawDebug(display, camera, transform, screen, sprite)
 		}
 	})
+}
+
+func (system *spriteSystem) drawDebug(display *components.DisplayData, camera *components.CameraData, transform *components.TransformData, screen *ebiten.Image, sprite *components.SpriteData) {
+	debugOpts := &ebiten.DrawImageOptions{}
+	debugOpts.GeoM.Scale(1/display.VirtualResolution.X, 1/display.VirtualResolution.X)
+	debugOpts.GeoM.Scale(1.0/camera.ZoomFactor, 1.0/camera.ZoomFactor)
+	debugOpts.GeoM.Translate(transform.Center.X+transform.Size.X/2, transform.Center.Y+transform.Size.Y/2)
+	debugOpts.GeoM.Concat(*camera.Matrix)
+
+	utility.Debug.PrintDebugTextAt(screen, sprite.DebugText, debugOpts)
 }

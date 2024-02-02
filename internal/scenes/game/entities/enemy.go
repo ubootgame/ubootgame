@@ -2,7 +2,6 @@ package entities
 
 import (
 	"github.com/solarlune/resolv"
-	dresolv "github.com/ubootgame/ubootgame/internal/resolv"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
@@ -17,7 +16,7 @@ var EnemyTag = donburi.NewTag().SetName("Enemy")
 
 var Enemy = utility.NewArchetype(
 	EnemyTag,
-	components.Object,
+	components.Shape,
 	components.Sprite,
 	components.Transform,
 	components.Velocity,
@@ -40,9 +39,8 @@ func CreateEnemy(ecs *ecs.ECS, registry *resources.Registry, scaler utility.Scal
 	})
 	components.Velocity.SetValue(entry, velocity)
 
-	// TODO: Convert from world coordinates
-	obj := resolv.NewObject(0, 0, 64, 32)
-	dresolv.SetObject(entry, obj)
+	shapePosition := r2.Vec{X: position.X - size.X/2, Y: position.Y - size.Y/2}
+	components.Shape.SetValue(entry, *resolv.NewRectangle(shapePosition.X, shapePosition.Y, size.X, size.Y))
 
 	return entry
 }

@@ -6,7 +6,7 @@ import (
 	"math"
 )
 
-func SetCameraMatrix(display *components.DisplayData, camera *components.CameraData) {
+func UpdateCameraMatrix(display *components.DisplayData, camera *components.CameraData) {
 	camera.Matrix.Reset()
 	camera.Matrix.Translate(-(camera.Position.X), -(camera.Position.Y))
 	camera.Matrix.Scale(camera.ZoomFactor, camera.ZoomFactor)
