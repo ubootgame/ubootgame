@@ -1,8 +1,6 @@
 package entities
 
 import (
-	"github.com/solarlune/resolv"
-	dresolv "github.com/ubootgame/ubootgame/internal/resolv"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
@@ -17,7 +15,6 @@ var PlayerTag = donburi.NewTag().SetName("Player")
 
 var Player = utility.NewArchetype(
 	PlayerTag,
-	components.Object,
 	components.Sprite,
 	components.Transform,
 	components.Velocity,
@@ -38,10 +35,6 @@ func CreatePlayer(ecs *ecs.ECS, registry *resources.Registry, scaler utility.Sca
 		Center: r2.Vec{},
 		Size:   size,
 	})
-
-	// TODO: Convert from world coordinates
-	obj := resolv.NewObject(0, 0, 64, 32)
-	dresolv.SetObject(entry, obj)
 
 	return entry
 }

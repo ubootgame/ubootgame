@@ -3,7 +3,6 @@ package game
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal/config"
-	"github.com/ubootgame/ubootgame/internal/resolv"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
@@ -77,16 +76,14 @@ func (scene *Scene) Draw(screen *ebiten.Image) {
 func (scene *Scene) setup() {
 	debugEntry := scene.ecs.World.Entry(scene.ecs.World.Create(components.Debug))
 	components.Debug.SetValue(debugEntry, components.DebugData{
-		Enabled:         config.C.Debug,
-		DrawResolvLines: true,
-		DrawGrid:        true,
-		DrawPositions:   true,
+		Enabled:        config.C.Debug,
+		DrawGrid:       true,
+		DrawCollisions: true,
+		DrawPositions:  true,
 	})
 
 	_ = scene.ecs.World.Entry(scene.ecs.World.Create(components.Camera))
-
-	displayEntry := scene.ecs.World.Entry(scene.ecs.World.Create(components.Display))
-	display := components.Display.Get(displayEntry)
+	_ = scene.ecs.World.Entry(scene.ecs.World.Create(components.Display))
 
 	// Update systems
 	scene.ecs.AddSystem(systems.Camera.Update)
@@ -107,16 +104,12 @@ func (scene *Scene) setup() {
 
 	// Events
 	events.DisplayUpdatedEvent.Subscribe(scene.ecs.World, systems.Display.UpdateDisplay)
-	events.DisplayUpdatedEvent.Subscribe(scene.ecs.World, systems.Debug.UpdateFontFace)
+	events.DisplayUpdatedEvent.Subscribe(scene.ecs.World, utility.Debug.UpdateFontFace)
 
 	_ = entities.CreateWater(scene.ecs, scene.resourceRegistry)
 	_ = entities.CreateAnimatedWater(scene.ecs, scene.resourceRegistry)
 
-	space := entities.CreateSpace(scene.ecs, r2.Scale(2, display.VirtualResolution))
-
-	resolv.Add(space,
-		entities.CreatePlayer(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1)),
-		entities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1), r2.Vec{X: -0.7, Y: 0.05}, r2.Vec{X: 0.1}),
-		entities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1), r2.Vec{X: 0.8, Y: 0.2}, r2.Vec{X: -0.05}),
-	)
+	entities.CreatePlayer(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1))
+	entities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1), r2.Vec{X: -0.7, Y: 0.05}, r2.Vec{X: 0.1})
+	entities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1), r2.Vec{X: 0.8, Y: 0.2}, r2.Vec{X: -0.05})
 }

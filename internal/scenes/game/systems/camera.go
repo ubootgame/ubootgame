@@ -35,7 +35,7 @@ func (system *cameraSystem) Update(e *ecs.ECS) {
 	camera := components.Camera.Get(system.cameraEntry)
 	display := components.Display.Get(system.displayEntry)
 
-	utility.SetCameraMatrix(display, camera)
+	utility.UpdateCameraMatrix(display, camera)
 
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
 		camera.Position.X -= translationSpeed / float64(config.C.TargetTPS)
