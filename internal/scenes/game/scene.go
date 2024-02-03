@@ -24,6 +24,7 @@ type Scene struct {
 	once             sync.Once
 	resourceRegistry *resources.Registry
 	debugEntry       *donburi.Entry
+	menuEntry        *donburi.Entry
 }
 
 func NewGameScene(resourceRegistry *resources.Registry) *Scene {
@@ -57,17 +58,16 @@ func (scene *Scene) Update() {
 func (scene *Scene) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{R: 4, G: 0, B: 43, A: 255})
 
-	if scene.debugEntry == nil {
-		var ok bool
-		if scene.debugEntry, ok = components.Debug.First(scene.ecs.World); !ok {
-			panic("no debug found")
-		}
-	}
-
 	debug := components.Debug.Get(scene.debugEntry)
+	menu := components.Menu.Get(scene.menuEntry)
 
 	scene.ecs.DrawLayer(layers.Background, screen)
 	scene.ecs.DrawLayer(layers.Foreground, screen)
+
+	if menu.IsOpen {
+		scene.ecs.DrawLayer(layers.Menu, screen)
+	}
+
 	if debug.Enabled {
 		scene.ecs.DrawLayer(layers.Debug, screen)
 	}
@@ -81,6 +81,11 @@ func (scene *Scene) setup() {
 		DrawCollisions: true,
 		DrawPositions:  true,
 	})
+	scene.debugEntry = debugEntry
+
+	menuEntry := scene.ecs.World.Entry(scene.ecs.World.Create(components.Menu))
+	components.Menu.SetValue(menuEntry, components.MenuData{})
+	scene.menuEntry = menuEntry
 
 	_ = scene.ecs.World.Entry(scene.ecs.World.Create(components.Camera))
 	_ = scene.ecs.World.Entry(scene.ecs.World.Create(components.Display))
@@ -94,6 +99,7 @@ func (scene *Scene) setup() {
 	scene.ecs.AddSystem(systems.Sprite.Update)
 	scene.ecs.AddSystem(systems.Aseprite.Update)
 	scene.ecs.AddSystem(systems.Bullet.Update)
+	scene.ecs.AddSystem(systems.Menu.Update)
 
 	// Draw systems
 	scene.ecs.AddRenderer(layers.Background, systems.Water.Draw)
@@ -102,6 +108,7 @@ func (scene *Scene) setup() {
 	scene.ecs.AddRenderer(layers.Foreground, systems.Bullet.Draw)
 	scene.ecs.AddRenderer(layers.Debug, systems.Resolv.Draw)
 	scene.ecs.AddRenderer(layers.Debug, systems.Debug.Draw)
+	scene.ecs.AddRenderer(layers.Menu, systems.Menu.Draw)
 
 	// Events
 	events.DisplayUpdatedEvent.Subscribe(scene.ecs.World, systems.Display.UpdateDisplay)
