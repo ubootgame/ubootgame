@@ -1,16 +1,147 @@
 <!DOCTYPE html>
-<script src="wasm_exec.js"></script>
-<script>
-// Polyfill
-if (!WebAssembly.instantiateStreaming) {
-    WebAssembly.instantiateStreaming = async (resp, importObject) => {
-        const source = await (await resp).arrayBuffer();
-        return await WebAssembly.instantiate(source, importObject);
-    };
-}
+<html lang="en">
 
-const go = new Go();
-WebAssembly.instantiateStreaming(fetch("uboot.wasm"), go.importObject).then(result => {
-    go.run(result.instance);
-});
-</script>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+    <title>ubootgame | We are building a uboot game in public.</title>
+    <meta name="generator" content="Jekyll v3.9.3" />
+    <meta property="og:title" content="ubootgame" />
+    <meta name="author" content="ubootgame" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="description" content="We are building a uboot game in public." />
+    <meta property="og:description" content="We are building a uboot game in public." />
+    <link rel="canonical" href="https://ubootgame.github.io/ubootgame/" />
+    <meta property="og:url" content="https://ubootgame.github.io/ubootgame/" />
+    <meta property="og:site_name" content="ubootgame" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
+    <meta property="twitter:title" content="ubootgame" />
+    <script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","author":{"@type":"Person","name":"ubootgame"},"description":"We are building a uboot game in public.","headline":"ubootgame","name":"ubootgame","url":"https://ubootgame.github.io/ubootgame/"}</script>
+    <!-- End Jekyll SEO tag -->
+    <link rel="stylesheet" href="https://ubootgame.github.io/ubootgame/blog/assets/css/style.css">
+    <link type="application/atom+xml" rel="alternate" href="https://ubootgame.github.io/ubootgame/blog/feed.xml"
+        title="ubootgame" />
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="wrapper"><a class="site-title" rel="author"
+                href="https://ubootgame.github.io/ubootgame/blog/">ubootgame</a></div>
+    </header>
+    <main class="page-content" aria-label="Content">
+        <div class="wrapper">
+            <div class="home">
+                <p><img src="https://ubootgame.github.io/ubootgame/blog/images/header.png" alt="" /></p>
+
+                <blockquote>
+                    <p>Lightning cracks, thick rain drops fall down relentlessly, making it almost impossible to see
+                        outside. The wind howls around the bridge, rolling the ship in the giant waves. We’re being
+                        hunted.</p>
+                </blockquote>
+                <p>Ubootgame is the working title of a game we are <a
+                        href="https://www.upsilonit.com/blog/how-to-build-a-startup-in-public-an-actionable-guide">building
+                        in public</a>. The game is free-to-play on this page while in development. We write about our
+                    ideas for the game, progress and development challenges on <a
+                        href="https://ubootgame.github.io/ubootgame/blog/">our blog.</a></p>
+
+                <center>
+                    <iframe style="border:0" src="game.html" width="640" height="480"></iframe><br />
+                    <a href="https://ubootgame.github.io/ubootgame/game.html">Play fullscreen</a>
+                </center>
+            </div>
+        </div>
+    </main>
+    <footer class="site-footer h-card">
+        <data class="u-url" href="https://ubootgame.github.io/ubootgame/blog/"></data>
+
+        <div class="wrapper">
+
+            <div class="footer-col-wrapper">
+                <div class="footer-col">
+                    <p class="feed-subscribe">
+                        <a href="https://ubootgame.github.io/ubootgame/blog/feed.xml">
+                            <svg class="svg-icon orange">
+                                <use
+                                    xlink:href="https://ubootgame.github.io/ubootgame/blog/assets/minima-social-icons.svg#rss">
+                                </use>
+                            </svg><span>Subscribe</span>
+                        </a>
+                    </p>
+                    <ul class="contact-list">
+                        <li class="p-name">ubootgame</li>
+                        <li><a class="u-email" href="mailto:not@available.com">not@available.com</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <p>We are building a uboot game in public.</p>
+                </div>
+            </div>
+
+            <div class="social-links">
+                <ul class="social-media-list">
+                    <li>
+                        <a rel="me" href="https://github.com/ubootgame" target="_blank" title="github">
+                            <svg class="svg-icon grey">
+                                <use
+                                    xlink:href="https://ubootgame.github.io/ubootgame/blog/assets/minima-social-icons.svg#github">
+                                </use>
+                            </svg>
+                        </a>
+                    </li>
+                    <li>
+                        <a rel="me" href="https://instagram.com/ubootgame" target="_blank" title="instagram">
+                            <svg class="svg-icon grey">
+                                <use
+                                    xlink:href="https://ubootgame.github.io/ubootgame/blog/assets/minima-social-icons.svg#instagram">
+                                </use>
+                            </svg>
+                        </a>
+                    </li>
+                    <li>
+                        <a rel="me" href="https://dev.to/uboot-game" target="_blank" title="devto">
+                            <svg class="svg-icon grey">
+                                <use
+                                    xlink:href="https://ubootgame.github.io/ubootgame/blog/assets/minima-social-icons.svg#devto">
+                                </use>
+                            </svg>
+                        </a>
+                    </li>
+                    <li>
+                        <a rel="me" href="https://ubootgame.substack.com/" target="_blank" title="substack">
+                            <svg class="svg-icon grey">
+                                <use
+                                    xlink:href="https://ubootgame.github.io/ubootgame/blog/assets/minima-social-icons.svg#substack">
+                                </use>
+                            </svg>
+                        </a>
+                    </li>
+                    <li>
+                        <a rel="me" href="https://medium.com/uboot-game" target="_blank" title="medium">
+                            <svg class="svg-icon grey">
+                                <use
+                                    xlink:href="https://ubootgame.github.io/ubootgame/blog/assets/minima-social-icons.svg#medium">
+                                </use>
+                            </svg>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://ubootgame.github.io/ubootgame/blog/feed.xml" target="_blank" title="rss">
+                            <svg class="svg-icon grey">
+                                <use
+                                    xlink:href="https://ubootgame.github.io/ubootgame/blog/assets/minima-social-icons.svg#rss">
+                                </use>
+                            </svg>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+    </footer>
+</body>
+
+</html>
