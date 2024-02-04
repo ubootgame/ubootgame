@@ -1,0 +1,22 @@
+[
+  {
+    "key": "DefaultWindowSize.X",
+    "value": 1280,
+    "priority": 1
+  },
+  {
+    "key": "DefaultWindowSize.Y",
+    "value": 720,
+    "priority": 1
+  },
+  {
+    "key": "TargetTPS",
+    "value": 60,
+    "priority": 1
+  },
+  {
+    "key": "Debug",
+    "value": true,
+    "priority": 1
+  }
+]
