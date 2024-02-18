@@ -10,8 +10,6 @@ github.com/ebitengine/oto/v3 v3.1.0/go.mod h1:IK1QTnlfZK2GIB6ziyECm433hAdTaPpOsG
 github.com/ebitengine/purego v0.3.0/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
 github.com/ebitengine/purego v0.5.2 h1:r2MQEtkGzZ4LRtFZVAg5bjYKnUbxxloaeuGxH0t7qfs=
 github.com/ebitengine/purego v0.5.2/go.mod h1:ah1In8AOtksoNK6yk5z1HTJeUkC1Ez4Wk2idgGslMwQ=
-github.com/ebitenui/ebitenui v0.5.5 h1:L9UCWmiMlo4sG5TavQKmjfsnwMmYqkld2tXWZMmKkSA=
-github.com/ebitenui/ebitenui v0.5.5/go.mod h1:CkzAwu9Ks32P+NC/7+iypdLA85Wqnn93UztPFE+kAH4=
 github.com/felixge/fgprof v0.9.3 h1:VvyZxILNuCiUCSXtPtYmmtGvb65nqXh2QFWc0Wpf2/g=
 github.com/felixge/fgprof v0.9.3/go.mod h1:RdbpDgzqYVh/T9fPELJyV7EYJuHB55UTEULNun8eiPw=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20221017161538-93cebf72946b/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
@@ -66,6 +64,8 @@ github.com/tidwall/match v1.1.1 h1:+Ho715JplO36QYgwN9PGYNhgZvoUSc9X2c80KVTi+GA=
 github.com/tidwall/match v1.1.1/go.mod h1:eRSPERbgtNPcGhD8UCthc6PmLEQXEWd3PRB5JTxsfmM=
 github.com/tidwall/pretty v1.2.0 h1:RWIZEg2iJ8/g6fDDYzMpobmaoGh5OLl4AXtGUGPcqCs=
 github.com/tidwall/pretty v1.2.0/go.mod h1:ITEVvHYasfjBbM0u2Pg8T2nJnzm8xPwvNhhsoaGGjNU=
+github.com/ubootgame/ebitenui v0.0.0-20240218210037-43144428f627 h1:/Xvse6+3fVk4xfp1oxNW2g4Zqcgazx4+xIrlV3+xa6Y=
+github.com/ubootgame/ebitenui v0.0.0-20240218210037-43144428f627/go.mod h1:CkzAwu9Ks32P+NC/7+iypdLA85Wqnn93UztPFE+kAH4=
 github.com/yohamta/donburi v1.3.12 h1:BAAKIdDiyC/9U5wIbaiLUrXe0krdFPOKi/nKqhjQFhg=
 github.com/yohamta/donburi v1.3.12/go.mod h1:9b47EaagtSk4oEULgiXPcE9b59/hU1PxzYlG0Gq5Pfc=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=

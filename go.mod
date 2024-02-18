@@ -1,6 +1,8 @@
 module github.com/ubootgame/ubootgame
 
-go 1.20
+go 1.22
+
+replace github.com/ebitenui/ebitenui v0.5.5 => github.com/ubootgame/ebitenui v0.0.0-20240218210037-43144428f627
 
 require (
 	github.com/ebitenui/ebitenui v0.5.5
@@ -35,3 +37,4 @@ require (
 	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 )
+
