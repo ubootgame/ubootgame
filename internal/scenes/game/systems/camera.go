@@ -70,3 +70,17 @@ func (system *cameraSystem) Update(e *ecs.ECS) {
 		camera.Rotation = newCameraRotation
 	}
 }
+
+func min(a float64, b float64) float64 {
+	if a > b {
+		return b
+	}
+	return a
+}
+
+func max(a float64, b float64) float64 {
+	if a < b {
+		return b
+	}
+	return a
+}

@@ -6,4 +6,5 @@ const (
 	Background ecs.LayerID = iota
 	Foreground
 	Debug
+	Menu
 )
