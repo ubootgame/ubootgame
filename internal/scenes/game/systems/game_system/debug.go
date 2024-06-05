@@ -6,9 +6,9 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal/config"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/weapons"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/yohamta/donburi"
@@ -79,9 +79,9 @@ func (system *debugSystem) Update(e *ecs.ECS) {
 		debug.DrawPositions = !debug.DrawPositions
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyF12) {
-		ecs.NewQuery(layers.Foreground, filter.Contains(entities.BulletTag)).Each(e.World, func(entry *donburi.Entry) {
-			transform := components.Transform.Get(entry)
-			velocity := components.Velocity.Get(entry)
+		ecs.NewQuery(layers.Foreground, filter.Contains(weapons.BulletTag)).Each(e.World, func(entry *donburi.Entry) {
+			transform := geometry.Transform.Get(entry)
+			velocity := geometry.Velocity.Get(entry)
 			fmt.Printf("%v %v\n", transform, velocity)
 		})
 	}

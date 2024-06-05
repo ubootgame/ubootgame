@@ -1,8 +1,9 @@
-package entities
+package actors
 
 import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
@@ -15,9 +16,9 @@ var PlayerTag = donburi.NewTag().SetName("Player")
 
 var Player = utility.NewArchetype(
 	PlayerTag,
-	components.Sprite,
-	components.Transform,
-	components.Velocity,
+	visuals.Sprite,
+	geometry.Transform,
+	geometry.Velocity,
 )
 
 func CreatePlayer(ecs *ecs.ECS, registry *resources.Registry, scaler utility.Scaler) *donburi.Entry {
@@ -27,11 +28,11 @@ func CreatePlayer(ecs *ecs.ECS, registry *resources.Registry, scaler utility.Sca
 
 	size, scale := scaler.GetNormalSizeAndScale(r2.Vec{X: float64(sprite.Data.Bounds().Size().X), Y: float64(sprite.Data.Bounds().Size().Y)})
 
-	components.Sprite.SetValue(entry, components.SpriteData{
+	visuals.Sprite.SetValue(entry, visuals.SpriteData{
 		Image: sprite.Data,
 		Scale: scale,
 	})
-	components.Transform.SetValue(entry, components.TransformData{
+	geometry.Transform.SetValue(entry, geometry.TransformData{
 		Center: r2.Vec{},
 		Size:   size,
 	})

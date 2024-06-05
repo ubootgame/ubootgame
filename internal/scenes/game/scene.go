@@ -5,11 +5,16 @@ import (
 	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	gameSystemComponents "github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
+	actorEntities "github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
+	environmentEntities "github.com/ubootgame/ubootgame/internal/scenes/game/entities/environment"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/events"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems"
+	actorSystems "github.com/ubootgame/ubootgame/internal/scenes/game/systems/actors"
+	environmentSystems "github.com/ubootgame/ubootgame/internal/scenes/game/systems/environment"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_system"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/visuals"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/weapons"
 	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
 	"github.com/yohamta/donburi"
@@ -94,16 +99,16 @@ func (scene *Scene) setup() {
 	scene.ecs.AddSystem(game_system.Debug.Update)
 	scene.ecs.AddSystem(systems.Movement.Update)
 	scene.ecs.AddSystem(systems.Resolv.Update)
-	scene.ecs.AddSystem(systems.Player.Update)
-	scene.ecs.AddSystem(systems.Sprite.Update)
-	scene.ecs.AddSystem(systems.Aseprite.Update)
-	scene.ecs.AddSystem(systems.Bullet.Update)
+	scene.ecs.AddSystem(actorSystems.Player.Update)
+	scene.ecs.AddSystem(visuals.Sprite.Update)
+	scene.ecs.AddSystem(visuals.Aseprite.Update)
+	scene.ecs.AddSystem(weapons.Bullet.Update)
 
 	// Draw systems
-	scene.ecs.AddRenderer(layers.Background, systems.Water.Draw)
-	scene.ecs.AddRenderer(layers.Background, systems.AnimatedWater.Draw)
-	scene.ecs.AddRenderer(layers.Foreground, systems.Sprite.Draw)
-	scene.ecs.AddRenderer(layers.Foreground, systems.Bullet.Draw)
+	scene.ecs.AddRenderer(layers.Background, environmentSystems.Water.Draw)
+	scene.ecs.AddRenderer(layers.Background, environmentSystems.AnimatedWater.Draw)
+	scene.ecs.AddRenderer(layers.Foreground, visuals.Sprite.Draw)
+	scene.ecs.AddRenderer(layers.Foreground, weapons.Bullet.Draw)
 	scene.ecs.AddRenderer(layers.Debug, systems.Resolv.Draw)
 	scene.ecs.AddRenderer(layers.Debug, game_system.Debug.Draw)
 
@@ -111,10 +116,10 @@ func (scene *Scene) setup() {
 	events.DisplayUpdatedEvent.Subscribe(scene.ecs.World, game_system.Display.UpdateDisplay)
 	events.DisplayUpdatedEvent.Subscribe(scene.ecs.World, utility.Debug.UpdateFontFace)
 
-	_ = entities.CreateWater(scene.ecs, scene.resourceRegistry)
-	_ = entities.CreateAnimatedWater(scene.ecs, scene.resourceRegistry)
+	_ = environmentEntities.CreateWater(scene.ecs, scene.resourceRegistry)
+	_ = environmentEntities.CreateAnimatedWater(scene.ecs, scene.resourceRegistry)
 
-	entities.CreatePlayer(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1))
-	entities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1), r2.Vec{X: -0.7, Y: 0.05}, r2.Vec{X: 0.1})
-	entities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1), r2.Vec{X: 0.8, Y: 0.2}, r2.Vec{X: -0.05})
+	actorEntities.CreatePlayer(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1))
+	actorEntities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1), r2.Vec{X: -0.7, Y: 0.05}, r2.Vec{X: 0.1})
+	actorEntities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1), r2.Vec{X: 0.8, Y: 0.2}, r2.Vec{X: -0.05})
 }

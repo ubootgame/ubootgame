@@ -1,10 +1,11 @@
-package systems
+package visuals
 
 import (
 	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/yohamta/donburi"
@@ -19,7 +20,7 @@ type spriteSystem struct {
 }
 
 var Sprite = &spriteSystem{
-	query: ecs.NewQuery(layers.Foreground, filter.Contains(components.Sprite, components.Transform)),
+	query: ecs.NewQuery(layers.Foreground, filter.Contains(visuals.Sprite, geometry.Transform)),
 }
 
 func (system *spriteSystem) Update(e *ecs.ECS) {
@@ -44,15 +45,15 @@ func (system *spriteSystem) Update(e *ecs.ECS) {
 
 	if debug.Enabled && debug.DrawPositions {
 		system.query.Each(e.World, func(entry *donburi.Entry) {
-			sprite := components.Sprite.Get(entry)
-			transform := components.Transform.Get(entry)
+			sprite := visuals.Sprite.Get(entry)
+			transform := geometry.Transform.Get(entry)
 
 			debugText := fmt.Sprintf("Transform: %.3f, %.3f\nSize: %.3f, %.3f",
 				transform.Center.X, transform.Center.Y,
 				transform.Size.X, transform.Size.Y)
 
-			if entry.HasComponent(components.Velocity) {
-				velocity := components.Velocity.Get(entry)
+			if entry.HasComponent(geometry.Velocity) {
+				velocity := geometry.Velocity.Get(entry)
 				debugText += fmt.Sprintf("\nVelocity: %.3f, %.3f", velocity.X, velocity.Y)
 			}
 
@@ -67,8 +68,8 @@ func (system *spriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	display := game_system.Display.Get(system.displayEntry)
 
 	system.query.Each(e.World, func(entry *donburi.Entry) {
-		sprite := components.Sprite.Get(entry)
-		transform := components.Transform.Get(entry)
+		sprite := visuals.Sprite.Get(entry)
+		transform := geometry.Transform.Get(entry)
 
 		op := &ebiten.DrawImageOptions{}
 
@@ -96,7 +97,7 @@ func (system *spriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	})
 }
 
-func (system *spriteSystem) drawDebug(display *game_system.DisplayData, camera *game_system.CameraData, transform *components.TransformData, screen *ebiten.Image, sprite *components.SpriteData) {
+func (system *spriteSystem) drawDebug(display *game_system.DisplayData, camera *game_system.CameraData, transform *geometry.TransformData, screen *ebiten.Image, sprite *visuals.SpriteData) {
 	debugOpts := &ebiten.DrawImageOptions{}
 	debugOpts.GeoM.Scale(1/display.VirtualResolution.X, 1/display.VirtualResolution.X)
 	debugOpts.GeoM.Scale(1.0/camera.ZoomFactor, 1.0/camera.ZoomFactor)

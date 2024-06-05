@@ -1,4 +1,4 @@
-package components
+package visuals
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"

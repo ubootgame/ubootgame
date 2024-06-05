@@ -1,11 +1,12 @@
-package systems
+package weapons
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/solarlune/resolv"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/weapons"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/filter"
@@ -20,7 +21,7 @@ type bulletSystem struct {
 }
 
 var Bullet = &bulletSystem{
-	query: donburi.NewQuery(filter.Contains(entities.BulletTag)),
+	query: donburi.NewQuery(filter.Contains(weapons.BulletTag)),
 }
 
 func (system *bulletSystem) Update(e *ecs.ECS) {
@@ -33,13 +34,13 @@ func (system *bulletSystem) Update(e *ecs.ECS) {
 
 	camera := game_system.Camera.Get(system.cameraEntry)
 
-	entities.BulletTag.Each(e.World, func(bulletEntry *donburi.Entry) {
-		transform := components.Transform.Get(bulletEntry)
+	weapons.BulletTag.Each(e.World, func(bulletEntry *donburi.Entry) {
+		transform := geometry.Transform.Get(bulletEntry)
 
 		bulletScreen := camera.WorldToScreenPosition(transform.Center)
 
-		entities.EnemyTag.Each(e.World, func(enemyEntry *donburi.Entry) {
-			shape := components.Shape.Get(enemyEntry)
+		actors.EnemyTag.Each(e.World, func(enemyEntry *donburi.Entry) {
+			shape := geometry.Shape.Get(enemyEntry)
 
 			if shape.PointInside(resolv.Vector{X: bulletScreen.X, Y: bulletScreen.Y}) {
 				e.World.Remove(enemyEntry.Entity())
@@ -57,7 +58,7 @@ func (system *bulletSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	camera := game_system.Camera.Get(system.cameraEntry)
 
 	system.query.Each(e.World, func(entry *donburi.Entry) {
-		transform := components.Transform.Get(entry)
+		transform := geometry.Transform.Get(entry)
 
 		op := &ebiten.DrawImageOptions{}
 

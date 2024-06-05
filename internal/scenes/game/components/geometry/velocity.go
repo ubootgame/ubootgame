@@ -1,4 +1,4 @@
-package components
+package geometry
 
 import (
 	"github.com/yohamta/donburi"

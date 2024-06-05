@@ -4,9 +4,9 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/solarlune/resolv"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/filter"
@@ -20,7 +20,7 @@ type resolvSystem struct {
 }
 
 var Resolv = &resolvSystem{
-	query: donburi.NewQuery(filter.Contains(components.Transform, components.Shape)),
+	query: donburi.NewQuery(filter.Contains(geometry.Transform, geometry.Shape)),
 }
 
 func (system *resolvSystem) Update(e *ecs.ECS) {
@@ -41,7 +41,7 @@ func (system *resolvSystem) Update(e *ecs.ECS) {
 		}
 	}
 	if system.playerEntry == nil {
-		if system.playerEntry, ok = entities.PlayerTag.First(e.World); !ok {
+		if system.playerEntry, ok = actors.PlayerTag.First(e.World); !ok {
 			panic("no player found")
 		}
 	}
@@ -55,8 +55,8 @@ func (system *resolvSystem) Update(e *ecs.ECS) {
 	display := game_system.Display.Get(system.displayEntry)
 
 	system.query.Each(e.World, func(entry *donburi.Entry) {
-		transform := components.Transform.Get(entry)
-		shape := components.Shape.Get(entry)
+		transform := geometry.Transform.Get(entry)
+		shape := geometry.Shape.Get(entry)
 
 		position := camera.WorldToScreenPosition(r2.Vec{X: transform.Center.X - transform.Size.X/2, Y: transform.Center.Y - transform.Size.Y/2})
 		shape.SetPosition(position.X, position.Y)
@@ -74,7 +74,7 @@ func (system *resolvSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 }
 
 func (system *resolvSystem) drawDebug(e *ecs.ECS, screen *ebiten.Image) {
-	transform := components.Transform.Get(system.playerEntry)
+	transform := geometry.Transform.Get(system.playerEntry)
 	camera := game_system.Camera.Get(system.cameraEntry)
 	cursor := game_system.Cursor.Get(system.cursorEntry)
 
@@ -85,8 +85,8 @@ func (system *resolvSystem) drawDebug(e *ecs.ECS, screen *ebiten.Image) {
 	intersectionPoints := make([]resolv.Vector, 0)
 	lineColor := color.RGBA{R: 255, G: 255, A: 255}
 
-	components.Shape.Each(e.World, func(shapeEntry *donburi.Entry) {
-		shape := components.Shape.Get(shapeEntry)
+	geometry.Shape.Each(e.World, func(shapeEntry *donburi.Entry) {
+		shape := geometry.Shape.Get(shapeEntry)
 
 		if intersection := line.Intersection(0, 0, shape); intersection != nil {
 			intersectionPoints = append(intersectionPoints, intersection.Points...)

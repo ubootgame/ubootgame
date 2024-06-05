@@ -2,7 +2,7 @@ package systems
 
 import (
 	"github.com/ubootgame/ubootgame/internal/config"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/filter"
@@ -13,13 +13,13 @@ type movementSystem struct {
 }
 
 var Movement = movementSystem{
-	query: donburi.NewQuery(filter.Contains(components.Transform, components.Velocity)),
+	query: donburi.NewQuery(filter.Contains(geometry.Transform, geometry.Velocity)),
 }
 
 func (system *movementSystem) Update(e *ecs.ECS) {
 	system.query.Each(e.World, func(entry *donburi.Entry) {
-		velocity := components.Velocity.Get(entry)
-		transform := components.Transform.Get(entry)
+		velocity := geometry.Velocity.Get(entry)
+		transform := geometry.Transform.Get(entry)
 
 		transform.Center.X += velocity.X / float64(config.C.TargetTPS)
 		transform.Center.Y += velocity.Y / float64(config.C.TargetTPS)

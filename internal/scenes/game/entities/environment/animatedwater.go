@@ -1,8 +1,8 @@
-package entities
+package environment
 
 import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
@@ -14,14 +14,14 @@ var AnimatedWaterTag = donburi.NewTag().SetName("Animated Background")
 
 var AnimatedWater = utility.NewArchetype(
 	AnimatedWaterTag,
-	components.Aseprite,
+	visuals.Aseprite,
 )
 
 func CreateAnimatedWater(ecs *ecs.ECS, registry *resources.Registry) *donburi.Entry {
 	entry := AnimatedWater.Spawn(ecs, layers.Background)
 
 	aseprite := registry.LoadAseprite(assets.AnimatedWater)
-	components.Aseprite.SetValue(entry, components.AsepriteData{Aseprite: aseprite, Speed: 0.5})
+	visuals.Aseprite.SetValue(entry, visuals.AsepriteData{Aseprite: aseprite, Speed: 0.5})
 
 	_ = aseprite.Player.Play("")
 

@@ -1,4 +1,4 @@
-package components
+package visuals
 
 import (
 	"github.com/ubootgame/ubootgame/internal/utility/resources"

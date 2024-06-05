@@ -1,10 +1,10 @@
-package systems
+package environment
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/environment"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 )
@@ -23,13 +23,13 @@ func (system *waterSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 		}
 	}
 	if system.waterEntry == nil {
-		if system.waterEntry, ok = entities.WaterTag.First(e.World); !ok {
+		if system.waterEntry, ok = environment.WaterTag.First(e.World); !ok {
 			panic("no water found")
 		}
 	}
 
 	display := game_system.Display.Get(system.displayEntry)
-	sprite := components.Sprite.Get(system.waterEntry)
+	sprite := visuals.Sprite.Get(system.waterEntry)
 
 	sw, sh := float64(screen.Bounds().Dx()), float64(screen.Bounds().Dy())
 	w, h := float64(sprite.Image.Bounds().Size().X), float64(sprite.Image.Bounds().Dy())

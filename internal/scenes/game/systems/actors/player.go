@@ -1,11 +1,12 @@
-package systems
+package actors
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal/config"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/weapons"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 )
@@ -20,7 +21,7 @@ var Player = &playerSystem{}
 func (system *playerSystem) Update(e *ecs.ECS) {
 	var ok bool
 	if system.playerEntry == nil {
-		if system.playerEntry, ok = entities.PlayerTag.First(e.World); !ok {
+		if system.playerEntry, ok = actors.PlayerTag.First(e.World); !ok {
 			panic("no player found")
 		}
 	}
@@ -30,8 +31,8 @@ func (system *playerSystem) Update(e *ecs.ECS) {
 		}
 	}
 
-	velocity := components.Velocity.Get(system.playerEntry)
-	transform := components.Transform.Get(system.playerEntry)
+	velocity := geometry.Velocity.Get(system.playerEntry)
+	transform := geometry.Transform.Get(system.playerEntry)
 	cursor := game_system.Cursor.Get(system.cursorEntry)
 
 	acceleration := 0.01
@@ -56,7 +57,7 @@ func (system *playerSystem) Update(e *ecs.ECS) {
 
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		if system.fireTick%uint64(config.C.TargetTPS/8) == 0 {
-			entities.CreateBullet(e, transform.Center, cursor.WorldPosition)
+			weapons.CreateBullet(e, transform.Center, cursor.WorldPosition)
 		}
 		system.fireTick++
 	} else {
