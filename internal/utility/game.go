@@ -38,15 +38,17 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 	windowSize.X, windowSize.Y = float64(outsideWidth), float64(outsideHeight)
 	outerRatio := windowSize.X / windowSize.Y
 
+	deviceScaleFactor := ebiten.Monitor().DeviceScaleFactor()
+
 	if outerRatio <= config.C.Ratio {
-		virtualResolution.X = float64(outsideWidth) * ebiten.DeviceScaleFactor()
+		virtualResolution.X = float64(outsideWidth) * deviceScaleFactor
 		virtualResolution.Y = virtualResolution.X / config.C.Ratio
 	} else {
-		virtualResolution.Y = float64(outsideHeight) * ebiten.DeviceScaleFactor()
+		virtualResolution.Y = float64(outsideHeight) * deviceScaleFactor
 		virtualResolution.X = virtualResolution.Y * config.C.Ratio
 	}
 
-	g.scene.AdjustScreen(windowSize, virtualResolution, ebiten.DeviceScaleFactor())
+	g.scene.AdjustScreen(windowSize, virtualResolution, deviceScaleFactor)
 
 	return int(virtualResolution.X), int(virtualResolution.Y)
 }

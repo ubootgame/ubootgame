@@ -2,7 +2,7 @@ package systems
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/quartercastle/vector"
+	"github.com/solarlune/resolv"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
@@ -41,7 +41,7 @@ func (system *bulletSystem) Update(e *ecs.ECS) {
 		entities.EnemyTag.Each(e.World, func(enemyEntry *donburi.Entry) {
 			shape := components.Shape.Get(enemyEntry)
 
-			if shape.PointInside(vector.Vector{bulletScreen.X, bulletScreen.Y}) {
+			if shape.PointInside(resolv.Vector{X: bulletScreen.X, Y: bulletScreen.Y}) {
 				e.World.Remove(enemyEntry.Entity())
 			}
 		})

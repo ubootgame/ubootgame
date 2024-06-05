@@ -2,8 +2,7 @@ package systems
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	evector "github.com/hajimehoshi/ebiten/v2/vector"
-	"github.com/quartercastle/vector"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/solarlune/resolv"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
@@ -83,7 +82,7 @@ func (system *resolvSystem) drawDebug(e *ecs.ECS, screen *ebiten.Image) {
 
 	line := resolv.NewLine(playerScreen.X, playerScreen.Y, cursor.ScreenPosition.X, cursor.ScreenPosition.Y)
 
-	intersectionPoints := make([]vector.Vector, 0)
+	intersectionPoints := make([]resolv.Vector, 0)
 	lineColor := color.RGBA{R: 255, G: 255, A: 255}
 
 	components.Shape.Each(e.World, func(shapeEntry *donburi.Entry) {
@@ -99,12 +98,12 @@ func (system *resolvSystem) drawDebug(e *ecs.ECS, screen *ebiten.Image) {
 
 	l := line.Lines()[0]
 
-	evector.StrokeLine(screen, float32(l.Start.X()), float32(l.Start.Y()), float32(l.End.X()), float32(l.End.Y()), 2, lineColor, true)
+	vector.StrokeLine(screen, float32(l.Start.X), float32(l.Start.Y), float32(l.End.X), float32(l.End.Y), 2, lineColor, true)
 
 	drawBigDot(screen, playerScreen, lineColor)
 
 	for _, point := range intersectionPoints {
-		pointVec := r2.Vec{X: point.X(), Y: point.Y()}
+		pointVec := r2.Vec{X: point.X, Y: point.Y}
 		drawBigDot(screen, pointVec, color.RGBA{G: 255, A: 255})
 	}
 }
@@ -118,7 +117,7 @@ func drawPolygon(screen *ebiten.Image, shape *resolv.ConvexPolygon, color color.
 		if i < len(vertices)-1 {
 			next = vertices[i+1]
 		}
-		evector.StrokeLine(screen, float32(vert.X()), float32(vert.Y()), float32(next.X()), float32(next.Y()), 1, color, false)
+		vector.StrokeLine(screen, float32(vert.X), float32(vert.Y), float32(next.X), float32(next.Y), 1, color, false)
 	}
 }
 
