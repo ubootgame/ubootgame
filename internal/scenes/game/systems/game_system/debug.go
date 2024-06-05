@@ -1,4 +1,4 @@
-package systems
+package game_system
 
 import (
 	"fmt"
@@ -7,23 +7,23 @@ import (
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/filter"
-	"gonum.org/v1/gonum/spatial/r2"
 	"runtime"
 	"strings"
 )
 
 type debugSystem struct {
-	debugEntry, cameraEntry, displayEntry *donburi.Entry
-	keys                                  []ebiten.Key
-	memStats                              *runtime.MemStats
-	ticks                                 uint64
-	debugText                             *strings.Builder
+	debugEntry, cameraEntry, displayEntry, cursorEntry *donburi.Entry
+	keys                                               []ebiten.Key
+	memStats                                           *runtime.MemStats
+	ticks                                              uint64
+	debugText                                          *strings.Builder
 }
 
 var Debug = &debugSystem{
@@ -35,23 +35,29 @@ var Debug = &debugSystem{
 func (system *debugSystem) Update(e *ecs.ECS) {
 	var ok bool
 	if system.debugEntry == nil {
-		if system.debugEntry, ok = components.Debug.First(e.World); !ok {
+		if system.debugEntry, ok = game_system.Debug.First(e.World); !ok {
 			panic("no debug found")
 		}
 	}
 	if system.cameraEntry == nil {
-		if system.cameraEntry, ok = components.Camera.First(e.World); !ok {
+		if system.cameraEntry, ok = game_system.Camera.First(e.World); !ok {
 			panic("no camera found")
 		}
 	}
 	if system.displayEntry == nil {
-		if system.displayEntry, ok = components.Display.First(e.World); !ok {
+		if system.displayEntry, ok = game_system.Display.First(e.World); !ok {
 			panic("no display found")
 		}
 	}
+	if system.cursorEntry == nil {
+		if system.cursorEntry, ok = game_system.Cursor.First(e.World); !ok {
+			panic("no cursor found")
+		}
+	}
 
-	debug := components.Debug.Get(system.debugEntry)
-	camera := components.Camera.Get(system.cameraEntry)
+	debug := game_system.Debug.Get(system.debugEntry)
+	camera := game_system.Camera.Get(system.cameraEntry)
+	cursor := game_system.Cursor.Get(system.cursorEntry)
 
 	if inpututil.IsKeyJustPressed(ebiten.KeySlash) {
 		debug.Enabled = !debug.Enabled
@@ -85,21 +91,20 @@ func (system *debugSystem) Update(e *ecs.ECS) {
 	}
 	system.ticks++
 
-	system.updateDebugText(debug, camera, system.debugText)
+	system.updateDebugText(debug, camera, cursor, system.debugText)
 }
 
 func (system *debugSystem) Draw(_ *ecs.ECS, screen *ebiten.Image) {
 	utility.Debug.PrintDebugTextAt(screen, system.debugText.String(), &ebiten.DrawImageOptions{})
 }
 
-func (system *debugSystem) updateDebugText(debug *components.DebugData, camera *components.CameraData, builder *strings.Builder) {
+func (system *debugSystem) updateDebugText(debug *game_system.DebugData, camera *game_system.CameraData, cursor *game_system.CursorData, builder *strings.Builder) {
 	builder.Reset()
 
 	ms := system.memStats
 
-	cursorX, cursorY := ebiten.CursorPosition()
-	worldPosition := camera.ScreenToWorldPosition(r2.Vec{X: float64(cursorX), Y: float64(cursorY)})
-	screenPosition := camera.WorldToScreenPosition(worldPosition)
+	worldPosition := cursor.WorldPosition
+	screenPosition := cursor.ScreenPosition
 
 	_, _ = fmt.Fprintf(builder, `(/ to toggle debugSystem)
 Draw grid (F1): %v

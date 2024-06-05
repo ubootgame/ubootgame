@@ -6,6 +6,7 @@ import (
 	"github.com/quartercastle/vector"
 	"github.com/solarlune/resolv"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -15,8 +16,8 @@ import (
 )
 
 type resolvSystem struct {
-	query                                              *donburi.Query
-	debugEntry, cameraEntry, displayEntry, playerEntry *donburi.Entry
+	query                                                           *donburi.Query
+	debugEntry, cameraEntry, displayEntry, playerEntry, cursorEntry *donburi.Entry
 }
 
 var Resolv = &resolvSystem{
@@ -26,17 +27,17 @@ var Resolv = &resolvSystem{
 func (system *resolvSystem) Update(e *ecs.ECS) {
 	var ok bool
 	if system.debugEntry == nil {
-		if system.debugEntry, ok = components.Debug.First(e.World); !ok {
+		if system.debugEntry, ok = game_system.Debug.First(e.World); !ok {
 			panic("no debug found")
 		}
 	}
 	if system.displayEntry == nil {
-		if system.displayEntry, ok = components.Display.First(e.World); !ok {
+		if system.displayEntry, ok = game_system.Display.First(e.World); !ok {
 			panic("no display found")
 		}
 	}
 	if system.cameraEntry == nil {
-		if system.cameraEntry, ok = components.Camera.First(e.World); !ok {
+		if system.cameraEntry, ok = game_system.Camera.First(e.World); !ok {
 			panic("no camera found")
 		}
 	}
@@ -45,9 +46,14 @@ func (system *resolvSystem) Update(e *ecs.ECS) {
 			panic("no player found")
 		}
 	}
+	if system.cursorEntry == nil {
+		if system.cursorEntry, ok = game_system.Cursor.First(e.World); !ok {
+			panic("no cursor found")
+		}
+	}
 
-	camera := components.Camera.Get(system.cameraEntry)
-	display := components.Display.Get(system.displayEntry)
+	camera := game_system.Camera.Get(system.cameraEntry)
+	display := game_system.Display.Get(system.displayEntry)
 
 	system.query.Each(e.World, func(entry *donburi.Entry) {
 		transform := components.Transform.Get(entry)
@@ -61,7 +67,7 @@ func (system *resolvSystem) Update(e *ecs.ECS) {
 }
 
 func (system *resolvSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
-	debug := components.Debug.Get(system.debugEntry)
+	debug := game_system.Debug.Get(system.debugEntry)
 
 	if debug.Enabled && debug.DrawCollisions {
 		system.drawDebug(e, screen)
@@ -70,15 +76,12 @@ func (system *resolvSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 
 func (system *resolvSystem) drawDebug(e *ecs.ECS, screen *ebiten.Image) {
 	transform := components.Transform.Get(system.playerEntry)
-	camera := components.Camera.Get(system.cameraEntry)
-
-	mx, my := ebiten.CursorPosition()
-	mousePosition := camera.ScreenToWorldPosition(r2.Vec{X: float64(mx), Y: float64(my)})
-	mouseScreen := camera.WorldToScreenPosition(mousePosition)
+	camera := game_system.Camera.Get(system.cameraEntry)
+	cursor := game_system.Cursor.Get(system.cursorEntry)
 
 	playerScreen := camera.WorldToScreenPosition(transform.Center)
 
-	line := resolv.NewLine(playerScreen.X, playerScreen.Y, mouseScreen.X, mouseScreen.Y)
+	line := resolv.NewLine(playerScreen.X, playerScreen.Y, cursor.ScreenPosition.X, cursor.ScreenPosition.Y)
 
 	intersectionPoints := make([]vector.Vector, 0)
 	lineColor := color.RGBA{R: 255, G: 255, A: 255}

@@ -1,4 +1,4 @@
-package components
+package game_system
 
 import "github.com/yohamta/donburi"
 

@@ -1,12 +1,12 @@
 package utility
 
 import (
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"gonum.org/v1/gonum/spatial/r2"
 	"math"
 )
 
-func UpdateCameraMatrix(display *components.DisplayData, camera *components.CameraData) {
+func UpdateCameraMatrix(display *game_system.DisplayData, camera *game_system.CameraData) {
 	camera.Matrix.Reset()
 	camera.Matrix.Translate(-(camera.Position.X), -(camera.Position.Y))
 	camera.Matrix.Scale(camera.ZoomFactor, camera.ZoomFactor)

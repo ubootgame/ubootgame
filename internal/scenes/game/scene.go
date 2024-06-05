@@ -4,11 +4,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/events"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems"
+	game_system2 "github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_system"
 	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
 	"github.com/yohamta/donburi"
@@ -28,6 +29,7 @@ type Scene struct {
 
 func NewGameScene(resourceRegistry *resources.Registry) *Scene {
 	world := donburi.NewWorld()
+
 	return &Scene{
 		ecs:              ecs.NewECS(world),
 		resourceRegistry: resourceRegistry,
@@ -59,12 +61,12 @@ func (scene *Scene) Draw(screen *ebiten.Image) {
 
 	if scene.debugEntry == nil {
 		var ok bool
-		if scene.debugEntry, ok = components.Debug.First(scene.ecs.World); !ok {
+		if scene.debugEntry, ok = game_system.Debug.First(scene.ecs.World); !ok {
 			panic("no debug found")
 		}
 	}
 
-	debug := components.Debug.Get(scene.debugEntry)
+	debug := game_system.Debug.Get(scene.debugEntry)
 
 	scene.ecs.DrawLayer(layers.Background, screen)
 	scene.ecs.DrawLayer(layers.Foreground, screen)
@@ -74,20 +76,22 @@ func (scene *Scene) Draw(screen *ebiten.Image) {
 }
 
 func (scene *Scene) setup() {
-	debugEntry := scene.ecs.World.Entry(scene.ecs.World.Create(components.Debug))
-	components.Debug.SetValue(debugEntry, components.DebugData{
+	debugEntry := scene.ecs.World.Entry(scene.ecs.World.Create(game_system.Debug))
+	game_system.Debug.SetValue(debugEntry, game_system.DebugData{
 		Enabled:        config.C.Debug,
 		DrawGrid:       true,
 		DrawCollisions: true,
 		DrawPositions:  true,
 	})
 
-	_ = scene.ecs.World.Entry(scene.ecs.World.Create(components.Camera))
-	_ = scene.ecs.World.Entry(scene.ecs.World.Create(components.Display))
+	_ = scene.ecs.World.Entry(scene.ecs.World.Create(game_system.Camera))
+	_ = scene.ecs.World.Entry(scene.ecs.World.Create(game_system.Display))
+	_ = scene.ecs.World.Entry(scene.ecs.World.Create(game_system.Cursor))
 
 	// Update systems
-	scene.ecs.AddSystem(systems.Camera.Update)
-	scene.ecs.AddSystem(systems.Debug.Update)
+	scene.ecs.AddSystem(game_system2.Cursor.Update)
+	scene.ecs.AddSystem(game_system2.Camera.Update)
+	scene.ecs.AddSystem(game_system2.Debug.Update)
 	scene.ecs.AddSystem(systems.Movement.Update)
 	scene.ecs.AddSystem(systems.Resolv.Update)
 	scene.ecs.AddSystem(systems.Player.Update)
@@ -101,10 +105,10 @@ func (scene *Scene) setup() {
 	scene.ecs.AddRenderer(layers.Foreground, systems.Sprite.Draw)
 	scene.ecs.AddRenderer(layers.Foreground, systems.Bullet.Draw)
 	scene.ecs.AddRenderer(layers.Debug, systems.Resolv.Draw)
-	scene.ecs.AddRenderer(layers.Debug, systems.Debug.Draw)
+	scene.ecs.AddRenderer(layers.Debug, game_system2.Debug.Draw)
 
 	// Events
-	events.DisplayUpdatedEvent.Subscribe(scene.ecs.World, systems.Display.UpdateDisplay)
+	events.DisplayUpdatedEvent.Subscribe(scene.ecs.World, game_system2.Display.UpdateDisplay)
 	events.DisplayUpdatedEvent.Subscribe(scene.ecs.World, utility.Debug.UpdateFontFace)
 
 	_ = entities.CreateWater(scene.ecs, scene.resourceRegistry)

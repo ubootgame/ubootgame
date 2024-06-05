@@ -4,6 +4,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/quartercastle/vector"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -25,12 +26,12 @@ var Bullet = &bulletSystem{
 func (system *bulletSystem) Update(e *ecs.ECS) {
 	if system.cameraEntry == nil {
 		var ok bool
-		if system.cameraEntry, ok = components.Camera.First(e.World); !ok {
+		if system.cameraEntry, ok = game_system.Camera.First(e.World); !ok {
 			panic("no camera found")
 		}
 	}
 
-	camera := components.Camera.Get(system.cameraEntry)
+	camera := game_system.Camera.Get(system.cameraEntry)
 
 	entities.BulletTag.Each(e.World, func(bulletEntry *donburi.Entry) {
 		transform := components.Transform.Get(bulletEntry)
@@ -53,7 +54,7 @@ func (system *bulletSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 		system.image.Fill(colornames.White)
 	}
 
-	camera := components.Camera.Get(system.cameraEntry)
+	camera := game_system.Camera.Get(system.cameraEntry)
 
 	system.query.Each(e.World, func(entry *donburi.Entry) {
 		transform := components.Transform.Get(entry)

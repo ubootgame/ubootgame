@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/yohamta/donburi"
@@ -24,22 +25,22 @@ var Sprite = &spriteSystem{
 func (system *spriteSystem) Update(e *ecs.ECS) {
 	var ok bool
 	if system.cameraEntry == nil {
-		if system.cameraEntry, ok = components.Camera.First(e.World); !ok {
+		if system.cameraEntry, ok = game_system.Camera.First(e.World); !ok {
 			panic("no camera found")
 		}
 	}
 	if system.debugEntry == nil {
-		if system.debugEntry, ok = components.Debug.First(e.World); !ok {
+		if system.debugEntry, ok = game_system.Debug.First(e.World); !ok {
 			panic("no debug found")
 		}
 	}
 	if system.displayEntry == nil {
-		if system.displayEntry, ok = components.Display.First(e.World); !ok {
+		if system.displayEntry, ok = game_system.Display.First(e.World); !ok {
 			panic("no display found")
 		}
 	}
 
-	debug := components.Debug.Get(system.debugEntry)
+	debug := game_system.Debug.Get(system.debugEntry)
 
 	if debug.Enabled && debug.DrawPositions {
 		system.query.Each(e.World, func(entry *donburi.Entry) {
@@ -61,9 +62,9 @@ func (system *spriteSystem) Update(e *ecs.ECS) {
 }
 
 func (system *spriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
-	debug := components.Debug.Get(system.debugEntry)
-	camera := components.Camera.Get(system.cameraEntry)
-	display := components.Display.Get(system.displayEntry)
+	debug := game_system.Debug.Get(system.debugEntry)
+	camera := game_system.Camera.Get(system.cameraEntry)
+	display := game_system.Display.Get(system.displayEntry)
 
 	system.query.Each(e.World, func(entry *donburi.Entry) {
 		sprite := components.Sprite.Get(entry)
@@ -95,7 +96,7 @@ func (system *spriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	})
 }
 
-func (system *spriteSystem) drawDebug(display *components.DisplayData, camera *components.CameraData, transform *components.TransformData, screen *ebiten.Image, sprite *components.SpriteData) {
+func (system *spriteSystem) drawDebug(display *game_system.DisplayData, camera *game_system.CameraData, transform *components.TransformData, screen *ebiten.Image, sprite *components.SpriteData) {
 	debugOpts := &ebiten.DrawImageOptions{}
 	debugOpts.GeoM.Scale(1/display.VirtualResolution.X, 1/display.VirtualResolution.X)
 	debugOpts.GeoM.Scale(1.0/camera.ZoomFactor, 1.0/camera.ZoomFactor)

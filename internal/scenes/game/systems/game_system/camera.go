@@ -1,9 +1,9 @@
-package systems
+package game_system
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal/config"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -22,18 +22,18 @@ var Camera = &cameraSystem{}
 func (system *cameraSystem) Update(e *ecs.ECS) {
 	var ok bool
 	if system.cameraEntry == nil {
-		if system.cameraEntry, ok = components.Camera.First(e.World); !ok {
+		if system.cameraEntry, ok = game_system.Camera.First(e.World); !ok {
 			panic("no camera found")
 		}
 	}
 	if system.displayEntry == nil {
-		if system.displayEntry, ok = components.Display.First(e.World); !ok {
+		if system.displayEntry, ok = game_system.Display.First(e.World); !ok {
 			panic("no display found")
 		}
 	}
 
-	camera := components.Camera.Get(system.cameraEntry)
-	display := components.Display.Get(system.displayEntry)
+	camera := game_system.Camera.Get(system.cameraEntry)
+	display := game_system.Display.Get(system.displayEntry)
 
 	utility.UpdateCameraMatrix(display, camera)
 
