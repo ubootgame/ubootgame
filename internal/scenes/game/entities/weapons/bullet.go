@@ -3,7 +3,7 @@ package weapons
 import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
-	"github.com/ubootgame/ubootgame/internal/utility"
+	"github.com/ubootgame/ubootgame/internal/utility/ecs/archetypes"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"gonum.org/v1/gonum/spatial/r2"
@@ -11,7 +11,7 @@ import (
 
 var BulletTag = donburi.NewTag().SetName("Bullet")
 
-var Bullet = utility.NewArchetype(
+var Bullet = archetypes.NewArchetype(
 	BulletTag,
 	geometry.Shape,
 	geometry.Transform,

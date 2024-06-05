@@ -11,6 +11,8 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/weapons"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility"
+	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
+	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/filter"
@@ -18,65 +20,58 @@ import (
 	"strings"
 )
 
-type debugSystem struct {
-	debugEntry, cameraEntry, displayEntry, cursorEntry *donburi.Entry
-	keys                                               []ebiten.Key
-	memStats                                           *runtime.MemStats
-	ticks                                              uint64
-	debugText                                          *strings.Builder
+type DebugSystem struct {
+	systems.BaseSystem
+
+	debug   *game_system.DebugData
+	camera  *game_system.CameraData
+	display *game_system.DisplayData
+	cursor  *game_system.CursorData
+
+	keys      []ebiten.Key
+	memStats  *runtime.MemStats
+	ticks     uint64
+	debugText *strings.Builder
 }
 
-var Debug = &debugSystem{
-	keys:      make([]ebiten.Key, 0),
-	memStats:  &runtime.MemStats{},
-	debugText: &strings.Builder{},
+func NewDebugSystem() *DebugSystem {
+	system := &DebugSystem{
+		keys:      make([]ebiten.Key, 0),
+		memStats:  &runtime.MemStats{},
+		debugText: &strings.Builder{},
+	}
+	system.Injector = injector.NewInjector([]injector.Injection{
+		injector.Once([]injector.Injection{
+			injector.Component(&system.debug, game_system.Debug),
+			injector.Component(&system.camera, game_system.Camera),
+			injector.Component(&system.display, game_system.Display),
+			injector.Component(&system.cursor, game_system.Cursor),
+		}),
+	})
+	return system
 }
 
-func (system *debugSystem) Update(e *ecs.ECS) {
-	var ok bool
-	if system.debugEntry == nil {
-		if system.debugEntry, ok = game_system.Debug.First(e.World); !ok {
-			panic("no debug found")
-		}
-	}
-	if system.cameraEntry == nil {
-		if system.cameraEntry, ok = game_system.Camera.First(e.World); !ok {
-			panic("no camera found")
-		}
-	}
-	if system.displayEntry == nil {
-		if system.displayEntry, ok = game_system.Display.First(e.World); !ok {
-			panic("no display found")
-		}
-	}
-	if system.cursorEntry == nil {
-		if system.cursorEntry, ok = game_system.Cursor.First(e.World); !ok {
-			panic("no cursor found")
-		}
-	}
-
-	debug := game_system.Debug.Get(system.debugEntry)
-	camera := game_system.Camera.Get(system.cameraEntry)
-	cursor := game_system.Cursor.Get(system.cursorEntry)
+func (system *DebugSystem) Update(e *ecs.ECS) {
+	system.BaseSystem.Update(e)
 
 	if inpututil.IsKeyJustPressed(ebiten.KeySlash) {
-		debug.Enabled = !debug.Enabled
+		system.debug.Enabled = !system.debug.Enabled
 	}
 
-	if !debug.Enabled {
+	if !system.debug.Enabled {
 		return
 	}
 
 	system.keys = inpututil.AppendPressedKeys(system.keys[:0])
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyF1) {
-		debug.DrawGrid = !debug.DrawGrid
+		system.debug.DrawGrid = !system.debug.DrawGrid
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyF2) {
-		debug.DrawCollisions = !debug.DrawCollisions
+		system.debug.DrawCollisions = !system.debug.DrawCollisions
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyF3) {
-		debug.DrawPositions = !debug.DrawPositions
+		system.debug.DrawPositions = !system.debug.DrawPositions
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyF12) {
 		ecs.NewQuery(layers.Foreground, filter.Contains(weapons.BulletTag)).Each(e.World, func(entry *donburi.Entry) {
@@ -91,20 +86,20 @@ func (system *debugSystem) Update(e *ecs.ECS) {
 	}
 	system.ticks++
 
-	system.updateDebugText(debug, camera, cursor, system.debugText)
+	system.updateDebugText(system.debugText)
 }
 
-func (system *debugSystem) Draw(_ *ecs.ECS, screen *ebiten.Image) {
+func (system *DebugSystem) Draw(_ *ecs.ECS, screen *ebiten.Image) {
 	utility.Debug.PrintDebugTextAt(screen, system.debugText.String(), &ebiten.DrawImageOptions{})
 }
 
-func (system *debugSystem) updateDebugText(debug *game_system.DebugData, camera *game_system.CameraData, cursor *game_system.CursorData, builder *strings.Builder) {
+func (system *DebugSystem) updateDebugText(builder *strings.Builder) {
 	builder.Reset()
 
 	ms := system.memStats
 
-	worldPosition := cursor.WorldPosition
-	screenPosition := cursor.ScreenPosition
+	worldPosition := system.cursor.WorldPosition
+	screenPosition := system.cursor.ScreenPosition
 
 	_, _ = fmt.Fprintf(builder, `(/ to toggle debugSystem)
 Draw grid (F1): %v
@@ -125,21 +120,21 @@ Total: %s
 Sys: %s
 NextGC: %s
 NumGC: %d`,
-		debug.DrawGrid,
-		debug.DrawCollisions,
-		debug.DrawPositions,
+		system.debug.DrawGrid,
+		system.debug.DrawCollisions,
+		system.debug.DrawPositions,
 		ebiten.ActualFPS(),
 		ebiten.ActualTPS(),
 		ebiten.IsVsyncEnabled(),
-		ebiten.DeviceScaleFactor(),
+		system.display.ScalingFactor,
 		strings.Join(lo.Map(system.keys, func(item ebiten.Key, index int) string {
 			return item.String()
 		}), ", "),
 		screenPosition.X, screenPosition.Y,
 		worldPosition.X, worldPosition.Y,
-		camera.Position.X, camera.Position.Y,
-		camera.ZoomFactor,
-		camera.Rotation,
+		system.camera.Position.X, system.camera.Position.Y,
+		system.camera.ZoomFactor,
+		system.camera.Rotation,
 		utility.FormatBytes(ms.Alloc), utility.FormatBytes(ms.TotalAlloc), utility.FormatBytes(ms.Sys),
 		utility.FormatBytes(ms.NextGC), ms.NumGC)
 }

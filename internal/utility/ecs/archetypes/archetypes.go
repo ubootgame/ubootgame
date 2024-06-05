@@ -1,4 +1,4 @@
-package utility
+package archetypes
 
 import (
 	"github.com/yohamta/donburi"

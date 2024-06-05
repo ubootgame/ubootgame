@@ -7,6 +7,7 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility"
+	"github.com/ubootgame/ubootgame/internal/utility/ecs/archetypes"
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -15,7 +16,7 @@ import (
 
 var EnemyTag = donburi.NewTag().SetName("Enemy")
 
-var Enemy = utility.NewArchetype(
+var Enemy = archetypes.NewArchetype(
 	EnemyTag,
 	geometry.Shape,
 	visuals.Sprite,

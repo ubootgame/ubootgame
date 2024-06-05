@@ -81,6 +81,11 @@ func (scene *Scene) Draw(screen *ebiten.Image) {
 }
 
 func (scene *Scene) setup() {
+	// Game system components
+	scene.ecs.World.Entry(scene.ecs.World.Create(gameSystemComponents.Camera))
+	scene.ecs.World.Entry(scene.ecs.World.Create(gameSystemComponents.Display))
+	scene.ecs.World.Entry(scene.ecs.World.Create(gameSystemComponents.Cursor))
+
 	debugEntry := scene.ecs.World.Entry(scene.ecs.World.Create(gameSystemComponents.Debug))
 	gameSystemComponents.Debug.SetValue(debugEntry, gameSystemComponents.DebugData{
 		Enabled:        config.C.Debug,
@@ -89,37 +94,49 @@ func (scene *Scene) setup() {
 		DrawPositions:  true,
 	})
 
-	_ = scene.ecs.World.Entry(scene.ecs.World.Create(gameSystemComponents.Camera))
-	_ = scene.ecs.World.Entry(scene.ecs.World.Create(gameSystemComponents.Display))
-	_ = scene.ecs.World.Entry(scene.ecs.World.Create(gameSystemComponents.Cursor))
-
-	// Update systems
-	scene.ecs.AddSystem(game_system.Cursor.Update)
-	scene.ecs.AddSystem(game_system.Camera.Update)
-	scene.ecs.AddSystem(game_system.Debug.Update)
-	scene.ecs.AddSystem(systems.Movement.Update)
-	scene.ecs.AddSystem(systems.Resolv.Update)
-	scene.ecs.AddSystem(actorSystems.Player.Update)
-	scene.ecs.AddSystem(visuals.Sprite.Update)
-	scene.ecs.AddSystem(visuals.Aseprite.Update)
-	scene.ecs.AddSystem(weapons.Bullet.Update)
-
-	// Draw systems
-	scene.ecs.AddRenderer(layers.Background, environmentSystems.Water.Draw)
-	scene.ecs.AddRenderer(layers.Background, environmentSystems.AnimatedWater.Draw)
-	scene.ecs.AddRenderer(layers.Foreground, visuals.Sprite.Draw)
-	scene.ecs.AddRenderer(layers.Foreground, weapons.Bullet.Draw)
-	scene.ecs.AddRenderer(layers.Debug, systems.Resolv.Draw)
-	scene.ecs.AddRenderer(layers.Debug, game_system.Debug.Draw)
-
-	// Events
-	events.DisplayUpdatedEvent.Subscribe(scene.ecs.World, game_system.Display.UpdateDisplay)
-	events.DisplayUpdatedEvent.Subscribe(scene.ecs.World, utility.Debug.UpdateFontFace)
-
-	_ = environmentEntities.CreateWater(scene.ecs, scene.resourceRegistry)
-	_ = environmentEntities.CreateAnimatedWater(scene.ecs, scene.resourceRegistry)
+	// Entities
+	environmentEntities.CreateWater(scene.ecs, scene.resourceRegistry)
+	environmentEntities.CreateAnimatedWater(scene.ecs, scene.resourceRegistry)
 
 	actorEntities.CreatePlayer(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1))
 	actorEntities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1), r2.Vec{X: -0.7, Y: 0.05}, r2.Vec{X: 0.1})
 	actorEntities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1), r2.Vec{X: 0.8, Y: 0.2}, r2.Vec{X: -0.05})
+
+	// Systems
+	cameraSystem := game_system.NewCameraSystem()
+	displaySystem := game_system.NewDisplaySystem()
+	cursorSystem := game_system.NewCursorSystem()
+	debugSystem := game_system.NewDebugSystem()
+	playerSystem := actorSystems.NewPlayerSystem()
+	bulletSystem := weapons.NewBulletSystem()
+	movementSystem := systems.NewMovementSystem()
+	resolvSystem := systems.NewResolvSystem()
+	waterSystem := environmentSystems.NewWaterSystem()
+	animatedWaterSystem := environmentSystems.NewAnimatedWaterSystem()
+	spriteSystem := visuals.NewSpriteSystem()
+	asepriteSystem := visuals.NewAsepriteSystem()
+
+	// Update systems
+	scene.ecs.AddSystem(cameraSystem.Update)
+	scene.ecs.AddSystem(displaySystem.Update)
+	scene.ecs.AddSystem(cursorSystem.Update)
+	scene.ecs.AddSystem(debugSystem.Update)
+	scene.ecs.AddSystem(movementSystem.Update)
+	scene.ecs.AddSystem(resolvSystem.Update)
+	scene.ecs.AddSystem(playerSystem.Update)
+	scene.ecs.AddSystem(spriteSystem.Update)
+	scene.ecs.AddSystem(asepriteSystem.Update)
+	scene.ecs.AddSystem(bulletSystem.Update)
+
+	// Draw systems
+	scene.ecs.AddRenderer(layers.Background, waterSystem.Draw)
+	scene.ecs.AddRenderer(layers.Background, animatedWaterSystem.Draw)
+	scene.ecs.AddRenderer(layers.Foreground, spriteSystem.Draw)
+	scene.ecs.AddRenderer(layers.Foreground, bulletSystem.Draw)
+	scene.ecs.AddRenderer(layers.Debug, resolvSystem.Draw)
+	scene.ecs.AddRenderer(layers.Debug, debugSystem.Draw)
+
+	// Events
+	events.DisplayUpdatedEvent.Subscribe(scene.ecs.World, displaySystem.UpdateDisplay)
+	events.DisplayUpdatedEvent.Subscribe(scene.ecs.World, utility.Debug.UpdateFontFace)
 }

@@ -7,57 +7,62 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/weapons"
-	"github.com/yohamta/donburi"
+	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
+	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi/ecs"
+	"gonum.org/v1/gonum/spatial/r2"
 )
 
-type playerSystem struct {
-	playerEntry, cursorEntry *donburi.Entry
-	fireTick                 uint64
+type PlayerSystem struct {
+	systems.BaseSystem
+
+	cursor    *game_system.CursorData
+	transform *geometry.TransformData
+	velocity  *r2.Vec
+
+	fireTick uint64
 }
 
-var Player = &playerSystem{}
+func NewPlayerSystem() *PlayerSystem {
+	system := &PlayerSystem{}
+	system.Injector = injector.NewInjector([]injector.Injection{
+		injector.Once([]injector.Injection{
+			injector.Component(&system.cursor, game_system.Cursor),
+		}),
+		injector.WithTag(actors.PlayerTag, []injector.Injection{
+			injector.Component(&system.velocity, geometry.Velocity),
+			injector.Component(&system.transform, geometry.Transform),
+		}),
+	})
+	return system
+}
 
-func (system *playerSystem) Update(e *ecs.ECS) {
-	var ok bool
-	if system.playerEntry == nil {
-		if system.playerEntry, ok = actors.PlayerTag.First(e.World); !ok {
-			panic("no player found")
-		}
-	}
-	if system.cursorEntry == nil {
-		if system.cursorEntry, ok = game_system.Cursor.First(e.World); !ok {
-			panic("no cursor found")
-		}
-	}
-
-	velocity := geometry.Velocity.Get(system.playerEntry)
-	transform := geometry.Transform.Get(system.playerEntry)
-	cursor := game_system.Cursor.Get(system.cursorEntry)
+func (system *PlayerSystem) Update(e *ecs.ECS) {
+	system.BaseSystem.Update(e)
 
 	acceleration := 0.01
 	friction := 0.05
 	maxSpeed := 0.25
 
 	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
-		if velocity.X > 0 {
-			velocity.X *= 1 - friction
+		if system.velocity.X > 0 {
+			system.velocity.X *= 1 - friction
 		}
-		velocity.X -= acceleration
-		velocity.X = max(velocity.X, -maxSpeed)
+		system.velocity.X -= acceleration
+		system.velocity.X = max(system.velocity.X, -maxSpeed)
 	} else if ebiten.IsKeyPressed(ebiten.KeyRight) {
-		if velocity.X < 0 {
-			velocity.X *= 1 - friction
+		if system.velocity.X < 0 {
+			system.velocity.X *= 1 - friction
 		}
-		velocity.X += acceleration
-		velocity.X = min(velocity.X, maxSpeed)
+		system.velocity.X += acceleration
+		system.velocity.X = min(system.velocity.X, maxSpeed)
 	} else {
-		velocity.X *= 1 - friction
+		system.velocity.X *= 1 - friction
 	}
 
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		if system.fireTick%uint64(config.C.TargetTPS/8) == 0 {
-			weapons.CreateBullet(e, transform.Center, cursor.WorldPosition)
+			weapons.CreateBullet(e, system.transform.Center, system.cursor.WorldPosition)
 		}
 		system.fireTick++
 	} else {

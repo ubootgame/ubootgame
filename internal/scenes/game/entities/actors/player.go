@@ -6,6 +6,7 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility"
+	"github.com/ubootgame/ubootgame/internal/utility/ecs/archetypes"
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -14,7 +15,7 @@ import (
 
 var PlayerTag = donburi.NewTag().SetName("Player")
 
-var Player = utility.NewArchetype(
+var Player = archetypes.NewArchetype(
 	PlayerTag,
 	visuals.Sprite,
 	geometry.Transform,

@@ -4,7 +4,7 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
-	"github.com/ubootgame/ubootgame/internal/utility"
+	"github.com/ubootgame/ubootgame/internal/utility/ecs/archetypes"
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -12,7 +12,7 @@ import (
 
 var AnimatedWaterTag = donburi.NewTag().SetName("Animated Background")
 
-var AnimatedWater = utility.NewArchetype(
+var AnimatedWater = archetypes.NewArchetype(
 	AnimatedWaterTag,
 	visuals.Aseprite,
 )

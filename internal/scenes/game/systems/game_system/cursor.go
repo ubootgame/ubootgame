@@ -3,35 +3,35 @@ package game_system
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
-	"github.com/yohamta/donburi"
+	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
+	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi/ecs"
 	"gonum.org/v1/gonum/spatial/r2"
 )
 
-type cursorSystem struct {
-	cursorEntry, cameraEntry *donburi.Entry
+type CursorSystem struct {
+	systems.BaseSystem
+
+	cursor *game_system.CursorData
+	camera *game_system.CameraData
 }
 
-var Cursor = &cursorSystem{}
+func NewCursorSystem() *CursorSystem {
+	system := &CursorSystem{}
+	system.Injector = injector.NewInjector([]injector.Injection{
+		injector.Once([]injector.Injection{
+			injector.Component(&system.cursor, game_system.Cursor),
+			injector.Component(&system.camera, game_system.Camera),
+		}),
+	})
+	return system
+}
 
-func (system *cursorSystem) Update(e *ecs.ECS) {
-	var ok bool
-	if system.cursorEntry == nil {
-		if system.cursorEntry, ok = game_system.Cursor.First(e.World); !ok {
-			panic("no cursor found")
-		}
-	}
-	if system.cameraEntry == nil {
-		if system.cameraEntry, ok = game_system.Camera.First(e.World); !ok {
-			panic("no camera found")
-		}
-	}
-
-	cursor := game_system.Cursor.Get(system.cursorEntry)
-	camera := game_system.Camera.Get(system.cameraEntry)
+func (system *CursorSystem) Update(e *ecs.ECS) {
+	system.BaseSystem.Update(e)
 
 	screenX, screenY := ebiten.CursorPosition()
 	screenPosition := r2.Vec{X: float64(screenX), Y: float64(screenY)}
-	cursor.ScreenPosition = screenPosition
-	cursor.WorldPosition = camera.ScreenToWorldPosition(screenPosition)
+	system.cursor.ScreenPosition = screenPosition
+	system.cursor.WorldPosition = system.camera.ScreenToWorldPosition(screenPosition)
 }

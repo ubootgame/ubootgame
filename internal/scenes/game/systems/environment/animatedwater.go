@@ -4,33 +4,37 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/environment"
-	"github.com/yohamta/donburi"
+	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
+	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi/ecs"
 	"image"
 )
 
-type animatedWaterSystem struct {
-	entry *donburi.Entry
+type AnimatedWaterSystem struct {
+	systems.BaseSystem
+
+	aseprite *visuals.AsepriteData
 }
 
-var AnimatedWater = &animatedWaterSystem{}
+func NewAnimatedWaterSystem() *AnimatedWaterSystem {
+	system := &AnimatedWaterSystem{}
+	system.Injector = injector.NewInjector([]injector.Injection{
+		injector.WithTag(environment.AnimatedWaterTag, []injector.Injection{
+			injector.Component(&system.aseprite, visuals.Aseprite),
+		}),
+	})
+	return system
+}
 
-func (system *animatedWaterSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
-	if system.entry == nil {
-		var ok bool
-		if system.entry, ok = environment.AnimatedWaterTag.First(e.World); !ok {
-			panic("no animated water found")
-		}
-	}
-
-	aseprite := visuals.Aseprite.Get(system.entry)
+func (system *AnimatedWaterSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
+	system.BaseSystem.Update(e)
 
 	sw, sh := float64(screen.Bounds().Dx()), float64(screen.Bounds().Dy())
 
 	opts := &ebiten.DrawImageOptions{}
 	opts.GeoM.Translate(sw/2, sh/2)
 
-	sub := aseprite.Aseprite.Image.SubImage(image.Rect(aseprite.Aseprite.Player.CurrentFrameCoords()))
+	sub := system.aseprite.Aseprite.Image.SubImage(image.Rect(system.aseprite.Aseprite.Player.CurrentFrameCoords()))
 
 	screen.DrawImage(sub.(*ebiten.Image), opts)
 }

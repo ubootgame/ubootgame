@@ -3,26 +3,31 @@ package game_system
 import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/events"
+	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
+	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi"
 )
 
-type displaySystem struct {
-	entry *donburi.Entry
+type DisplaySystem struct {
+	systems.BaseSystem
+
+	display *game_system.DisplayData
 }
 
-var Display = &displaySystem{}
+func NewDisplaySystem() *DisplaySystem {
+	system := &DisplaySystem{}
+	system.Injector = injector.NewInjector([]injector.Injection{
+		injector.Once([]injector.Injection{
+			injector.Component(&system.display, game_system.Display),
+		}),
+	})
+	return system
+}
 
-func (system *displaySystem) UpdateDisplay(w donburi.World, event events.DisplayUpdatedEventData) {
-	if system.entry == nil {
-		var ok bool
-		if system.entry, ok = game_system.Display.First(w); !ok {
-			panic("no display found")
-		}
-	}
+func (system *DisplaySystem) UpdateDisplay(w donburi.World, event events.DisplayUpdatedEventData) {
+	system.Inject(w)
 
-	display := game_system.Display.Get(system.entry)
-
-	display.WindowSize = event.WindowSize
-	display.VirtualResolution = event.VirtualResolution
-	display.ScalingFactor = event.ScalingFactor
+	system.display.WindowSize = event.WindowSize
+	system.display.VirtualResolution = event.VirtualResolution
+	system.display.ScalingFactor = event.ScalingFactor
 }

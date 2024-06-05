@@ -5,7 +5,8 @@ import (
 	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/utility"
-	"github.com/yohamta/donburi"
+	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
+	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi/ecs"
 )
 
@@ -13,60 +14,59 @@ const translationSpeed, zoomSpeed = 0.5, 0.1 // world unit
 const rotationSpeed = 2                      // degrees
 const minZoom, maxZoom = 0.5, 2.0
 
-type cameraSystem struct {
-	cameraEntry, displayEntry *donburi.Entry
+type CameraSystem struct {
+	systems.BaseSystem
+
+	camera  *game_system.CameraData
+	display *game_system.DisplayData
 }
 
-var Camera = &cameraSystem{}
+func NewCameraSystem() *CameraSystem {
+	system := &CameraSystem{}
+	system.Injector = injector.NewInjector([]injector.Injection{
+		injector.Once([]injector.Injection{
+			injector.Component(&system.display, game_system.Display),
+			injector.Component(&system.camera, game_system.Camera),
+		}),
+	})
+	return system
+}
 
-func (system *cameraSystem) Update(e *ecs.ECS) {
-	var ok bool
-	if system.cameraEntry == nil {
-		if system.cameraEntry, ok = game_system.Camera.First(e.World); !ok {
-			panic("no camera found")
-		}
-	}
-	if system.displayEntry == nil {
-		if system.displayEntry, ok = game_system.Display.First(e.World); !ok {
-			panic("no display found")
-		}
-	}
+func (system *CameraSystem) Update(e *ecs.ECS) {
+	system.BaseSystem.Update(e)
 
-	camera := game_system.Camera.Get(system.cameraEntry)
-	display := game_system.Display.Get(system.displayEntry)
-
-	utility.UpdateCameraMatrix(display, camera)
+	utility.UpdateCameraMatrix(system.display, system.camera)
 
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
-		camera.Position.X -= translationSpeed / float64(config.C.TargetTPS)
+		system.camera.Position.X -= translationSpeed / float64(config.C.TargetTPS)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyD) {
-		camera.Position.X += translationSpeed / float64(config.C.TargetTPS)
+		system.camera.Position.X += translationSpeed / float64(config.C.TargetTPS)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyW) {
-		camera.Position.Y -= translationSpeed / float64(config.C.TargetTPS)
+		system.camera.Position.Y -= translationSpeed / float64(config.C.TargetTPS)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyS) {
-		camera.Position.Y += translationSpeed / float64(config.C.TargetTPS)
+		system.camera.Position.Y += translationSpeed / float64(config.C.TargetTPS)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyF) {
-		camera.ZoomFactor = max(minZoom, camera.ZoomFactor-zoomSpeed)
+		system.camera.ZoomFactor = max(minZoom, system.camera.ZoomFactor-zoomSpeed)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyR) {
-		camera.ZoomFactor = min(maxZoom, camera.ZoomFactor+zoomSpeed)
+		system.camera.ZoomFactor = min(maxZoom, system.camera.ZoomFactor+zoomSpeed)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyQ) {
-		newCameraRotation := camera.Rotation - rotationSpeed
+		newCameraRotation := system.camera.Rotation - rotationSpeed
 		if newCameraRotation < 0 {
 			newCameraRotation = 360 - newCameraRotation
 		}
-		camera.Rotation = newCameraRotation
+		system.camera.Rotation = newCameraRotation
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyE) {
-		newCameraRotation := camera.Rotation + rotationSpeed
+		newCameraRotation := system.camera.Rotation + rotationSpeed
 		if newCameraRotation >= 360 {
 			newCameraRotation = newCameraRotation - 360
 		}
-		camera.Rotation = newCameraRotation
+		system.camera.Rotation = newCameraRotation
 	}
 }

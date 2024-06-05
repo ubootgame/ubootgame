@@ -8,42 +8,42 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility"
+	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
+	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/filter"
 )
 
-type spriteSystem struct {
-	cameraEntry, debugEntry, displayEntry *donburi.Entry
-	query                                 *donburi.Query
-	debugText                             string
+type SpriteSystem struct {
+	systems.BaseSystem
+
+	camera  *game_system.CameraData
+	debug   *game_system.DebugData
+	display *game_system.DisplayData
+
+	query     *donburi.Query
+	debugText string
 }
 
-var Sprite = &spriteSystem{
-	query: ecs.NewQuery(layers.Foreground, filter.Contains(visuals.Sprite, geometry.Transform)),
+func NewSpriteSystem() *SpriteSystem {
+	system := &SpriteSystem{
+		query: ecs.NewQuery(layers.Foreground, filter.Contains(visuals.Sprite, geometry.Transform)),
+	}
+	system.Injector = injector.NewInjector([]injector.Injection{
+		injector.Once([]injector.Injection{
+			injector.Component(&system.camera, game_system.Camera),
+			injector.Component(&system.debug, game_system.Debug),
+			injector.Component(&system.display, game_system.Display),
+		}),
+	})
+	return system
 }
 
-func (system *spriteSystem) Update(e *ecs.ECS) {
-	var ok bool
-	if system.cameraEntry == nil {
-		if system.cameraEntry, ok = game_system.Camera.First(e.World); !ok {
-			panic("no camera found")
-		}
-	}
-	if system.debugEntry == nil {
-		if system.debugEntry, ok = game_system.Debug.First(e.World); !ok {
-			panic("no debug found")
-		}
-	}
-	if system.displayEntry == nil {
-		if system.displayEntry, ok = game_system.Display.First(e.World); !ok {
-			panic("no display found")
-		}
-	}
+func (system *SpriteSystem) Update(e *ecs.ECS) {
+	system.BaseSystem.Update(e)
 
-	debug := game_system.Debug.Get(system.debugEntry)
-
-	if debug.Enabled && debug.DrawPositions {
+	if system.debug.Enabled && system.debug.DrawPositions {
 		system.query.Each(e.World, func(entry *donburi.Entry) {
 			sprite := visuals.Sprite.Get(entry)
 			transform := geometry.Transform.Get(entry)
@@ -62,11 +62,7 @@ func (system *spriteSystem) Update(e *ecs.ECS) {
 	}
 }
 
-func (system *spriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
-	debug := game_system.Debug.Get(system.debugEntry)
-	camera := game_system.Camera.Get(system.cameraEntry)
-	display := game_system.Display.Get(system.displayEntry)
-
+func (system *SpriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	system.query.Each(e.World, func(entry *donburi.Entry) {
 		sprite := visuals.Sprite.Get(entry)
 		transform := geometry.Transform.Get(entry)
@@ -85,24 +81,24 @@ func (system *spriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 		op.GeoM.Translate(-float64(sprite.Image.Bounds().Size().X/2), -float64(sprite.Image.Bounds().Size().Y/2))
 		op.GeoM.Scale(sprite.Scale*transform.Size.X, sprite.Scale*transform.Size.X)
 		op.GeoM.Translate(transform.Center.X, transform.Center.Y)
-		op.GeoM.Concat(*camera.Matrix)
+		op.GeoM.Concat(*system.camera.Matrix)
 
 		op.Filter = ebiten.FilterLinear
 
 		screen.DrawImage(sprite.Image, op)
 
-		if debug.Enabled && debug.DrawPositions {
-			system.drawDebug(display, camera, transform, screen, sprite)
+		if system.debug.Enabled && system.debug.DrawPositions {
+			system.drawDebug(transform, screen, sprite)
 		}
 	})
 }
 
-func (system *spriteSystem) drawDebug(display *game_system.DisplayData, camera *game_system.CameraData, transform *geometry.TransformData, screen *ebiten.Image, sprite *visuals.SpriteData) {
+func (system *SpriteSystem) drawDebug(transform *geometry.TransformData, screen *ebiten.Image, sprite *visuals.SpriteData) {
 	debugOpts := &ebiten.DrawImageOptions{}
-	debugOpts.GeoM.Scale(1/display.VirtualResolution.X, 1/display.VirtualResolution.X)
-	debugOpts.GeoM.Scale(1.0/camera.ZoomFactor, 1.0/camera.ZoomFactor)
+	debugOpts.GeoM.Scale(1/system.display.VirtualResolution.X, 1/system.display.VirtualResolution.X)
+	debugOpts.GeoM.Scale(1.0/system.camera.ZoomFactor, 1.0/system.camera.ZoomFactor)
 	debugOpts.GeoM.Translate(transform.Center.X+transform.Size.X/2, transform.Center.Y+transform.Size.Y/2)
-	debugOpts.GeoM.Concat(*camera.Matrix)
+	debugOpts.GeoM.Concat(*system.camera.Matrix)
 
 	utility.Debug.PrintDebugTextAt(screen, sprite.DebugText, debugOpts)
 }
