@@ -1,4 +1,4 @@
-package utility
+package draw
 
 import (
 	"fmt"
@@ -19,7 +19,7 @@ func FormatBytes(b uint64) string {
 	}
 }
 
-func DrawTextAtWithOptions(screen *ebiten.Image, s string, f font.Face, opts *ebiten.DrawImageOptions) {
+func TextWithOptions(screen *ebiten.Image, s string, f font.Face, opts *ebiten.DrawImageOptions) {
 	y2 := f.Metrics().Height.Round()
 
 	opts.GeoM.Translate(0, float64(y2))

@@ -10,7 +10,7 @@ import (
 	"github.com/yohamta/donburi/ecs"
 )
 
-var AnimatedWaterTag = donburi.NewTag().SetName("Animated Background")
+var AnimatedWaterTag = donburi.NewTag().SetName("Animated Game")
 
 var AnimatedWater = archetypes.NewArchetype(
 	AnimatedWaterTag,
@@ -18,7 +18,7 @@ var AnimatedWater = archetypes.NewArchetype(
 )
 
 func CreateAnimatedWater(ecs *ecs.ECS, registry *resources.Registry) *donburi.Entry {
-	entry := AnimatedWater.Spawn(ecs, layers.Background)
+	entry := AnimatedWater.Spawn(ecs, layers.Game)
 
 	aseprite := registry.LoadAseprite(assets.AnimatedWater)
 	visuals.Aseprite.SetValue(entry, visuals.AsepriteData{Aseprite: aseprite, Speed: 0.5})

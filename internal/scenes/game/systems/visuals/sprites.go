@@ -3,11 +3,12 @@ package visuals
 import (
 	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
-	"github.com/ubootgame/ubootgame/internal/utility"
+	"github.com/ubootgame/ubootgame/internal/utility/draw"
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi"
@@ -28,7 +29,7 @@ type SpriteSystem struct {
 
 func NewSpriteSystem() *SpriteSystem {
 	system := &SpriteSystem{
-		query: ecs.NewQuery(layers.Foreground, filter.Contains(visuals.Sprite, geometry.Transform)),
+		query: donburi.NewQuery(filter.Contains(visuals.Sprite, geometry.Transform)),
 	}
 	system.Injector = injector.NewInjector([]injector.Injection{
 		injector.Once([]injector.Injection{
@@ -40,25 +41,10 @@ func NewSpriteSystem() *SpriteSystem {
 	return system
 }
 
-func (system *SpriteSystem) Update(e *ecs.ECS) {
-	system.BaseSystem.Update(e)
-
-	if system.debug.Enabled && system.debug.DrawPositions {
-		system.query.Each(e.World, func(entry *donburi.Entry) {
-			sprite := visuals.Sprite.Get(entry)
-			transform := geometry.Transform.Get(entry)
-
-			debugText := fmt.Sprintf("Transform: %.3f, %.3f\nSize: %.3f, %.3f",
-				transform.Center.X, transform.Center.Y,
-				transform.Size.X, transform.Size.Y)
-
-			if entry.HasComponent(geometry.Velocity) {
-				velocity := geometry.Velocity.Get(entry)
-				debugText += fmt.Sprintf("\nVelocity: %.3f, %.3f", velocity.X, velocity.Y)
-			}
-
-			sprite.DebugText = debugText
-		})
+func (system *SpriteSystem) Layers() []lo.Tuple2[ecs.LayerID, systems.Renderer] {
+	return []lo.Tuple2[ecs.LayerID, systems.Renderer]{
+		{A: layers.Game, B: system.Draw},
+		{A: layers.Debug, B: system.DrawDebug},
 	}
 }
 
@@ -86,19 +72,32 @@ func (system *SpriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 		op.Filter = ebiten.FilterLinear
 
 		screen.DrawImage(sprite.Image, op)
-
-		if system.debug.Enabled && system.debug.DrawPositions {
-			system.drawDebug(transform, screen, sprite)
-		}
 	})
 }
 
-func (system *SpriteSystem) drawDebug(transform *geometry.TransformData, screen *ebiten.Image, sprite *visuals.SpriteData) {
-	debugOpts := &ebiten.DrawImageOptions{}
-	debugOpts.GeoM.Scale(1/system.display.VirtualResolution.X, 1/system.display.VirtualResolution.X)
-	debugOpts.GeoM.Scale(1.0/system.camera.ZoomFactor, 1.0/system.camera.ZoomFactor)
-	debugOpts.GeoM.Translate(transform.Center.X+transform.Size.X/2, transform.Center.Y+transform.Size.Y/2)
-	debugOpts.GeoM.Concat(*system.camera.Matrix)
+func (system *SpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
+	if !system.debug.DrawPositions {
+		return
+	}
 
-	utility.Debug.PrintDebugTextAt(screen, sprite.DebugText, debugOpts)
+	system.query.Each(e.World, func(entry *donburi.Entry) {
+		transform := geometry.Transform.Get(entry)
+
+		debugText := fmt.Sprintf("Transform: %.3f, %.3f\nSize: %.3f, %.3f",
+			transform.Center.X, transform.Center.Y,
+			transform.Size.X, transform.Size.Y)
+
+		if entry.HasComponent(geometry.Velocity) {
+			velocity := geometry.Velocity.Get(entry)
+			debugText += fmt.Sprintf("\nVelocity: %.3f, %.3f", velocity.X, velocity.Y)
+		}
+
+		debugOpts := &ebiten.DrawImageOptions{}
+		debugOpts.GeoM.Scale(1/system.display.VirtualResolution.X, 1/system.display.VirtualResolution.X)
+		debugOpts.GeoM.Scale(1.0/system.camera.ZoomFactor, 1.0/system.camera.ZoomFactor)
+		debugOpts.GeoM.Translate(transform.Center.X+transform.Size.X/2, transform.Center.Y+transform.Size.Y/2)
+		debugOpts.GeoM.Concat(*system.camera.Matrix)
+
+		draw.TextWithOptions(screen, debugText, system.debug.FontFace, debugOpts)
+	})
 }

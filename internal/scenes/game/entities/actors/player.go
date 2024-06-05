@@ -23,7 +23,7 @@ var Player = archetypes.NewArchetype(
 )
 
 func CreatePlayer(ecs *ecs.ECS, registry *resources.Registry, scaler utility.Scaler) *donburi.Entry {
-	entry := Player.Spawn(ecs, layers.Foreground)
+	entry := Player.Spawn(ecs, layers.Game)
 
 	sprite := registry.LoadImage(assets.Battleship)
 

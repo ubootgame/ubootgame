@@ -1,12 +1,16 @@
 package weapons
 
 import (
+	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/samber/lo"
 	"github.com/solarlune/resolv"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/weapons"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi"
@@ -35,6 +39,13 @@ func NewBulletSystem() *BulletSystem {
 		}),
 	})
 	return system
+}
+
+func (system *BulletSystem) Layers() []lo.Tuple2[ecs.LayerID, systems.Renderer] {
+	return []lo.Tuple2[ecs.LayerID, systems.Renderer]{
+		{A: layers.Game, B: system.Draw},
+		{A: layers.Debug, B: system.DrawDebug},
+	}
 }
 
 func (system *BulletSystem) Update(e *ecs.ECS) {
@@ -74,4 +85,14 @@ func (system *BulletSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 
 		screen.DrawImage(system.image, op)
 	})
+}
+
+func (system *BulletSystem) DrawDebug(e *ecs.ECS, _ *ebiten.Image) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyF12) {
+		donburi.NewQuery(filter.Contains(weapons.BulletTag)).Each(e.World, func(entry *donburi.Entry) {
+			transform := geometry.Transform.Get(entry)
+			velocity := geometry.Velocity.Get(entry)
+			fmt.Printf("%v %v\n", transform, velocity)
+		})
+	}
 }

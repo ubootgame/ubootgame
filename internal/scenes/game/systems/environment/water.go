@@ -2,9 +2,11 @@ package environment
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/environment"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi"
@@ -30,6 +32,12 @@ func NewWaterSystem() *WaterSystem {
 		}),
 	})
 	return system
+}
+
+func (system *WaterSystem) Layers() []lo.Tuple2[ecs.LayerID, systems.Renderer] {
+	return []lo.Tuple2[ecs.LayerID, systems.Renderer]{
+		{A: layers.Game, B: system.Draw},
+	}
 }
 
 func (system *WaterSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {

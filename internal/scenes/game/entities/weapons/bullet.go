@@ -19,7 +19,7 @@ var Bullet = archetypes.NewArchetype(
 )
 
 func CreateBullet(ecs *ecs.ECS, from, to r2.Vec) *donburi.Entry {
-	entry := Bullet.Spawn(ecs, layers.Foreground)
+	entry := Bullet.Spawn(ecs, layers.Game)
 
 	direction := r2.Sub(to, from)
 	velocity := r2.Unit(direction)

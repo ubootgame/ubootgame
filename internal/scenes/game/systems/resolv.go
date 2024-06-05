@@ -3,10 +3,12 @@ package systems
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/samber/lo"
 	"github.com/solarlune/resolv"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi"
@@ -46,6 +48,12 @@ func NewResolvSystem() *ResolvSystem {
 	return system
 }
 
+func (system *ResolvSystem) Layers() []lo.Tuple2[ecs.LayerID, systems.Renderer] {
+	return []lo.Tuple2[ecs.LayerID, systems.Renderer]{
+		{A: layers.Debug, B: system.DrawDebug},
+	}
+}
+
 func (system *ResolvSystem) Update(e *ecs.ECS) {
 	system.BaseSystem.Update(e)
 
@@ -60,13 +68,11 @@ func (system *ResolvSystem) Update(e *ecs.ECS) {
 	})
 }
 
-func (system *ResolvSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
-	if system.debug.Enabled && system.debug.DrawCollisions {
-		system.drawDebug(e, screen)
+func (system *ResolvSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
+	if !system.debug.DrawCollisions {
+		return
 	}
-}
 
-func (system *ResolvSystem) drawDebug(e *ecs.ECS, screen *ebiten.Image) {
 	playerScreen := system.camera.WorldToScreenPosition(system.playerTransform.Center)
 
 	line := resolv.NewLine(playerScreen.X, playerScreen.Y, system.cursor.ScreenPosition.X, system.cursor.ScreenPosition.Y)

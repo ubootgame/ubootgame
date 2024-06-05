@@ -25,7 +25,7 @@ var Enemy = archetypes.NewArchetype(
 )
 
 func CreateEnemy(ecs *ecs.ECS, registry *resources.Registry, scaler utility.Scaler, position, velocity r2.Vec) *donburi.Entry {
-	entry := Enemy.Spawn(ecs, layers.Foreground)
+	entry := Enemy.Spawn(ecs, layers.Game)
 
 	sprite := registry.LoadImage(assets.Submarine)
 
