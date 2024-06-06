@@ -9,13 +9,11 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
-	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 )
 
 type WaterSystem struct {
 	systems.BaseSystem
-	displayEntry, waterEntry *donburi.Entry
 
 	display *game_system.DisplayData
 	sprite  *visuals.SpriteData

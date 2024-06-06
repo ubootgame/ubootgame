@@ -3,6 +3,7 @@ package visuals
 import (
 	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
@@ -14,6 +15,7 @@ import (
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/filter"
+	"golang.org/x/image/colornames"
 )
 
 type SpriteSystem struct {
@@ -23,13 +25,25 @@ type SpriteSystem struct {
 	debug   *game_system.DebugData
 	display *game_system.DisplayData
 
-	query     *donburi.Query
-	debugText string
+	query *donburi.Query
+
+	spriteDrawImageOptions *ebiten.DrawImageOptions
+
+	debugText             string
+	debugTextOptions      *text.DrawOptions
+	debugTextPositionOpts *ebiten.DrawImageOptions
 }
 
 func NewSpriteSystem() *SpriteSystem {
 	system := &SpriteSystem{
-		query: donburi.NewQuery(filter.Contains(visuals.Sprite, geometry.Transform)),
+		query:                  donburi.NewQuery(filter.Contains(visuals.Sprite, geometry.Transform)),
+		spriteDrawImageOptions: &ebiten.DrawImageOptions{},
+		debugTextOptions: &text.DrawOptions{
+			DrawImageOptions: ebiten.DrawImageOptions{
+				Filter: ebiten.FilterLinear,
+			},
+		},
+		debugTextPositionOpts: &ebiten.DrawImageOptions{},
 	}
 	system.Injector = injector.NewInjector([]injector.Injection{
 		injector.Once([]injector.Injection{
@@ -53,25 +67,25 @@ func (system *SpriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 		sprite := visuals.Sprite.Get(entry)
 		transform := geometry.Transform.Get(entry)
 
-		op := &ebiten.DrawImageOptions{}
+		system.spriteDrawImageOptions.GeoM.Reset()
 
 		if transform.FlipX {
-			op.GeoM.Scale(1, -11)
-			op.GeoM.Translate(0, float64(sprite.Image.Bounds().Size().Y))
+			system.spriteDrawImageOptions.GeoM.Scale(1, -1)
+			system.spriteDrawImageOptions.GeoM.Translate(0, float64(sprite.Image.Bounds().Size().Y))
 		}
 		if transform.FlipY {
-			op.GeoM.Scale(-1, 1)
-			op.GeoM.Translate(float64(sprite.Image.Bounds().Size().X), 0)
+			system.spriteDrawImageOptions.GeoM.Scale(-1, 1)
+			system.spriteDrawImageOptions.GeoM.Translate(float64(sprite.Image.Bounds().Size().X), 0)
 		}
 
-		op.GeoM.Translate(-float64(sprite.Image.Bounds().Size().X/2), -float64(sprite.Image.Bounds().Size().Y/2))
-		op.GeoM.Scale(sprite.Scale*transform.Size.X, sprite.Scale*transform.Size.X)
-		op.GeoM.Translate(transform.Center.X, transform.Center.Y)
-		op.GeoM.Concat(*system.camera.Matrix)
+		system.spriteDrawImageOptions.GeoM.Translate(-float64(sprite.Image.Bounds().Size().X/2), -float64(sprite.Image.Bounds().Size().Y/2))
+		system.spriteDrawImageOptions.GeoM.Scale(sprite.Scale*transform.Size.X, sprite.Scale*transform.Size.X)
+		system.spriteDrawImageOptions.GeoM.Translate(transform.Center.X, transform.Center.Y)
+		system.spriteDrawImageOptions.GeoM.Concat(*system.camera.Matrix)
 
-		op.Filter = ebiten.FilterLinear
+		system.spriteDrawImageOptions.Filter = ebiten.FilterLinear
 
-		screen.DrawImage(sprite.Image, op)
+		screen.DrawImage(sprite.Image, system.spriteDrawImageOptions)
 	})
 }
 
@@ -83,6 +97,9 @@ func (system *SpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 	system.query.Each(e.World, func(entry *donburi.Entry) {
 		transform := geometry.Transform.Get(entry)
 
+		spriteCenter := system.camera.WorldToScreenPosition(transform.Center)
+		draw.BigDot(screen, spriteCenter, colornames.Yellow)
+
 		debugText := fmt.Sprintf("Transform: %.3f, %.3f\nSize: %.3f, %.3f",
 			transform.Center.X, transform.Center.Y,
 			transform.Size.X, transform.Size.Y)
@@ -92,12 +109,16 @@ func (system *SpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 			debugText += fmt.Sprintf("\nVelocity: %.3f, %.3f", velocity.X, velocity.Y)
 		}
 
-		debugOpts := &ebiten.DrawImageOptions{}
-		debugOpts.GeoM.Scale(1/system.display.VirtualResolution.X, 1/system.display.VirtualResolution.X)
-		debugOpts.GeoM.Scale(1.0/system.camera.ZoomFactor, 1.0/system.camera.ZoomFactor)
-		debugOpts.GeoM.Translate(transform.Center.X+transform.Size.X/2, transform.Center.Y+transform.Size.Y/2)
-		debugOpts.GeoM.Concat(*system.camera.Matrix)
+		metrics := system.debug.FontFace.Metrics()
+		system.debugTextOptions.LineSpacing = metrics.HAscent + metrics.HDescent + metrics.HLineGap
 
-		draw.TextWithOptions(screen, debugText, system.debug.FontFace, debugOpts)
+		textImage := draw.TextWithOptions(debugText, system.debug.FontFace, system.debugTextOptions)
+
+		system.debugTextPositionOpts.GeoM.Reset()
+		system.debugTextPositionOpts.GeoM.Scale(1/(system.display.VirtualResolution.X*system.camera.ZoomFactor), 1/(system.display.VirtualResolution.X*system.camera.ZoomFactor))
+		system.debugTextPositionOpts.GeoM.Translate(transform.Center.X+transform.Size.X/2, transform.Center.Y+transform.Size.Y/2)
+		system.debugTextPositionOpts.GeoM.Concat(*system.camera.Matrix)
+
+		screen.DrawImage(textImage, system.debugTextPositionOpts)
 	})
 }

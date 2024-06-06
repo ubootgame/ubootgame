@@ -3,8 +3,8 @@ package draw
 import (
 	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text"
-	"golang.org/x/image/font"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"math"
 )
 
 func FormatBytes(b uint64) string {
@@ -19,10 +19,12 @@ func FormatBytes(b uint64) string {
 	}
 }
 
-func TextWithOptions(screen *ebiten.Image, s string, f font.Face, opts *ebiten.DrawImageOptions) {
-	y2 := f.Metrics().Height.Round()
+func TextWithOptions(s string, f text.Face, opts *text.DrawOptions) *ebiten.Image {
+	width, height := text.Measure(s, f, opts.LineSpacing)
 
-	opts.GeoM.Translate(0, float64(y2))
+	image := ebiten.NewImage(int(math.Round(width)), int(math.Round(height)))
 
-	text.DrawWithOptions(screen, s, f, opts)
+	text.Draw(image, s, f, opts)
+
+	return image
 }

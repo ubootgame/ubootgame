@@ -36,7 +36,7 @@ type vScaler struct{ scale float64 }
 func (s vScaler) GetNormalSizeAndScale(original r2.Vec) (r2.Vec, float64) {
 	ratio := original.X / original.Y
 	scale := 1.0 / original.Y
-	return r2.Vec{X: s.scale * ratio, Y: s.scale}, scale
+	return r2.Vec{X: s.scale / ratio, Y: s.scale}, scale
 }
 
 func VScaler(scale float64) Scaler {

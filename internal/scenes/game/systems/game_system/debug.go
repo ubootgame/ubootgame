@@ -1,9 +1,11 @@
 package game_system
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
@@ -14,26 +16,13 @@ import (
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
-	"golang.org/x/image/font"
 	"golang.org/x/image/font/gofont/gobold"
-	"golang.org/x/image/font/opentype"
 	"log"
 	"runtime"
 	"strings"
 )
 
-const dpi = 72
-
-var debugFont *opentype.Font
-var defaultFontSize = 14.0
-
-func init() {
-	var err error
-	debugFont, err = opentype.Parse(gobold.TTF)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
+var defaultFontSize = 12.0
 
 type DebugSystem struct {
 	systems.BaseSystem
@@ -43,20 +32,23 @@ type DebugSystem struct {
 	display *game_system.DisplayData
 	cursor  *game_system.CursorData
 
-	keys      []ebiten.Key
-	memStats  *runtime.MemStats
-	ticks     uint64
-	debugText *strings.Builder
-
-	font *opentype.Font
+	keys             []ebiten.Key
+	memStats         *runtime.MemStats
+	ticks            uint64
+	debugText        *strings.Builder
+	debugTextOptions *text.DrawOptions
 }
 
-func NewDebugSystem(font *opentype.Font) *DebugSystem {
+func NewDebugSystem() *DebugSystem {
 	system := &DebugSystem{
 		keys:      make([]ebiten.Key, 0),
 		memStats:  &runtime.MemStats{},
 		debugText: &strings.Builder{},
-		font:      font,
+		debugTextOptions: &text.DrawOptions{
+			DrawImageOptions: ebiten.DrawImageOptions{
+				Filter: ebiten.FilterLinear,
+			},
+		},
 	}
 	system.Injector = injector.NewInjector([]injector.Injection{
 		injector.Once([]injector.Injection{
@@ -103,11 +95,17 @@ func (system *DebugSystem) Update(e *ecs.ECS) {
 	}
 	system.ticks++
 
-	system.updateDebugText(system.debugText)
 }
 
 func (system *DebugSystem) DrawDebug(_ *ecs.ECS, screen *ebiten.Image) {
-	draw.TextWithOptions(screen, system.debugText.String(), system.debug.FontFace, &ebiten.DrawImageOptions{})
+	system.updateDebugText(system.debugText)
+
+	metrics := system.debug.FontFace.Metrics()
+	system.debugTextOptions.LineSpacing = metrics.HAscent + metrics.HDescent + metrics.HLineGap
+
+	textImage := draw.TextWithOptions(system.debugText.String(), system.debug.FontFace, system.debugTextOptions)
+
+	screen.DrawImage(textImage, &ebiten.DrawImageOptions{})
 }
 
 func (system *DebugSystem) updateDebugText(builder *strings.Builder) {
@@ -119,9 +117,9 @@ func (system *DebugSystem) updateDebugText(builder *strings.Builder) {
 	screenPosition := system.cursor.ScreenPosition
 
 	_, _ = fmt.Fprintf(builder, `(/ to toggle debugSystem)
-DrawDebug grid (F1): %v
-DrawDebug collisions (F2): %v
-DrawDebug positions (F3): %v
+Draw grid (F1): %v
+Draw collisions (F2): %v
+Draw positions (F3): %v
 FPS: %.1f
 TPS: %.1f
 VSync: %v
@@ -160,16 +158,14 @@ func (system *DebugSystem) UpdateFontFace(w donburi.World, event events.DisplayU
 	system.Inject(w)
 
 	if system.debug.FontScale != event.ScalingFactor || system.debug.FontFace == nil {
-		var err error
-
-		system.debug.FontScale = event.ScalingFactor
-		system.debug.FontFace, err = opentype.NewFace(debugFont, &opentype.FaceOptions{
-			Size:    defaultFontSize * event.ScalingFactor,
-			DPI:     dpi,
-			Hinting: font.HintingVertical,
-		})
+		s, err := text.NewGoTextFaceSource(bytes.NewReader(gobold.TTF))
 		if err != nil {
 			log.Fatal(err)
+		}
+
+		system.debug.FontFace = &text.GoTextFace{
+			Source: s,
+			Size:   defaultFontSize * event.ScalingFactor,
 		}
 	}
 }

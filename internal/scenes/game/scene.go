@@ -22,11 +22,8 @@ import (
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	devents "github.com/yohamta/donburi/features/events"
-	"golang.org/x/image/font/gofont/gobold"
-	"golang.org/x/image/font/opentype"
 	"gonum.org/v1/gonum/spatial/r2"
 	"image/color"
-	"log"
 	"sync"
 )
 
@@ -105,12 +102,7 @@ func (scene *Scene) setup() {
 	})
 
 	// Systems
-	debugFont, err := opentype.Parse(gobold.TTF)
-	if err != nil {
-		log.Fatal(err)
-	}
-	debugSystem := game_system.NewDebugSystem(debugFont)
-
+	debugSystem := game_system.NewDebugSystem()
 	displaySystem := game_system.NewDisplaySystem()
 
 	scene.registerSystem(debugSystem)
@@ -122,9 +114,8 @@ func (scene *Scene) setup() {
 	scene.registerSystem(systems.NewMovementSystem())
 	scene.registerSystem(systems.NewResolvSystem())
 	scene.registerSystem(environmentSystems.NewWaterSystem())
-	scene.registerSystem(environmentSystems.NewAnimatedWaterSystem())
 	scene.registerSystem(visuals.NewSpriteSystem())
-	scene.registerSystem(visuals.NewAsepriteSystem())
+	scene.registerSystem(visuals.NewAnimatedSpriteSystem())
 
 	// Events
 	events.DisplayUpdatedEvent.Subscribe(scene.ecs.World, displaySystem.UpdateDisplay)
@@ -132,7 +123,7 @@ func (scene *Scene) setup() {
 
 	// Entities
 	environmentEntities.CreateWater(scene.ecs, scene.resourceRegistry)
-	environmentEntities.CreateAnimatedWater(scene.ecs, scene.resourceRegistry)
+	environmentEntities.CreateAnimatedWater(scene.ecs, scene.resourceRegistry, utility.HScaler(0.2), r2.Vec{})
 
 	actorEntities.CreatePlayer(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1))
 	actorEntities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1), r2.Vec{X: -0.7, Y: 0.05}, r2.Vec{X: 0.1})

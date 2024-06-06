@@ -9,6 +9,7 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
+	"github.com/ubootgame/ubootgame/internal/utility/draw"
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi"
@@ -64,7 +65,7 @@ func (system *ResolvSystem) Update(e *ecs.ECS) {
 		position := system.camera.WorldToScreenPosition(r2.Vec{X: transform.Center.X - transform.Size.X/2, Y: transform.Center.Y - transform.Size.Y/2})
 		shape.SetPosition(position.X, position.Y)
 		shape.SetScale(system.display.VirtualResolution.X*system.camera.ZoomFactor, system.display.VirtualResolution.X*system.camera.ZoomFactor)
-		shape.SetRotation(resolv.ToRadians(transform.Rotate))
+		shape.SetRotation(resolv.ToRadians(transform.Rotate - system.camera.Rotation))
 	})
 }
 
@@ -95,11 +96,11 @@ func (system *ResolvSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 
 	vector.StrokeLine(screen, float32(l.Start.X), float32(l.Start.Y), float32(l.End.X), float32(l.End.Y), 2, lineColor, true)
 
-	drawBigDot(screen, playerScreen, lineColor)
+	draw.BigDot(screen, playerScreen, lineColor)
 
 	for _, point := range intersectionPoints {
 		pointVec := r2.Vec{X: point.X, Y: point.Y}
-		drawBigDot(screen, pointVec, color.RGBA{G: 255, A: 255})
+		draw.BigDot(screen, pointVec, color.RGBA{G: 255, A: 255})
 	}
 }
 
@@ -112,20 +113,6 @@ func drawPolygon(screen *ebiten.Image, shape *resolv.ConvexPolygon, color color.
 		if i < len(vertices)-1 {
 			next = vertices[i+1]
 		}
-		vector.StrokeLine(screen, float32(vert.X), float32(vert.Y), float32(next.X), float32(next.Y), 1, color, false)
+		vector.StrokeLine(screen, float32(vert.X), float32(vert.Y), float32(next.X), float32(next.Y), 1, color, true)
 	}
-}
-
-var bigDotImg *ebiten.Image
-
-func drawBigDot(screen *ebiten.Image, position r2.Vec, drawColor color.Color) {
-	if bigDotImg == nil {
-		bigDotImg = ebiten.NewImage(4, 4)
-		bigDotImg.Fill(color.White)
-	}
-
-	opt := &ebiten.DrawImageOptions{}
-	opt.GeoM.Translate(position.X-2, position.Y-2)
-	opt.ColorScale.ScaleWithColor(drawColor)
-	screen.DrawImage(bigDotImg, opt)
 }

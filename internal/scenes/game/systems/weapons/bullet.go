@@ -27,11 +27,14 @@ type BulletSystem struct {
 	query *donburi.Query
 	tick  uint64
 	image *ebiten.Image
+
+	drawImageOptions *ebiten.DrawImageOptions
 }
 
 func NewBulletSystem() *BulletSystem {
 	system := &BulletSystem{
-		query: donburi.NewQuery(filter.Contains(weapons.BulletTag)),
+		query:            donburi.NewQuery(filter.Contains(weapons.BulletTag)),
+		drawImageOptions: &ebiten.DrawImageOptions{},
 	}
 	system.Injector = injector.NewInjector([]injector.Injection{
 		injector.Once([]injector.Injection{
@@ -76,14 +79,14 @@ func (system *BulletSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	system.query.Each(e.World, func(entry *donburi.Entry) {
 		transform := geometry.Transform.Get(entry)
 
-		op := &ebiten.DrawImageOptions{}
+		system.drawImageOptions.GeoM.Reset()
 
-		op.GeoM.Translate(-1, -1)
-		op.GeoM.Scale(0.001, 0.001)
-		op.GeoM.Translate(transform.Center.X, transform.Center.Y)
-		op.GeoM.Concat(*system.camera.Matrix)
+		system.drawImageOptions.GeoM.Translate(-1, -1)
+		system.drawImageOptions.GeoM.Scale(0.001, 0.001)
+		system.drawImageOptions.GeoM.Translate(transform.Center.X, transform.Center.Y)
+		system.drawImageOptions.GeoM.Concat(*system.camera.Matrix)
 
-		screen.DrawImage(system.image, op)
+		screen.DrawImage(system.image, system.drawImageOptions)
 	})
 }
 

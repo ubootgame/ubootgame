@@ -5,9 +5,10 @@ import (
 	"github.com/yohamta/donburi"
 )
 
-type AsepriteData struct {
+type AnimatedSpriteData struct {
 	Aseprite resources.Aseprite
 	Speed    float32
+	Scale    float64
 }
 
-var Aseprite = donburi.NewComponentType[AsepriteData]()
+var AnimatedSprite = donburi.NewComponentType[AnimatedSpriteData]()
