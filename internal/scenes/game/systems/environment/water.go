@@ -39,7 +39,6 @@ func (system *WaterSystem) Layers() []lo.Tuple2[ecs.LayerID, systems.Renderer] {
 }
 
 func (system *WaterSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
-	system.BaseSystem.Update(e)
 
 	sw, sh := float64(screen.Bounds().Dx()), float64(screen.Bounds().Dy())
 	w, h := float64(system.sprite.Image.Bounds().Size().X), float64(system.sprite.Image.Bounds().Dy())

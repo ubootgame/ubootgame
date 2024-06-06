@@ -16,6 +16,7 @@ import (
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/filter"
 	"golang.org/x/image/colornames"
+	"gonum.org/v1/gonum/spatial/r2"
 )
 
 type SpriteSystem struct {
@@ -97,9 +98,11 @@ func (system *SpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 	system.query.Each(e.World, func(entry *donburi.Entry) {
 		transform := geometry.Transform.Get(entry)
 
+		// Center dot
 		spriteCenter := system.camera.WorldToScreenPosition(transform.Center)
 		draw.BigDot(screen, spriteCenter, colornames.Yellow)
 
+		// Debug text
 		debugText := fmt.Sprintf("Transform: %.3f, %.3f\nSize: %.3f, %.3f",
 			transform.Center.X, transform.Center.Y,
 			transform.Size.X, transform.Size.Y)
@@ -109,16 +112,17 @@ func (system *SpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 			debugText += fmt.Sprintf("\nVelocity: %.3f, %.3f", velocity.X, velocity.Y)
 		}
 
+		spriteBottomRight := system.camera.WorldToScreenPosition(r2.Vec{
+			X: transform.Center.X + transform.Size.X/2,
+			Y: transform.Center.Y + transform.Size.Y/2,
+		})
+
+		system.debugTextOptions.GeoM.Reset()
+		system.debugTextOptions.GeoM.Translate(spriteBottomRight.X, spriteBottomRight.Y)
+
 		metrics := system.debug.FontFace.Metrics()
 		system.debugTextOptions.LineSpacing = metrics.HAscent + metrics.HDescent + metrics.HLineGap
 
-		textImage := draw.TextWithOptions(debugText, system.debug.FontFace, system.debugTextOptions)
-
-		system.debugTextPositionOpts.GeoM.Reset()
-		system.debugTextPositionOpts.GeoM.Scale(1/(system.display.VirtualResolution.X*system.camera.ZoomFactor), 1/(system.display.VirtualResolution.X*system.camera.ZoomFactor))
-		system.debugTextPositionOpts.GeoM.Translate(transform.Center.X+transform.Size.X/2, transform.Center.Y+transform.Size.Y/2)
-		system.debugTextPositionOpts.GeoM.Concat(*system.camera.Matrix)
-
-		screen.DrawImage(textImage, system.debugTextPositionOpts)
+		text.Draw(screen, debugText, system.debug.FontFace, system.debugTextOptions)
 	})
 }

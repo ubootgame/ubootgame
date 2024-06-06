@@ -35,15 +35,15 @@ type DebugSystem struct {
 	keys             []ebiten.Key
 	memStats         *runtime.MemStats
 	ticks            uint64
-	debugText        *strings.Builder
+	debugTextBuilder *strings.Builder
 	debugTextOptions *text.DrawOptions
 }
 
 func NewDebugSystem() *DebugSystem {
 	system := &DebugSystem{
-		keys:      make([]ebiten.Key, 0),
-		memStats:  &runtime.MemStats{},
-		debugText: &strings.Builder{},
+		keys:             make([]ebiten.Key, 0),
+		memStats:         &runtime.MemStats{},
+		debugTextBuilder: &strings.Builder{},
 		debugTextOptions: &text.DrawOptions{
 			DrawImageOptions: ebiten.DrawImageOptions{
 				Filter: ebiten.FilterLinear,
@@ -98,25 +98,23 @@ func (system *DebugSystem) Update(e *ecs.ECS) {
 }
 
 func (system *DebugSystem) DrawDebug(_ *ecs.ECS, screen *ebiten.Image) {
-	system.updateDebugText(system.debugText)
+	debugText := system.generateDebugText()
 
 	metrics := system.debug.FontFace.Metrics()
 	system.debugTextOptions.LineSpacing = metrics.HAscent + metrics.HDescent + metrics.HLineGap
 
-	textImage := draw.TextWithOptions(system.debugText.String(), system.debug.FontFace, system.debugTextOptions)
-
-	screen.DrawImage(textImage, &ebiten.DrawImageOptions{})
+	text.Draw(screen, debugText, system.debug.FontFace, system.debugTextOptions)
 }
 
-func (system *DebugSystem) updateDebugText(builder *strings.Builder) {
-	builder.Reset()
+func (system *DebugSystem) generateDebugText() string {
+	system.debugTextBuilder.Reset()
 
 	ms := system.memStats
 
 	worldPosition := system.cursor.WorldPosition
 	screenPosition := system.cursor.ScreenPosition
 
-	_, _ = fmt.Fprintf(builder, `(/ to toggle debugSystem)
+	_, _ = fmt.Fprintf(system.debugTextBuilder, `(/ to toggle debugSystem)
 Draw grid (F1): %v
 Draw collisions (F2): %v
 Draw positions (F3): %v
@@ -152,6 +150,8 @@ NumGC: %d`,
 		system.camera.Rotation,
 		draw.FormatBytes(ms.Alloc), draw.FormatBytes(ms.TotalAlloc), draw.FormatBytes(ms.Sys),
 		draw.FormatBytes(ms.NextGC), ms.NumGC)
+
+	return system.debugTextBuilder.String()
 }
 
 func (system *DebugSystem) UpdateFontFace(w donburi.World, event events.DisplayUpdatedEventData) {

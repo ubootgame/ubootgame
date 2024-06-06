@@ -2,9 +2,6 @@ package draw
 
 import (
 	"fmt"
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text/v2"
-	"math"
 )
 
 func FormatBytes(b uint64) string {
@@ -17,14 +14,4 @@ func FormatBytes(b uint64) string {
 	} else {
 		return fmt.Sprintf("%d B", b)
 	}
-}
-
-func TextWithOptions(s string, f text.Face, opts *text.DrawOptions) *ebiten.Image {
-	width, height := text.Measure(s, f, opts.LineSpacing)
-
-	image := ebiten.NewImage(int(math.Round(width)), int(math.Round(height)))
-
-	text.Draw(image, s, f, opts)
-
-	return image
 }

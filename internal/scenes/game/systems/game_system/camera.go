@@ -35,8 +35,6 @@ func NewCameraSystem() *CameraSystem {
 func (system *CameraSystem) Update(e *ecs.ECS) {
 	system.BaseSystem.Update(e)
 
-	utility.UpdateCameraMatrix(system.display, system.camera)
-
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
 		system.camera.Position.X -= translationSpeed / float64(config.C.TargetTPS)
 	}
@@ -69,4 +67,6 @@ func (system *CameraSystem) Update(e *ecs.ECS) {
 		}
 		system.camera.Rotation = newCameraRotation
 	}
+
+	utility.UpdateCameraMatrix(system.display, system.camera)
 }
