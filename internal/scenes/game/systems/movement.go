@@ -33,16 +33,20 @@ func (system *MovementSystem) Update(e *ecs.ECS) {
 		t.LocalPosition.X += velocity.X / float64(config.C.TargetTPS)
 		t.LocalPosition.Y += velocity.Y / float64(config.C.TargetTPS)
 
-		//if velocity.X < 0 {
-		//	transform.FlipY = true
-		//} else if velocity.X > 0 {
-		//	transform.FlipY = false
-		//}
-		//
-		//if velocity.Y < 0 {
-		//	transform.FlipX = true
-		//} else if velocity.Y > 0 {
-		//	transform.FlipX = false
-		//}
+		if entry.HasComponent(geometry.Direction) {
+			direction := geometry.Direction.Get(entry)
+
+			if velocity.X < 0 {
+				direction.Horizontal = geometry.Left
+			} else if velocity.X > 0 {
+				direction.Horizontal = geometry.Right
+			}
+
+			if velocity.Y < 0 {
+				direction.Vertical = geometry.Up
+			} else if velocity.Y > 0 {
+				direction.Vertical = geometry.Down
+			}
+		}
 	})
 }

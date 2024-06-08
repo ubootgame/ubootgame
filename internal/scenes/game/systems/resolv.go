@@ -60,13 +60,16 @@ func (system *ResolvSystem) Update(e *ecs.ECS) {
 	system.BaseSystem.Update(e)
 
 	system.query.Each(e.World, func(entry *donburi.Entry) {
-		t := transform.Transform.Get(entry)
 		shape := geometry.Shape.Get(entry)
+		scale := geometry.Scale.Get(entry)
 
+		worldScale := transform.WorldScale(entry)
 		worldPosition := transform.WorldPosition(entry)
-		shape.SetPosition(worldPosition.X, worldPosition.Y)
-		shape.SetScale(t.LocalScale.X, t.LocalScale.Y)
-		shape.SetRotation(resolv.ToRadians(t.LocalRotation))
+		worldRotation := transform.WorldRotation(entry)
+
+		shape.SetPosition(worldPosition.X-(scale.NormalizedSize.X*worldScale.X)/2, worldPosition.Y-(scale.NormalizedSize.Y*worldScale.Y)/2)
+		shape.SetScale(worldScale.X, worldScale.Y)
+		shape.SetRotation(resolv.ToRadians(worldRotation))
 	})
 }
 
@@ -78,7 +81,6 @@ func (system *ResolvSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 	player, _ := actors.PlayerTag.First(e.World)
 
 	playerWorld := transform.WorldPosition(player)
-
 	playerScreen := system.camera.WorldToScreenPosition(r2.Vec(playerWorld))
 
 	line := resolv.NewLine(playerScreen.X, playerScreen.Y, system.cursor.ScreenPosition.X, system.cursor.ScreenPosition.Y)
@@ -94,7 +96,7 @@ func (system *ResolvSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 			lineColor = color.RGBA{R: 255, A: 255}
 		}
 
-		drawPolygon(screen, shape, color.White)
+		drawPolygon(screen, system.camera, shape, color.White)
 	})
 
 	l := line.Lines()[0]
@@ -109,15 +111,19 @@ func (system *ResolvSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 	}
 }
 
-func drawPolygon(screen *ebiten.Image, shape *resolv.ConvexPolygon, color color.Color) {
+func drawPolygon(screen *ebiten.Image, camera *game_system.CameraData, shape *resolv.ConvexPolygon, color color.Color) {
 	vertices := shape.Transformed()
 	for i := 0; i < len(vertices); i++ {
 		vert := vertices[i]
+		vertScreen := camera.WorldToScreenPosition(r2.Vec(vert))
+
 		next := vertices[0]
+		nextScreen := camera.WorldToScreenPosition(r2.Vec(next))
 
 		if i < len(vertices)-1 {
 			next = vertices[i+1]
+			nextScreen = camera.WorldToScreenPosition(r2.Vec(next))
 		}
-		vector.StrokeLine(screen, float32(vert.X), float32(vert.Y), float32(next.X), float32(next.Y), 1, color, true)
+		vector.StrokeLine(screen, float32(vertScreen.X), float32(vertScreen.Y), float32(nextScreen.X), float32(nextScreen.Y), 1, color, true)
 	}
 }

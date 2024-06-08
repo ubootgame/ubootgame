@@ -28,7 +28,8 @@ type SpriteSystem struct {
 	debug   *game_system.DebugData
 	display *game_system.DisplayData
 
-	query *donburi.Query
+	query      *donburi.Query
+	debugQuery *donburi.Query
 
 	spriteDrawImageOptions *ebiten.DrawImageOptions
 
@@ -40,6 +41,7 @@ type SpriteSystem struct {
 func NewSpriteSystem() *SpriteSystem {
 	system := &SpriteSystem{
 		query:                  donburi.NewQuery(filter.Contains(visuals.Sprite, transform.Transform)),
+		debugQuery:             donburi.NewQuery(filter.Contains(visuals.Sprite, transform.Transform, geometry.Velocity)),
 		spriteDrawImageOptions: &ebiten.DrawImageOptions{},
 		debugTextOptions: &text.DrawOptions{
 			DrawImageOptions: ebiten.DrawImageOptions{
@@ -68,6 +70,7 @@ func (system *SpriteSystem) Layers() []lo.Tuple2[ecs.LayerID, systems.Renderer] 
 func (system *SpriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	system.query.Each(e.World, func(entry *donburi.Entry) {
 		sprite := visuals.Sprite.Get(entry)
+		scale := geometry.Scale.Get(entry)
 
 		worldRotation := transform.WorldRotation(entry)
 		worldScale := transform.WorldScale(entry)
@@ -75,16 +78,23 @@ func (system *SpriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 
 		system.spriteDrawImageOptions.GeoM.Reset()
 
-		if sprite.FlipX {
-			system.spriteDrawImageOptions.GeoM.Scale(1, -1)
-			//system.spriteDrawImageOptions.GeoM.Translate(0, float64(sprite.Image.Bounds().Size().Y))
-		}
-		if sprite.FlipY {
-			system.spriteDrawImageOptions.GeoM.Scale(-1, 1)
-			//system.spriteDrawImageOptions.GeoM.Translate(float64(sprite.Image.Bounds().Size().X), 0)
+		// Convert to world coordinates
+		system.spriteDrawImageOptions.GeoM.Scale(scale.NormalizedScale, scale.NormalizedScale)
+		system.spriteDrawImageOptions.GeoM.Translate(-scale.NormalizedSize.X/2, -scale.NormalizedSize.Y/2)
+
+		// Set direction
+		if entry.HasComponent(geometry.Direction) {
+			direction := geometry.Direction.Get(entry)
+
+			if direction.Horizontal != direction.HorizontalBase {
+				system.spriteDrawImageOptions.GeoM.Scale(-1, 1)
+			}
+			if direction.Vertical != direction.VerticalBase {
+				system.spriteDrawImageOptions.GeoM.Scale(1, -1)
+			}
 		}
 
-		system.spriteDrawImageOptions.GeoM.Translate(-float64(sprite.Image.Bounds().Size().X/2), -float64(sprite.Image.Bounds().Size().Y/2))
+		// Position in world coordinates
 		system.spriteDrawImageOptions.GeoM.Rotate(float64(worldRotation) * 2 * math.Pi / 360)
 		system.spriteDrawImageOptions.GeoM.Scale(worldScale.X, worldScale.Y)
 		system.spriteDrawImageOptions.GeoM.Translate(worldPosition.X, worldPosition.Y)
@@ -101,32 +111,31 @@ func (system *SpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 		return
 	}
 
-	system.query.Each(e.World, func(entry *donburi.Entry) {
+	system.debugQuery.Each(e.World, func(entry *donburi.Entry) {
+		velocity := geometry.Velocity.Get(entry)
+		scale := geometry.Scale.Get(entry)
+
 		worldPosition := transform.WorldPosition(entry)
+		worldScale := transform.WorldScale(entry)
 
 		// Center dot
 		spriteCenter := system.camera.WorldToScreenPosition(r2.Vec(worldPosition))
 		draw.BigDot(screen, spriteCenter, colornames.Yellow)
 
 		// Debug text
-		debugText := fmt.Sprintf("Transform: %.3f, %.3f",
-			worldPosition.X, worldPosition.Y)
-
-		if entry.HasComponent(geometry.Velocity) {
-			velocity := geometry.Velocity.Get(entry)
-			debugText += fmt.Sprintf("\nVelocity: %.3f, %.3f", velocity.X, velocity.Y)
-		}
+		debugText := fmt.Sprintf("Transform: %.3f, %.3f\nVelocity: %.3f, %.3f",
+			worldPosition.X, worldPosition.Y,
+			velocity.X, velocity.Y)
 
 		spriteBottomRight := system.camera.WorldToScreenPosition(r2.Vec{
-			X: worldPosition.X,
-			Y: worldPosition.Y,
+			X: worldPosition.X + (scale.NormalizedSize.X*worldScale.X)/2,
+			Y: worldPosition.Y + (scale.NormalizedSize.Y*worldScale.Y)/2,
 		})
-
-		system.debugTextOptions.GeoM.Reset()
-		system.debugTextOptions.GeoM.Translate(spriteBottomRight.X, spriteBottomRight.Y)
 
 		metrics := system.debug.FontFace.Metrics()
 		system.debugTextOptions.LineSpacing = metrics.HAscent + metrics.HDescent + metrics.HLineGap
+		system.debugTextOptions.GeoM.Reset()
+		system.debugTextOptions.GeoM.Translate(spriteBottomRight.X, spriteBottomRight.Y)
 
 		text.Draw(screen, debugText, system.debug.FontFace, system.debugTextOptions)
 	})

@@ -21,7 +21,9 @@ var EnemyTag = donburi.NewTag().SetName("Enemy")
 var Enemy = archetypes.NewArchetype(
 	EnemyTag,
 	transform.Transform,
+	geometry.Scale,
 	geometry.Shape,
+	geometry.Direction,
 	visuals.Sprite,
 	geometry.Velocity,
 )
@@ -31,22 +33,37 @@ func CreateEnemy(ecs *ecs.ECS, registry *resources.Registry, scaler utility.Scal
 
 	sprite := registry.LoadImage(assets.Submarine)
 
-	size := r2.Vec{X: float64(sprite.Data.Bounds().Size().X), Y: float64(sprite.Data.Bounds().Size().Y)}
-
-	scale := scaler.GetNormalizedScale(r2.Vec{X: float64(sprite.Data.Bounds().Size().X), Y: float64(sprite.Data.Bounds().Size().Y)})
+	normalizedSize, normalizedScale, localScale := scaler.GetNormalizedSizeAndScale(r2.Vec{X: float64(sprite.Data.Bounds().Size().X), Y: float64(sprite.Data.Bounds().Size().Y)})
 
 	visuals.Sprite.SetValue(entry, visuals.SpriteData{
 		Image: sprite.Data,
 	})
+	geometry.Scale.SetValue(entry, geometry.ScaleData{
+		NormalizedSize:  normalizedSize,
+		NormalizedScale: normalizedScale,
+	})
 	transform.Transform.SetValue(entry, transform.TransformData{
 		LocalPosition: math.Vec2(position),
-		LocalScale:    math.NewVec2(scale, scale),
-		LocalRotation: 0,
+		LocalScale:    math.NewVec2(localScale, localScale),
 	})
 	geometry.Velocity.SetValue(entry, velocity)
 
-	shape := *resolv.NewRectangle(position.X-size.X/2, position.Y-size.Y/2, size.X, size.Y)
-	shape.SetScale(scale, scale)
+	var directionHorizontal geometry.DirectionHorizontal
+	if velocity.X < 0 {
+		directionHorizontal = geometry.Left
+	} else {
+		directionHorizontal = geometry.Right
+	}
+
+	geometry.Direction.SetValue(entry, geometry.DirectionData{
+		HorizontalBase: geometry.Right,
+		VerticalBase:   geometry.Up,
+		Horizontal:     directionHorizontal,
+		Vertical:       geometry.Up,
+	})
+
+	shape := *resolv.NewRectangle(position.X-normalizedSize.X/2, position.Y-normalizedSize.Y/2, normalizedSize.X, normalizedSize.Y)
+	shape.SetScale(localScale, localScale)
 	geometry.Shape.SetValue(entry, shape)
 
 	return entry

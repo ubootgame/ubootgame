@@ -7,7 +7,6 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	gameSystemComponents "github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	actorEntities "github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
-	environmentEntities "github.com/ubootgame/ubootgame/internal/scenes/game/entities/environment"
 	gameSystemEntities "github.com/ubootgame/ubootgame/internal/scenes/game/entities/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/scene_graph"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/events"
@@ -126,18 +125,18 @@ func (scene *Scene) setup() {
 	events.DisplayUpdatedEvent.Subscribe(scene.ecs.World, debugSystem.UpdateFontFace)
 
 	// Environment
-	water := environmentEntities.CreateWater(scene.ecs, scene.resourceRegistry)
-	animatedWater := environmentEntities.CreateAnimatedWater(scene.ecs, scene.resourceRegistry, utility.HScaler(0.2), r2.Vec{})
+	//water := environmentEntities.CreateWater(scene.ecs, scene.resourceRegistry, utility.VScale(0.1))
+	//animatedWater := environmentEntities.CreateAnimatedWater(scene.ecs, scene.resourceRegistry, utility.HScale(0.2), r2.Vec{})
 
 	environment := scene_graph.CreateSceneGroup(scene.ecs, tags.EnvironmentTag)
-	transform.AppendChild(environment, water, false)
-	transform.AppendChild(environment, animatedWater, false)
+	//transform.AppendChild(environment, water, false)
+	//transform.AppendChild(environment, animatedWater, false)
 
 	// Objects
-	player := actorEntities.CreatePlayer(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1))
+	player := actorEntities.CreatePlayer(scene.ecs, scene.resourceRegistry, utility.HScale(0.1))
 	enemies := []*donburi.Entry{
-		actorEntities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1), r2.Vec{X: -0.7, Y: 0.05}, r2.Vec{X: 0.1}),
-		actorEntities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1), r2.Vec{X: 0.8, Y: 0.2}, r2.Vec{X: -0.05}),
+		actorEntities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScale(0.1), r2.Vec{X: -0.7, Y: 0.05}, r2.Vec{X: 0.1}),
+		actorEntities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScale(0.1), r2.Vec{X: 0.8, Y: 0.2}, r2.Vec{X: -0.05}),
 	}
 
 	objects := scene_graph.CreateSceneGroup(scene.ecs, tags.ObjectsTag)

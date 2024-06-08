@@ -21,38 +21,37 @@ func UpdateCameraMatrix(display *game_system.DisplayData, camera *game_system.Ca
 }
 
 type Scaler interface {
-	GetNormalSizeAndScale(size r2.Vec) (r2.Vec, float64)
-	GetNormalizedScale(size r2.Vec) float64
+	GetNormalizedSizeAndScale(size r2.Vec) (normalizedSize r2.Vec, baseScale float64, localScale float64)
+	//GetNormalizedScale(size r2.Vec) float64
 }
 
-type hScaler struct{ scale float64 }
+type HScale float64
 
-func (s hScaler) GetNormalSizeAndScale(size r2.Vec) (r2.Vec, float64) {
-	ratio := size.X / size.Y
+func (s HScale) GetNormalizedSizeAndScale(size r2.Vec) (r2.Vec, float64, float64) {
 	scale := 1.0 / size.X
-	return r2.Vec{X: s.scale * scale, Y: s.scale / ratio}, scale
+	return r2.Vec{X: 1.0, Y: size.Y * scale}, scale, float64(s)
 }
 
-func (s hScaler) GetNormalizedScale(size r2.Vec) float64 {
-	return (1.0 / size.X) * s.scale
-}
+//func (s HScale) GetNormalizedScale(size r2.Vec) float64 {
+//	return (1.0 / size.X) * float64(s)
+//}
 
-func HScaler(scale float64) Scaler {
-	return hScaler{scale}
-}
+//func HScaler(scale float64) Scaler {
+//	return HScale{scale}
+//}
 
-type vScaler struct{ scale float64 }
+type VScale float64
 
-func (s vScaler) GetNormalSizeAndScale(size r2.Vec) (r2.Vec, float64) {
+func (s VScale) GetNormalizedSizeAndScale(size r2.Vec) (r2.Vec, float64, float64) {
+	scale := 1.0 / size.X
 	ratio := size.X / size.Y
-	scale := 1.0 / size.Y
-	return r2.Vec{X: s.scale / ratio, Y: s.scale}, scale
+	return r2.Vec{X: 1.0, Y: size.Y * scale}, scale, float64(s) * ratio
 }
 
-func (s vScaler) GetNormalizedScale(size r2.Vec) float64 {
-	return (1.0 / size.Y) * s.scale
-}
+//func (s VScale) GetNormalizedScale(size r2.Vec) float64 {
+//	return (1.0 / size.Y) * float64(s)
+//}
 
-func VScaler(scale float64) Scaler {
-	return vScaler{scale}
-}
+//func VScaler(scale float64) Scaler {
+//	return VScale{scale}
+//}

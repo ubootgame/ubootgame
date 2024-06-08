@@ -27,13 +27,13 @@ func CreateAnimatedWater(ecs *ecs.ECS, registry *resources.Registry, scaler util
 
 	aseprite := registry.LoadAseprite(assets.AnimatedWater)
 
-	scale := scaler.GetNormalizedScale(r2.Vec{X: float64(aseprite.Player.File.FrameWidth), Y: float64(aseprite.Player.File.Height)})
+	_, _, localScale := scaler.GetNormalizedSizeAndScale(r2.Vec{X: float64(aseprite.Player.File.FrameWidth), Y: float64(aseprite.Player.File.Height)})
 
 	visuals.AnimatedSprite.SetValue(entry, visuals.AnimatedSpriteData{Aseprite: aseprite, Speed: 0.5})
 
 	transform.Transform.SetValue(entry, transform.TransformData{
 		LocalPosition: math.Vec2(position),
-		LocalScale:    math.NewVec2(scale, scale),
+		LocalScale:    math.NewVec2(localScale, localScale),
 		LocalRotation: 0,
 	})
 

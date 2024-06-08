@@ -20,8 +20,10 @@ var PlayerTag = donburi.NewTag().SetName("Player")
 var Player = archetypes.NewArchetype(
 	PlayerTag,
 	transform.Transform,
+	geometry.Scale,
 	visuals.Sprite,
 	geometry.Velocity,
+	geometry.Direction,
 )
 
 func CreatePlayer(ecs *ecs.ECS, registry *resources.Registry, scaler utility.Scaler) *donburi.Entry {
@@ -29,15 +31,23 @@ func CreatePlayer(ecs *ecs.ECS, registry *resources.Registry, scaler utility.Sca
 
 	sprite := registry.LoadImage(assets.Battleship)
 
-	scale := scaler.GetNormalizedScale(r2.Vec{X: float64(sprite.Data.Bounds().Size().X), Y: float64(sprite.Data.Bounds().Size().Y)})
+	normalizedSize, normalizedScale, localScale := scaler.GetNormalizedSizeAndScale(r2.Vec{X: float64(sprite.Data.Bounds().Size().X), Y: float64(sprite.Data.Bounds().Size().Y)})
 
 	visuals.Sprite.SetValue(entry, visuals.SpriteData{
 		Image: sprite.Data,
 	})
+	geometry.Scale.SetValue(entry, geometry.ScaleData{
+		NormalizedSize:  normalizedSize,
+		NormalizedScale: normalizedScale,
+	})
 	transform.Transform.SetValue(entry, transform.TransformData{
-		LocalPosition: math.NewVec2(0, 0),
-		LocalScale:    math.NewVec2(scale, scale),
-		LocalRotation: 0,
+		LocalScale: math.NewVec2(localScale, localScale),
+	})
+	geometry.Direction.SetValue(entry, geometry.DirectionData{
+		HorizontalBase: geometry.Right,
+		VerticalBase:   geometry.Up,
+		Horizontal:     geometry.Right,
+		Vertical:       geometry.Up,
 	})
 
 	return entry
