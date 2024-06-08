@@ -4,14 +4,14 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal"
-	"github.com/ubootgame/ubootgame/internal/framework/ecs/systems"
+	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/yohamta/donburi/ecs"
 )
 
 type WaterSystem struct {
-	systems.BaseSystem
+	ecs2.System
 
 	settings *internal.Settings
 
@@ -23,8 +23,8 @@ func NewWaterSystem(settings *internal.Settings) *WaterSystem {
 	return system
 }
 
-func (system *WaterSystem) Layers() []lo.Tuple2[ecs.LayerID, systems.Renderer] {
-	return []lo.Tuple2[ecs.LayerID, systems.Renderer]{
+func (system *WaterSystem) Layers() []lo.Tuple2[ecs.LayerID, ecs2.Renderer] {
+	return []lo.Tuple2[ecs.LayerID, ecs2.Renderer]{
 		{A: layers.Game, B: system.Draw},
 	}
 }

@@ -7,8 +7,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/framework/draw"
-	"github.com/ubootgame/ubootgame/internal/framework/ecs/injector"
-	"github.com/ubootgame/ubootgame/internal/framework/ecs/systems"
+	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
@@ -23,7 +22,7 @@ import (
 )
 
 type SpriteSystem struct {
-	systems.BaseSystem
+	ecs2.System
 
 	settings *internal.Settings
 
@@ -52,16 +51,16 @@ func NewSpriteSystem(settings *internal.Settings) *SpriteSystem {
 		},
 		debugTextPositionOpts: &ebiten.DrawImageOptions{},
 	}
-	system.Injector = injector.NewInjector([]injector.Injection{
-		injector.Once([]injector.Injection{
-			injector.Component(&system.camera, game_system.Camera),
+	system.Injector = ecs2.NewInjector([]ecs2.Injection{
+		ecs2.Once([]ecs2.Injection{
+			ecs2.Component(&system.camera, game_system.Camera),
 		}),
 	})
 	return system
 }
 
-func (system *SpriteSystem) Layers() []lo.Tuple2[ecs.LayerID, systems.Renderer] {
-	return []lo.Tuple2[ecs.LayerID, systems.Renderer]{
+func (system *SpriteSystem) Layers() []lo.Tuple2[ecs.LayerID, ecs2.Renderer] {
+	return []lo.Tuple2[ecs.LayerID, ecs2.Renderer]{
 		{A: layers.Game, B: system.Draw},
 		{A: layers.Debug, B: system.DrawDebug},
 	}
@@ -120,7 +119,7 @@ func (system *SpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 
 		// Center dot
 		spriteCenter := system.camera.WorldToScreenPosition(r2.Vec(worldPosition))
-		draw.BigDot(screen, spriteCenter, colornames.Yellow)
+		draw.Dot(screen, spriteCenter, colornames.Yellow)
 
 		// Debug text
 		debugText := fmt.Sprintf("Transform: %.3f, %.3f\nVelocity: %.3f, %.3f",

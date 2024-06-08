@@ -7,8 +7,7 @@ import (
 	"github.com/solarlune/resolv"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/framework/draw"
-	"github.com/ubootgame/ubootgame/internal/framework/ecs/injector"
-	"github.com/ubootgame/ubootgame/internal/framework/ecs/systems"
+	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
@@ -22,7 +21,7 @@ import (
 )
 
 type CollisionSystem struct {
-	systems.BaseSystem
+	ecs2.System
 
 	settings *internal.Settings
 
@@ -38,26 +37,26 @@ func NewCollisionSystem(settings *internal.Settings) *CollisionSystem {
 		settings: settings,
 		query:    donburi.NewQuery(filter.Contains(transform.Transform, geometry.Bounds, geometry.Scale)),
 	}
-	system.Injector = injector.NewInjector([]injector.Injection{
-		injector.Once([]injector.Injection{
-			injector.Component(&system.camera, game_system.Camera),
-			injector.Component(&system.cursor, game_system.Cursor),
+	system.Injector = ecs2.NewInjector([]ecs2.Injection{
+		ecs2.Once([]ecs2.Injection{
+			ecs2.Component(&system.camera, game_system.Camera),
+			ecs2.Component(&system.cursor, game_system.Cursor),
 		}),
-		injector.WithTag(actors.PlayerTag, []injector.Injection{
-			injector.Component(&system.playerTransform, transform.Transform),
+		ecs2.WithTag(actors.PlayerTag, []ecs2.Injection{
+			ecs2.Component(&system.playerTransform, transform.Transform),
 		}),
 	})
 	return system
 }
 
-func (system *CollisionSystem) Layers() []lo.Tuple2[ecs.LayerID, systems.Renderer] {
-	return []lo.Tuple2[ecs.LayerID, systems.Renderer]{
+func (system *CollisionSystem) Layers() []lo.Tuple2[ecs.LayerID, ecs2.Renderer] {
+	return []lo.Tuple2[ecs.LayerID, ecs2.Renderer]{
 		{A: layers.Debug, B: system.DrawDebug},
 	}
 }
 
 func (system *CollisionSystem) Update(e *ecs.ECS) {
-	system.BaseSystem.Update(e)
+	system.System.Update(e)
 
 	system.query.Each(e.World, func(entry *donburi.Entry) {
 		bounds := geometry.Bounds.Get(entry)
@@ -106,11 +105,11 @@ func (system *CollisionSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 
 	vector.StrokeLine(screen, float32(lineStart.X), float32(lineStart.Y), float32(lineEnd.X), float32(lineEnd.Y), 2, lineColor, true)
 
-	draw.BigDot(screen, playerScreen, lineColor)
+	draw.Dot(screen, playerScreen, lineColor)
 
 	for _, point := range intersectionPoints {
 		pointScreen := system.camera.WorldToScreenPosition(r2.Vec{X: point.X, Y: point.Y})
-		draw.BigDot(screen, pointScreen, color.RGBA{G: 255, A: 255})
+		draw.Dot(screen, pointScreen, color.RGBA{G: 255, A: 255})
 	}
 }
 

@@ -8,8 +8,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/framework/draw"
-	"github.com/ubootgame/ubootgame/internal/framework/ecs/injector"
-	"github.com/ubootgame/ubootgame/internal/framework/ecs/systems"
+	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	game_system2 "github.com/ubootgame/ubootgame/internal/scenes/game/entities/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
@@ -20,7 +19,7 @@ import (
 )
 
 type DebugSystem struct {
-	systems.BaseSystem
+	ecs2.System
 
 	settings *internal.Settings
 
@@ -47,26 +46,26 @@ func NewDebugSystem(settings *internal.Settings) *DebugSystem {
 			},
 		},
 	}
-	system.Injector = injector.NewInjector([]injector.Injection{
-		injector.Once([]injector.Injection{
-			injector.Component(&system.cursor, game_system.Cursor),
-			injector.WithTag(game_system2.CameraTag, []injector.Injection{
-				injector.Component(&system.camera, game_system.Camera),
-				injector.Component(&system.transform, transform.Transform),
+	system.Injector = ecs2.NewInjector([]ecs2.Injection{
+		ecs2.Once([]ecs2.Injection{
+			ecs2.Component(&system.cursor, game_system.Cursor),
+			ecs2.WithTag(game_system2.CameraTag, []ecs2.Injection{
+				ecs2.Component(&system.camera, game_system.Camera),
+				ecs2.Component(&system.transform, transform.Transform),
 			}),
 		}),
 	})
 	return system
 }
 
-func (system *DebugSystem) Layers() []lo.Tuple2[ecs.LayerID, systems.Renderer] {
-	return []lo.Tuple2[ecs.LayerID, systems.Renderer]{
+func (system *DebugSystem) Layers() []lo.Tuple2[ecs.LayerID, ecs2.Renderer] {
+	return []lo.Tuple2[ecs.LayerID, ecs2.Renderer]{
 		{A: layers.Debug, B: system.DrawDebug},
 	}
 }
 
 func (system *DebugSystem) Update(e *ecs.ECS) {
-	system.BaseSystem.Update(e)
+	system.System.Update(e)
 
 	if inpututil.IsKeyJustPressed(ebiten.KeySlash) {
 		system.settings.Debug.Enabled = !system.settings.Debug.Enabled

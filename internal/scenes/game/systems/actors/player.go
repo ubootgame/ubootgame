@@ -3,9 +3,8 @@ package actors
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal"
-	"github.com/ubootgame/ubootgame/internal/framework"
-	"github.com/ubootgame/ubootgame/internal/framework/ecs/injector"
-	"github.com/ubootgame/ubootgame/internal/framework/ecs/systems"
+	"github.com/ubootgame/ubootgame/internal/framework/coordinate_system"
+	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
@@ -17,7 +16,7 @@ import (
 )
 
 type PlayerSystem struct {
-	systems.BaseSystem
+	ecs2.System
 
 	settings *internal.Settings
 
@@ -30,20 +29,20 @@ type PlayerSystem struct {
 
 func NewPlayerSystem(settings *internal.Settings) *PlayerSystem {
 	system := &PlayerSystem{settings: settings}
-	system.Injector = injector.NewInjector([]injector.Injection{
-		injector.Once([]injector.Injection{
-			injector.Component(&system.cursor, game_system.Cursor),
+	system.Injector = ecs2.NewInjector([]ecs2.Injection{
+		ecs2.Once([]ecs2.Injection{
+			ecs2.Component(&system.cursor, game_system.Cursor),
 		}),
-		injector.WithTag(actors.PlayerTag, []injector.Injection{
-			injector.Component(&system.velocity, geometry.Velocity),
-			injector.Component(&system.transform, transform.Transform),
+		ecs2.WithTag(actors.PlayerTag, []ecs2.Injection{
+			ecs2.Component(&system.velocity, geometry.Velocity),
+			ecs2.Component(&system.transform, transform.Transform),
 		}),
 	})
 	return system
 }
 
 func (system *PlayerSystem) Update(e *ecs.ECS) {
-	system.BaseSystem.Update(e)
+	system.System.Update(e)
 
 	acceleration := 10.0
 	friction := 50.0
@@ -51,18 +50,18 @@ func (system *PlayerSystem) Update(e *ecs.ECS) {
 
 	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
 		if system.velocity.X > 0 {
-			system.velocity.X *= 1 - friction/framework.WorldSizeBase
+			system.velocity.X *= 1 - friction/coordinate_system.WorldSizeBase
 		}
 		system.velocity.X -= acceleration
 		system.velocity.X = max(system.velocity.X, -maxSpeed)
 	} else if ebiten.IsKeyPressed(ebiten.KeyRight) {
 		if system.velocity.X < 0 {
-			system.velocity.X *= 1 - friction/framework.WorldSizeBase
+			system.velocity.X *= 1 - friction/coordinate_system.WorldSizeBase
 		}
 		system.velocity.X += acceleration
 		system.velocity.X = min(system.velocity.X, maxSpeed)
 	} else {
-		system.velocity.X *= 1 - friction/framework.WorldSizeBase
+		system.velocity.X *= 1 - friction/coordinate_system.WorldSizeBase
 	}
 
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {

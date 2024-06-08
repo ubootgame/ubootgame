@@ -1,7 +1,7 @@
 package scene_graph
 
 import (
-	"github.com/ubootgame/ubootgame/internal/framework/ecs/archetypes"
+	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -11,7 +11,7 @@ import (
 
 var SceneGroupTag = donburi.NewTag().SetName("SceneGroup")
 
-var SceneGroup = archetypes.NewArchetype(
+var SceneGroup = ecs2.NewArchetype(
 	SceneGroupTag,
 	transform.Transform,
 )

@@ -6,8 +6,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/samber/lo"
 	"github.com/solarlune/resolv"
-	"github.com/ubootgame/ubootgame/internal/framework/ecs/injector"
-	"github.com/ubootgame/ubootgame/internal/framework/ecs/systems"
+	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
@@ -21,7 +20,7 @@ import (
 )
 
 type BulletSystem struct {
-	systems.BaseSystem
+	ecs2.System
 
 	camera *game_system.CameraData
 
@@ -37,23 +36,23 @@ func NewBulletSystem() *BulletSystem {
 		query:            donburi.NewQuery(filter.Contains(weapons.BulletTag)),
 		drawImageOptions: &ebiten.DrawImageOptions{},
 	}
-	system.Injector = injector.NewInjector([]injector.Injection{
-		injector.Once([]injector.Injection{
-			injector.Component(&system.camera, game_system.Camera),
+	system.Injector = ecs2.NewInjector([]ecs2.Injection{
+		ecs2.Once([]ecs2.Injection{
+			ecs2.Component(&system.camera, game_system.Camera),
 		}),
 	})
 	return system
 }
 
-func (system *BulletSystem) Layers() []lo.Tuple2[ecs.LayerID, systems.Renderer] {
-	return []lo.Tuple2[ecs.LayerID, systems.Renderer]{
+func (system *BulletSystem) Layers() []lo.Tuple2[ecs.LayerID, ecs2.Renderer] {
+	return []lo.Tuple2[ecs.LayerID, ecs2.Renderer]{
 		{A: layers.Game, B: system.Draw},
 		{A: layers.Debug, B: system.DrawDebug},
 	}
 }
 
 func (system *BulletSystem) Update(e *ecs.ECS) {
-	system.BaseSystem.Update(e)
+	system.System.Update(e)
 
 	weapons.BulletTag.Each(e.World, func(bulletEntry *donburi.Entry) {
 		worldPosition := transform.WorldPosition(bulletEntry)

@@ -1,23 +1,22 @@
-package systems
+package ecs
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/samber/lo"
-	"github.com/ubootgame/ubootgame/internal/framework/ecs/injector"
 	"github.com/yohamta/donburi/ecs"
 )
 
-type BaseSystem struct {
-	*injector.Injector
+type System struct {
+	*Injector
 }
 
-func (system *BaseSystem) Update(e *ecs.ECS) {
+func (system *System) Update(e *ecs.ECS) {
 	if system.Injector != nil {
 		system.Inject(e.World)
 	}
 }
 
-func (system *BaseSystem) Layers() []lo.Tuple2[ecs.LayerID, Renderer] {
+func (system *System) Layers() []lo.Tuple2[ecs.LayerID, Renderer] {
 	return []lo.Tuple2[ecs.LayerID, Renderer]{}
 }
 

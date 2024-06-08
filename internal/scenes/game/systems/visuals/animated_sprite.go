@@ -5,8 +5,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/framework/draw"
-	"github.com/ubootgame/ubootgame/internal/framework/ecs/injector"
-	"github.com/ubootgame/ubootgame/internal/framework/ecs/systems"
+	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
@@ -20,7 +19,7 @@ import (
 )
 
 type AnimatedSpriteSystem struct {
-	systems.BaseSystem
+	ecs2.System
 
 	settings *internal.Settings
 
@@ -39,23 +38,23 @@ func NewAnimatedSpriteSystem(settings *internal.Settings) *AnimatedSpriteSystem 
 		drawQuery:              donburi.NewQuery(filter.Contains(visuals.AnimatedSprite, transform.Transform)),
 		spriteDrawImageOptions: &ebiten.DrawImageOptions{},
 	}
-	system.Injector = injector.NewInjector([]injector.Injection{
-		injector.Once([]injector.Injection{
-			injector.Component(&system.camera, game_system.Camera),
+	system.Injector = ecs2.NewInjector([]ecs2.Injection{
+		ecs2.Once([]ecs2.Injection{
+			ecs2.Component(&system.camera, game_system.Camera),
 		}),
 	})
 	return system
 }
 
-func (system *AnimatedSpriteSystem) Layers() []lo.Tuple2[ecs.LayerID, systems.Renderer] {
-	return []lo.Tuple2[ecs.LayerID, systems.Renderer]{
+func (system *AnimatedSpriteSystem) Layers() []lo.Tuple2[ecs.LayerID, ecs2.Renderer] {
+	return []lo.Tuple2[ecs.LayerID, ecs2.Renderer]{
 		{A: layers.Game, B: system.Draw},
 		{A: layers.Debug, B: system.DrawDebug},
 	}
 }
 
 func (system *AnimatedSpriteSystem) Update(e *ecs.ECS) {
-	system.BaseSystem.Update(e)
+	system.System.Update(e)
 
 	system.updateQuery.Each(e.World, func(entry *donburi.Entry) {
 		animatedSprite := visuals.AnimatedSprite.Get(entry)
@@ -90,6 +89,6 @@ func (system *AnimatedSpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) 
 		worldPosition := transform.WorldPosition(entry)
 		spriteCenter := system.camera.WorldToScreenPosition(r2.Vec(worldPosition))
 
-		draw.BigDot(screen, spriteCenter, colornames.Green)
+		draw.Dot(screen, spriteCenter, colornames.Green)
 	})
 }

@@ -1,4 +1,4 @@
-package archetypes
+package ecs
 
 import (
 	"github.com/yohamta/donburi"

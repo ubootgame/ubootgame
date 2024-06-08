@@ -1,4 +1,4 @@
-package injector
+package ecs
 
 import (
 	"github.com/yohamta/donburi"

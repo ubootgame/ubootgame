@@ -2,7 +2,7 @@ package systems
 
 import (
 	"github.com/ubootgame/ubootgame/internal"
-	"github.com/ubootgame/ubootgame/internal/framework/ecs/systems"
+	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -11,7 +11,7 @@ import (
 )
 
 type MovementSystem struct {
-	systems.BaseSystem
+	ecs2.System
 
 	settings *internal.Settings
 
@@ -27,7 +27,7 @@ func NewMovementSystem(settings *internal.Settings) *MovementSystem {
 }
 
 func (system *MovementSystem) Update(e *ecs.ECS) {
-	system.BaseSystem.Update(e)
+	system.System.Update(e)
 
 	system.query.Each(e.World, func(entry *donburi.Entry) {
 		velocity := geometry.Velocity.Get(entry)

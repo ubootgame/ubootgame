@@ -4,8 +4,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/framework"
-	"github.com/ubootgame/ubootgame/internal/framework/ecs/injector"
-	"github.com/ubootgame/ubootgame/internal/framework/ecs/systems"
+	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	gameSystemEntities "github.com/ubootgame/ubootgame/internal/scenes/game/entities/game_system"
 	"github.com/yohamta/donburi/ecs"
@@ -18,7 +17,7 @@ const rotationSpeed = 2                        // degrees
 const minZoom, maxZoom = 0.5, 2.0
 
 type CameraSystem struct {
-	systems.BaseSystem
+	ecs2.System
 
 	settings *internal.Settings
 
@@ -28,11 +27,11 @@ type CameraSystem struct {
 
 func NewCameraSystem(settings *internal.Settings) *CameraSystem {
 	system := &CameraSystem{settings: settings}
-	system.Injector = injector.NewInjector([]injector.Injection{
-		injector.Once([]injector.Injection{
-			injector.WithTag(gameSystemEntities.CameraTag, []injector.Injection{
-				injector.Component(&system.camera, game_system.Camera),
-				injector.Component(&system.transform, transform.Transform),
+	system.Injector = ecs2.NewInjector([]ecs2.Injection{
+		ecs2.Once([]ecs2.Injection{
+			ecs2.WithTag(gameSystemEntities.CameraTag, []ecs2.Injection{
+				ecs2.Component(&system.camera, game_system.Camera),
+				ecs2.Component(&system.transform, transform.Transform),
 			}),
 		}),
 	})
@@ -40,7 +39,7 @@ func NewCameraSystem(settings *internal.Settings) *CameraSystem {
 }
 
 func (system *CameraSystem) Update(e *ecs.ECS) {
-	system.BaseSystem.Update(e)
+	system.System.Update(e)
 
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
 		system.transform.LocalPosition.X -= translationSpeed / float64(system.settings.TargetTPS)

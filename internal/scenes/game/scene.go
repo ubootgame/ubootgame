@@ -3,7 +3,7 @@ package game
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal"
-	"github.com/ubootgame/ubootgame/internal/framework"
+	"github.com/ubootgame/ubootgame/internal/framework/coordinate_system"
 	"github.com/ubootgame/ubootgame/internal/framework/resources"
 	"github.com/ubootgame/ubootgame/internal/framework/scenes"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
@@ -66,10 +66,10 @@ func (scene *Scene) Load(resourceRegistry *resources.Registry) error {
 	//transform.AppendChild(environment, animatedWater, false)
 
 	// Objects
-	player := actorEntities.CreatePlayer(scene.ECS, scene.ResourceRegistry, framework.HScale(100))
+	player := actorEntities.CreatePlayer(scene.ECS, scene.ResourceRegistry, coordinate_system.HScale(100))
 	enemies := []*donburi.Entry{
-		actorEntities.CreateEnemy(scene.ECS, scene.ResourceRegistry, framework.HScale(100), r2.Vec{X: -700, Y: 300}, r2.Vec{X: 100}),
-		actorEntities.CreateEnemy(scene.ECS, scene.ResourceRegistry, framework.HScale(100), r2.Vec{X: 800, Y: 150}, r2.Vec{X: -50}),
+		actorEntities.CreateEnemy(scene.ECS, scene.ResourceRegistry, coordinate_system.HScale(100), r2.Vec{X: -700, Y: 300}, r2.Vec{X: 100}),
+		actorEntities.CreateEnemy(scene.ECS, scene.ResourceRegistry, coordinate_system.HScale(100), r2.Vec{X: 800, Y: 150}, r2.Vec{X: -50}),
 	}
 
 	objects := scene_graph.CreateSceneGroup(scene.ECS, tags.ObjectsTag)

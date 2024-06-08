@@ -1,8 +1,8 @@
 package actors
 
 import (
-	"github.com/ubootgame/ubootgame/internal/framework"
-	"github.com/ubootgame/ubootgame/internal/framework/ecs/archetypes"
+	"github.com/ubootgame/ubootgame/internal/framework/coordinate_system"
+	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/framework/resources"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
@@ -17,7 +17,7 @@ import (
 
 var PlayerTag = donburi.NewTag().SetName("Player")
 
-var Player = archetypes.NewArchetype(
+var Player = ecs2.NewArchetype(
 	PlayerTag,
 	transform.Transform,
 	geometry.Scale,
@@ -26,7 +26,7 @@ var Player = archetypes.NewArchetype(
 	geometry.Direction,
 )
 
-func CreatePlayer(ecs *ecs.ECS, registry *resources.Registry, scaler framework.Scaler) *donburi.Entry {
+func CreatePlayer(ecs *ecs.ECS, registry *resources.Registry, scaler coordinate_system.Scaler) *donburi.Entry {
 	entry := Player.Spawn(ecs, layers.Game)
 
 	sprite := registry.LoadImage(assets.Battleship)

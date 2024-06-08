@@ -1,8 +1,8 @@
 package weapons
 
 import (
-	"github.com/ubootgame/ubootgame/internal/framework"
-	"github.com/ubootgame/ubootgame/internal/framework/ecs/archetypes"
+	"github.com/ubootgame/ubootgame/internal/framework/coordinate_system"
+	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/yohamta/donburi"
@@ -14,7 +14,7 @@ import (
 
 var BulletTag = donburi.NewTag().SetName("Bullet")
 
-var Bullet = archetypes.NewArchetype(
+var Bullet = ecs2.NewArchetype(
 	BulletTag,
 	transform.Transform,
 	geometry.Velocity,
@@ -31,7 +31,7 @@ func CreateBullet(ecs *ecs.ECS, from, to r2.Vec) *donburi.Entry {
 		LocalScale:    math.NewVec2(1, 1),
 		LocalRotation: 0,
 	})
-	geometry.Velocity.SetValue(entry, r2.Scale(framework.WorldSizeBase, velocity))
+	geometry.Velocity.SetValue(entry, r2.Scale(coordinate_system.WorldSizeBase, velocity))
 
 	return entry
 }

@@ -20,7 +20,7 @@ const (
 )
 
 var Assets = &resources.Library{
-	Images: map[resources.ImageID]resource.ImageInfo{
+	Images: map[resource.ImageID]resource.ImageInfo{
 		Battleship: {Path: "military-boats-collection/ship1.png"},
 		Submarine:  {Path: "military-boats-collection/submarine1.png"},
 	},
