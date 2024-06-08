@@ -4,10 +4,13 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
+	gameSystemEntities "github.com/ubootgame/ubootgame/internal/scenes/game/entities/game_system"
 	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi/ecs"
+	"github.com/yohamta/donburi/features/math"
+	"github.com/yohamta/donburi/features/transform"
 )
 
 const translationSpeed, zoomSpeed = 0.5, 0.1 // world unit
@@ -17,8 +20,9 @@ const minZoom, maxZoom = 0.5, 2.0
 type CameraSystem struct {
 	systems.BaseSystem
 
-	camera  *game_system.CameraData
-	display *game_system.DisplayData
+	camera    *game_system.CameraData
+	transform *transform.TransformData
+	display   *game_system.DisplayData
 }
 
 func NewCameraSystem() *CameraSystem {
@@ -26,7 +30,10 @@ func NewCameraSystem() *CameraSystem {
 	system.Injector = injector.NewInjector([]injector.Injection{
 		injector.Once([]injector.Injection{
 			injector.Component(&system.display, game_system.Display),
-			injector.Component(&system.camera, game_system.Camera),
+			injector.WithTag(gameSystemEntities.CameraTag, []injector.Injection{
+				injector.Component(&system.camera, game_system.Camera),
+				injector.Component(&system.transform, transform.Transform),
+			}),
 		}),
 	})
 	return system
@@ -36,37 +43,40 @@ func (system *CameraSystem) Update(e *ecs.ECS) {
 	system.BaseSystem.Update(e)
 
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
-		system.camera.Position.X -= translationSpeed / float64(config.C.TargetTPS)
+		system.transform.LocalPosition.X -= translationSpeed / float64(config.C.TargetTPS)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyD) {
-		system.camera.Position.X += translationSpeed / float64(config.C.TargetTPS)
+		system.transform.LocalPosition.X += translationSpeed / float64(config.C.TargetTPS)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyW) {
-		system.camera.Position.Y -= translationSpeed / float64(config.C.TargetTPS)
+		system.transform.LocalPosition.Y -= translationSpeed / float64(config.C.TargetTPS)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyS) {
-		system.camera.Position.Y += translationSpeed / float64(config.C.TargetTPS)
+		system.transform.LocalPosition.Y += translationSpeed / float64(config.C.TargetTPS)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyF) {
-		system.camera.ZoomFactor = max(minZoom, system.camera.ZoomFactor-zoomSpeed)
+		scale := max(minZoom, system.transform.LocalScale.X-zoomSpeed)
+		system.transform.LocalScale = math.NewVec2(scale, scale)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyR) {
-		system.camera.ZoomFactor = min(maxZoom, system.camera.ZoomFactor+zoomSpeed)
+		scale := min(maxZoom, system.transform.LocalScale.X+zoomSpeed)
+		system.transform.LocalScale = math.NewVec2(scale, scale)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyQ) {
-		newCameraRotation := system.camera.Rotation - rotationSpeed
+		newCameraRotation := system.transform.LocalRotation - rotationSpeed
 		if newCameraRotation < 0 {
 			newCameraRotation = 360 - newCameraRotation
 		}
-		system.camera.Rotation = newCameraRotation
+		system.transform.LocalRotation = newCameraRotation
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyE) {
-		newCameraRotation := system.camera.Rotation + rotationSpeed
+		newCameraRotation := system.transform.LocalRotation + rotationSpeed
 		if newCameraRotation >= 360 {
 			newCameraRotation = newCameraRotation - 360
 		}
-		system.camera.Rotation = newCameraRotation
+		system.transform.LocalRotation = newCameraRotation
 	}
 
-	utility.UpdateCameraMatrix(system.display, system.camera)
+	//camera, _ := gameSystemEntities.CameraTag.First(e.World)
+	utility.UpdateCameraMatrix(system.display, system.camera, system.transform)
 }

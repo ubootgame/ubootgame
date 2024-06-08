@@ -6,9 +6,8 @@ import (
 )
 
 type SpriteData struct {
-	Image *ebiten.Image
-	Scale float64
-	FlipY bool
+	Image        *ebiten.Image
+	FlipX, FlipY bool
 }
 
 var Sprite = donburi.NewComponentType[SpriteData]()

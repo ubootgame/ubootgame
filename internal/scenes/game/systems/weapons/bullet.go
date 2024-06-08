@@ -15,8 +15,10 @@ import (
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
+	"github.com/yohamta/donburi/features/transform"
 	"github.com/yohamta/donburi/filter"
 	"golang.org/x/image/colornames"
+	"gonum.org/v1/gonum/spatial/r2"
 )
 
 type BulletSystem struct {
@@ -55,9 +57,9 @@ func (system *BulletSystem) Update(e *ecs.ECS) {
 	system.BaseSystem.Update(e)
 
 	weapons.BulletTag.Each(e.World, func(bulletEntry *donburi.Entry) {
-		transform := geometry.Transform.Get(bulletEntry)
+		worldPosition := transform.WorldPosition(bulletEntry)
 
-		bulletScreen := system.camera.WorldToScreenPosition(transform.Center)
+		bulletScreen := system.camera.WorldToScreenPosition(r2.Vec(worldPosition))
 
 		actors.EnemyTag.Each(e.World, func(enemyEntry *donburi.Entry) {
 			shape := geometry.Shape.Get(enemyEntry)
@@ -77,13 +79,13 @@ func (system *BulletSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	}
 
 	system.query.Each(e.World, func(entry *donburi.Entry) {
-		transform := geometry.Transform.Get(entry)
+		worldPosition := transform.WorldPosition(entry)
 
 		system.drawImageOptions.GeoM.Reset()
 
 		system.drawImageOptions.GeoM.Translate(-1, -1)
 		system.drawImageOptions.GeoM.Scale(0.001, 0.001)
-		system.drawImageOptions.GeoM.Translate(transform.Center.X, transform.Center.Y)
+		system.drawImageOptions.GeoM.Translate(worldPosition.X, worldPosition.Y)
 		system.drawImageOptions.GeoM.Concat(*system.camera.Matrix)
 
 		screen.DrawImage(system.image, system.drawImageOptions)
@@ -93,9 +95,9 @@ func (system *BulletSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 func (system *BulletSystem) DrawDebug(e *ecs.ECS, _ *ebiten.Image) {
 	if inpututil.IsKeyJustPressed(ebiten.KeyF12) {
 		donburi.NewQuery(filter.Contains(weapons.BulletTag)).Each(e.World, func(entry *donburi.Entry) {
-			transform := geometry.Transform.Get(entry)
+			t := transform.Transform.Get(entry)
 			velocity := geometry.Velocity.Get(entry)
-			fmt.Printf("%v %v\n", transform, velocity)
+			fmt.Printf("%v %v\n", t, velocity)
 		})
 	}
 }

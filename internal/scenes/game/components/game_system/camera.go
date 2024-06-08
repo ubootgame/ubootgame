@@ -7,15 +7,11 @@ import (
 )
 
 type CameraData struct {
-	Position   r2.Vec
-	ZoomFactor float64
-	Rotation   float64
-	Matrix     *ebiten.GeoM
+	Matrix *ebiten.GeoM
 }
 
 var Camera = donburi.NewComponentType[CameraData](CameraData{
-	ZoomFactor: 1.0,
-	Matrix:     &ebiten.GeoM{},
+	Matrix: &ebiten.GeoM{},
 })
 
 func (camera *CameraData) WorldToScreenPosition(position r2.Vec) r2.Vec {

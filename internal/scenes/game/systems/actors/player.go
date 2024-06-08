@@ -7,9 +7,11 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/weapons"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/tags"
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi/ecs"
+	"github.com/yohamta/donburi/features/transform"
 	"gonum.org/v1/gonum/spatial/r2"
 )
 
@@ -17,7 +19,7 @@ type PlayerSystem struct {
 	systems.BaseSystem
 
 	cursor    *game_system.CursorData
-	transform *geometry.TransformData
+	transform *transform.TransformData
 	velocity  *r2.Vec
 
 	fireTick uint64
@@ -31,7 +33,7 @@ func NewPlayerSystem() *PlayerSystem {
 		}),
 		injector.WithTag(actors.PlayerTag, []injector.Injection{
 			injector.Component(&system.velocity, geometry.Velocity),
-			injector.Component(&system.transform, geometry.Transform),
+			injector.Component(&system.transform, transform.Transform),
 		}),
 	})
 	return system
@@ -62,7 +64,12 @@ func (system *PlayerSystem) Update(e *ecs.ECS) {
 
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		if system.fireTick%uint64(config.C.TargetTPS/8) == 0 {
-			weapons.CreateBullet(e, system.transform.Center, system.cursor.WorldPosition)
+			player, _ := actors.PlayerTag.First(e.World)
+			playerWorld := transform.WorldPosition(player)
+			bullet := weapons.CreateBullet(e, r2.Vec{X: playerWorld.X, Y: playerWorld.Y}, system.cursor.WorldPosition)
+
+			projectilesGroup, _ := tags.ProjectilesTag.First(e.World)
+			transform.AppendChild(projectilesGroup, bullet, true)
 		}
 		system.fireTick++
 	} else {

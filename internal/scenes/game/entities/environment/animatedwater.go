@@ -2,7 +2,6 @@ package environment
 
 import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility"
@@ -10,6 +9,8 @@ import (
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
+	"github.com/yohamta/donburi/features/math"
+	"github.com/yohamta/donburi/features/transform"
 	"gonum.org/v1/gonum/spatial/r2"
 )
 
@@ -17,8 +18,8 @@ var AnimatedWaterTag = donburi.NewTag().SetName("Animated Game")
 
 var AnimatedWater = archetypes.NewArchetype(
 	AnimatedWaterTag,
+	transform.Transform,
 	visuals.AnimatedSprite,
-	geometry.Transform,
 )
 
 func CreateAnimatedWater(ecs *ecs.ECS, registry *resources.Registry, scaler utility.Scaler, position r2.Vec) *donburi.Entry {
@@ -26,13 +27,14 @@ func CreateAnimatedWater(ecs *ecs.ECS, registry *resources.Registry, scaler util
 
 	aseprite := registry.LoadAseprite(assets.AnimatedWater)
 
-	size, scale := scaler.GetNormalSizeAndScale(r2.Vec{X: float64(aseprite.Player.File.FrameWidth), Y: float64(aseprite.Player.File.Height)})
+	scale := scaler.GetNormalizedScale(r2.Vec{X: float64(aseprite.Player.File.FrameWidth), Y: float64(aseprite.Player.File.Height)})
 
-	visuals.AnimatedSprite.SetValue(entry, visuals.AnimatedSpriteData{Aseprite: aseprite, Speed: 0.5, Scale: scale})
+	visuals.AnimatedSprite.SetValue(entry, visuals.AnimatedSpriteData{Aseprite: aseprite, Speed: 0.5})
 
-	geometry.Transform.SetValue(entry, geometry.TransformData{
-		Center: position,
-		Size:   size,
+	transform.Transform.SetValue(entry, transform.TransformData{
+		LocalPosition: math.Vec2(position),
+		LocalScale:    math.NewVec2(scale, scale),
+		LocalRotation: 0,
 	})
 
 	_ = aseprite.Player.Play("")

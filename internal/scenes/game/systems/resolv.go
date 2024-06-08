@@ -14,6 +14,7 @@ import (
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
+	"github.com/yohamta/donburi/features/transform"
 	"github.com/yohamta/donburi/filter"
 	"gonum.org/v1/gonum/spatial/r2"
 	"image/color"
@@ -26,14 +27,14 @@ type ResolvSystem struct {
 	camera          *game_system.CameraData
 	display         *game_system.DisplayData
 	cursor          *game_system.CursorData
-	playerTransform *geometry.TransformData
+	playerTransform *transform.TransformData
 
 	query *donburi.Query
 }
 
 func NewResolvSystem() *ResolvSystem {
 	system := &ResolvSystem{
-		query: donburi.NewQuery(filter.Contains(geometry.Transform, geometry.Shape)),
+		query: donburi.NewQuery(filter.Contains(transform.Transform, geometry.Shape)),
 	}
 	system.Injector = injector.NewInjector([]injector.Injection{
 		injector.Once([]injector.Injection{
@@ -43,7 +44,7 @@ func NewResolvSystem() *ResolvSystem {
 			injector.Component(&system.cursor, game_system.Cursor),
 		}),
 		injector.WithTag(actors.PlayerTag, []injector.Injection{
-			injector.Component(&system.playerTransform, geometry.Transform),
+			injector.Component(&system.playerTransform, transform.Transform),
 		}),
 	})
 	return system
@@ -59,13 +60,13 @@ func (system *ResolvSystem) Update(e *ecs.ECS) {
 	system.BaseSystem.Update(e)
 
 	system.query.Each(e.World, func(entry *donburi.Entry) {
-		transform := geometry.Transform.Get(entry)
+		t := transform.Transform.Get(entry)
 		shape := geometry.Shape.Get(entry)
 
-		position := system.camera.WorldToScreenPosition(r2.Vec{X: transform.Center.X - transform.Size.X/2, Y: transform.Center.Y - transform.Size.Y/2})
-		shape.SetPosition(position.X, position.Y)
-		shape.SetScale(system.display.VirtualResolution.X*system.camera.ZoomFactor, system.display.VirtualResolution.X*system.camera.ZoomFactor)
-		shape.SetRotation(resolv.ToRadians(transform.Rotate - system.camera.Rotation))
+		worldPosition := transform.WorldPosition(entry)
+		shape.SetPosition(worldPosition.X, worldPosition.Y)
+		shape.SetScale(t.LocalScale.X, t.LocalScale.Y)
+		shape.SetRotation(resolv.ToRadians(t.LocalRotation))
 	})
 }
 
@@ -74,7 +75,11 @@ func (system *ResolvSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 		return
 	}
 
-	playerScreen := system.camera.WorldToScreenPosition(system.playerTransform.Center)
+	player, _ := actors.PlayerTag.First(e.World)
+
+	playerWorld := transform.WorldPosition(player)
+
+	playerScreen := system.camera.WorldToScreenPosition(r2.Vec(playerWorld))
 
 	line := resolv.NewLine(playerScreen.X, playerScreen.Y, system.cursor.ScreenPosition.X, system.cursor.ScreenPosition.Y)
 

@@ -8,6 +8,8 @@ import (
 	gameSystemComponents "github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	actorEntities "github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	environmentEntities "github.com/ubootgame/ubootgame/internal/scenes/game/entities/environment"
+	gameSystemEntities "github.com/ubootgame/ubootgame/internal/scenes/game/entities/game_system"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/scene_graph"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/events"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems"
@@ -16,12 +18,14 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/weapons"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/tags"
 	"github.com/ubootgame/ubootgame/internal/utility"
 	ecsSystems "github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	devents "github.com/yohamta/donburi/features/events"
+	"github.com/yohamta/donburi/features/transform"
 	"gonum.org/v1/gonum/spatial/r2"
 	"image/color"
 	"sync"
@@ -121,13 +125,38 @@ func (scene *Scene) setup() {
 	events.DisplayUpdatedEvent.Subscribe(scene.ecs.World, displaySystem.UpdateDisplay)
 	events.DisplayUpdatedEvent.Subscribe(scene.ecs.World, debugSystem.UpdateFontFace)
 
-	// Entities
-	environmentEntities.CreateWater(scene.ecs, scene.resourceRegistry)
-	environmentEntities.CreateAnimatedWater(scene.ecs, scene.resourceRegistry, utility.HScaler(0.2), r2.Vec{})
+	// Environment
+	water := environmentEntities.CreateWater(scene.ecs, scene.resourceRegistry)
+	animatedWater := environmentEntities.CreateAnimatedWater(scene.ecs, scene.resourceRegistry, utility.HScaler(0.2), r2.Vec{})
 
-	actorEntities.CreatePlayer(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1))
-	actorEntities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1), r2.Vec{X: -0.7, Y: 0.05}, r2.Vec{X: 0.1})
-	actorEntities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1), r2.Vec{X: 0.8, Y: 0.2}, r2.Vec{X: -0.05})
+	environment := scene_graph.CreateSceneGroup(scene.ecs, tags.EnvironmentTag)
+	transform.AppendChild(environment, water, false)
+	transform.AppendChild(environment, animatedWater, false)
+
+	// Objects
+	player := actorEntities.CreatePlayer(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1))
+	enemies := []*donburi.Entry{
+		actorEntities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1), r2.Vec{X: -0.7, Y: 0.05}, r2.Vec{X: 0.1}),
+		actorEntities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScaler(0.1), r2.Vec{X: 0.8, Y: 0.2}, r2.Vec{X: -0.05}),
+	}
+
+	objects := scene_graph.CreateSceneGroup(scene.ecs, tags.ObjectsTag)
+	transform.AppendChild(objects, player, true)
+	for _, enemy := range enemies {
+		transform.AppendChild(objects, enemy, true)
+	}
+
+	// Projectiles
+	projectiles := scene_graph.CreateSceneGroup(scene.ecs, tags.ProjectilesTag)
+
+	// Scene graph
+	sceneGraph := scene_graph.CreateSceneGraph(scene.ecs)
+	transform.AppendChild(sceneGraph, environment, false)
+	transform.AppendChild(sceneGraph, objects, false)
+	transform.AppendChild(sceneGraph, projectiles, false)
+
+	camera := gameSystemEntities.CreateCamera(scene.ecs)
+	transform.AppendChild(sceneGraph, camera, false)
 }
 
 func (scene *Scene) registerSystem(system System) {

@@ -11,6 +11,8 @@ import (
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
+	"github.com/yohamta/donburi/features/math"
+	"github.com/yohamta/donburi/features/transform"
 	"gonum.org/v1/gonum/spatial/r2"
 )
 
@@ -18,9 +20,9 @@ var EnemyTag = donburi.NewTag().SetName("Enemy")
 
 var Enemy = archetypes.NewArchetype(
 	EnemyTag,
+	transform.Transform,
 	geometry.Shape,
 	visuals.Sprite,
-	geometry.Transform,
 	geometry.Velocity,
 )
 
@@ -29,20 +31,23 @@ func CreateEnemy(ecs *ecs.ECS, registry *resources.Registry, scaler utility.Scal
 
 	sprite := registry.LoadImage(assets.Submarine)
 
-	size, scale := scaler.GetNormalSizeAndScale(r2.Vec{X: float64(sprite.Data.Bounds().Size().X), Y: float64(sprite.Data.Bounds().Size().Y)})
+	size := r2.Vec{X: float64(sprite.Data.Bounds().Size().X), Y: float64(sprite.Data.Bounds().Size().Y)}
+
+	scale := scaler.GetNormalizedScale(r2.Vec{X: float64(sprite.Data.Bounds().Size().X), Y: float64(sprite.Data.Bounds().Size().Y)})
 
 	visuals.Sprite.SetValue(entry, visuals.SpriteData{
 		Image: sprite.Data,
-		Scale: scale,
 	})
-	geometry.Transform.SetValue(entry, geometry.TransformData{
-		Center: position,
-		Size:   size,
+	transform.Transform.SetValue(entry, transform.TransformData{
+		LocalPosition: math.Vec2(position),
+		LocalScale:    math.NewVec2(scale, scale),
+		LocalRotation: 0,
 	})
 	geometry.Velocity.SetValue(entry, velocity)
 
-	shapePosition := r2.Vec{X: position.X - size.X/2, Y: position.Y - size.Y/2}
-	geometry.Shape.SetValue(entry, *resolv.NewRectangle(shapePosition.X, shapePosition.Y, size.X, size.Y))
+	shape := *resolv.NewRectangle(position.X-size.X/2, position.Y-size.Y/2, size.X, size.Y)
+	shape.SetScale(scale, scale)
+	geometry.Shape.SetValue(entry, shape)
 
 	return entry
 }

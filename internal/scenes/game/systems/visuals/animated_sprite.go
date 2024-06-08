@@ -5,7 +5,6 @@ import (
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility/draw"
@@ -13,8 +12,10 @@ import (
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
+	"github.com/yohamta/donburi/features/transform"
 	"github.com/yohamta/donburi/filter"
 	"golang.org/x/image/colornames"
+	"gonum.org/v1/gonum/spatial/r2"
 	"image"
 )
 
@@ -32,7 +33,7 @@ type AnimatedSpriteSystem struct {
 func NewAnimatedSpriteSystem() *AnimatedSpriteSystem {
 	system := &AnimatedSpriteSystem{
 		updateQuery:            donburi.NewQuery(filter.Contains(visuals.AnimatedSprite)),
-		drawQuery:              donburi.NewQuery(filter.Contains(visuals.AnimatedSprite, geometry.Transform)),
+		drawQuery:              donburi.NewQuery(filter.Contains(visuals.AnimatedSprite, transform.Transform)),
 		spriteDrawImageOptions: &ebiten.DrawImageOptions{},
 	}
 	system.Injector = injector.NewInjector([]injector.Injection{
@@ -62,13 +63,15 @@ func (system *AnimatedSpriteSystem) Update(e *ecs.ECS) {
 func (system *AnimatedSpriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	system.drawQuery.Each(e.World, func(entry *donburi.Entry) {
 		animatedSprite := visuals.AnimatedSprite.Get(entry)
-		transform := geometry.Transform.Get(entry)
+
+		worldPosition := transform.WorldPosition(entry)
+		worldScale := transform.WorldScale(entry)
 
 		system.spriteDrawImageOptions.GeoM.Reset()
 
 		system.spriteDrawImageOptions.GeoM.Translate(-float64(animatedSprite.Aseprite.Player.File.FrameWidth/2), -float64(animatedSprite.Aseprite.Player.File.FrameHeight/2))
-		system.spriteDrawImageOptions.GeoM.Scale(animatedSprite.Scale*transform.Size.X, animatedSprite.Scale*transform.Size.X)
-		system.spriteDrawImageOptions.GeoM.Translate(transform.Center.X, transform.Center.Y)
+		system.spriteDrawImageOptions.GeoM.Scale(worldScale.X, worldScale.Y)
+		system.spriteDrawImageOptions.GeoM.Translate(worldPosition.X, worldPosition.Y)
 		system.spriteDrawImageOptions.GeoM.Concat(*system.camera.Matrix)
 
 		system.spriteDrawImageOptions.Filter = ebiten.FilterLinear
@@ -81,9 +84,9 @@ func (system *AnimatedSpriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 
 func (system *AnimatedSpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 	system.drawQuery.Each(e.World, func(entry *donburi.Entry) {
-		transform := geometry.Transform.Get(entry)
+		worldPosition := transform.WorldPosition(entry)
+		spriteCenter := system.camera.WorldToScreenPosition(r2.Vec(worldPosition))
 
-		spriteCenter := system.camera.WorldToScreenPosition(transform.Center)
 		draw.BigDot(screen, spriteCenter, colornames.Green)
 	})
 }

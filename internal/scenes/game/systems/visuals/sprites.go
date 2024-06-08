@@ -14,9 +14,11 @@ import (
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
+	"github.com/yohamta/donburi/features/transform"
 	"github.com/yohamta/donburi/filter"
 	"golang.org/x/image/colornames"
 	"gonum.org/v1/gonum/spatial/r2"
+	"math"
 )
 
 type SpriteSystem struct {
@@ -37,7 +39,7 @@ type SpriteSystem struct {
 
 func NewSpriteSystem() *SpriteSystem {
 	system := &SpriteSystem{
-		query:                  donburi.NewQuery(filter.Contains(visuals.Sprite, geometry.Transform)),
+		query:                  donburi.NewQuery(filter.Contains(visuals.Sprite, transform.Transform)),
 		spriteDrawImageOptions: &ebiten.DrawImageOptions{},
 		debugTextOptions: &text.DrawOptions{
 			DrawImageOptions: ebiten.DrawImageOptions{
@@ -66,22 +68,26 @@ func (system *SpriteSystem) Layers() []lo.Tuple2[ecs.LayerID, systems.Renderer] 
 func (system *SpriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	system.query.Each(e.World, func(entry *donburi.Entry) {
 		sprite := visuals.Sprite.Get(entry)
-		transform := geometry.Transform.Get(entry)
+
+		worldRotation := transform.WorldRotation(entry)
+		worldScale := transform.WorldScale(entry)
+		worldPosition := transform.WorldPosition(entry)
 
 		system.spriteDrawImageOptions.GeoM.Reset()
 
-		if transform.FlipX {
+		if sprite.FlipX {
 			system.spriteDrawImageOptions.GeoM.Scale(1, -1)
-			system.spriteDrawImageOptions.GeoM.Translate(0, float64(sprite.Image.Bounds().Size().Y))
+			//system.spriteDrawImageOptions.GeoM.Translate(0, float64(sprite.Image.Bounds().Size().Y))
 		}
-		if transform.FlipY {
+		if sprite.FlipY {
 			system.spriteDrawImageOptions.GeoM.Scale(-1, 1)
-			system.spriteDrawImageOptions.GeoM.Translate(float64(sprite.Image.Bounds().Size().X), 0)
+			//system.spriteDrawImageOptions.GeoM.Translate(float64(sprite.Image.Bounds().Size().X), 0)
 		}
 
 		system.spriteDrawImageOptions.GeoM.Translate(-float64(sprite.Image.Bounds().Size().X/2), -float64(sprite.Image.Bounds().Size().Y/2))
-		system.spriteDrawImageOptions.GeoM.Scale(sprite.Scale*transform.Size.X, sprite.Scale*transform.Size.X)
-		system.spriteDrawImageOptions.GeoM.Translate(transform.Center.X, transform.Center.Y)
+		system.spriteDrawImageOptions.GeoM.Rotate(float64(worldRotation) * 2 * math.Pi / 360)
+		system.spriteDrawImageOptions.GeoM.Scale(worldScale.X, worldScale.Y)
+		system.spriteDrawImageOptions.GeoM.Translate(worldPosition.X, worldPosition.Y)
 		system.spriteDrawImageOptions.GeoM.Concat(*system.camera.Matrix)
 
 		system.spriteDrawImageOptions.Filter = ebiten.FilterLinear
@@ -96,16 +102,15 @@ func (system *SpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 	}
 
 	system.query.Each(e.World, func(entry *donburi.Entry) {
-		transform := geometry.Transform.Get(entry)
+		worldPosition := transform.WorldPosition(entry)
 
 		// Center dot
-		spriteCenter := system.camera.WorldToScreenPosition(transform.Center)
+		spriteCenter := system.camera.WorldToScreenPosition(r2.Vec(worldPosition))
 		draw.BigDot(screen, spriteCenter, colornames.Yellow)
 
 		// Debug text
-		debugText := fmt.Sprintf("Transform: %.3f, %.3f\nSize: %.3f, %.3f",
-			transform.Center.X, transform.Center.Y,
-			transform.Size.X, transform.Size.Y)
+		debugText := fmt.Sprintf("Transform: %.3f, %.3f",
+			worldPosition.X, worldPosition.Y)
 
 		if entry.HasComponent(geometry.Velocity) {
 			velocity := geometry.Velocity.Get(entry)
@@ -113,8 +118,8 @@ func (system *SpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 		}
 
 		spriteBottomRight := system.camera.WorldToScreenPosition(r2.Vec{
-			X: transform.Center.X + transform.Size.X/2,
-			Y: transform.Center.Y + transform.Size.Y/2,
+			X: worldPosition.X,
+			Y: worldPosition.Y,
 		})
 
 		system.debugTextOptions.GeoM.Reset()

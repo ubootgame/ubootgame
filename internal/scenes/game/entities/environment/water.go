@@ -8,12 +8,14 @@ import (
 	"github.com/ubootgame/ubootgame/internal/utility/resources"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
+	"github.com/yohamta/donburi/features/transform"
 )
 
 var WaterTag = donburi.NewTag().SetName("Game")
 
 var Water = archetypes.NewArchetype(
 	WaterTag,
+	transform.Transform,
 	visuals.Sprite,
 )
 

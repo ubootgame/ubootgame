@@ -9,6 +9,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal/config"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
+	game_system2 "github.com/ubootgame/ubootgame/internal/scenes/game/entities/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/events"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/utility/draw"
@@ -16,6 +17,7 @@ import (
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
+	"github.com/yohamta/donburi/features/transform"
 	"golang.org/x/image/font/gofont/gobold"
 	"log"
 	"runtime"
@@ -27,10 +29,11 @@ var defaultFontSize = 12.0
 type DebugSystem struct {
 	systems.BaseSystem
 
-	debug   *game_system.DebugData
-	camera  *game_system.CameraData
-	display *game_system.DisplayData
-	cursor  *game_system.CursorData
+	debug     *game_system.DebugData
+	camera    *game_system.CameraData
+	display   *game_system.DisplayData
+	cursor    *game_system.CursorData
+	transform *transform.TransformData
 
 	keys             []ebiten.Key
 	memStats         *runtime.MemStats
@@ -53,9 +56,12 @@ func NewDebugSystem() *DebugSystem {
 	system.Injector = injector.NewInjector([]injector.Injection{
 		injector.Once([]injector.Injection{
 			injector.Component(&system.debug, game_system.Debug),
-			injector.Component(&system.camera, game_system.Camera),
 			injector.Component(&system.display, game_system.Display),
 			injector.Component(&system.cursor, game_system.Cursor),
+			injector.WithTag(game_system2.CameraTag, []injector.Injection{
+				injector.Component(&system.camera, game_system.Camera),
+				injector.Component(&system.transform, transform.Transform),
+			}),
 		}),
 	})
 	return system
@@ -111,8 +117,8 @@ func (system *DebugSystem) generateDebugText() string {
 
 	ms := system.memStats
 
-	worldPosition := system.cursor.WorldPosition
-	screenPosition := system.cursor.ScreenPosition
+	cursorWorldPosition := system.cursor.WorldPosition
+	cursorScreenPosition := system.cursor.ScreenPosition
 
 	_, _ = fmt.Fprintf(system.debugTextBuilder, `(/ to toggle debugSystem)
 Draw grid (F1): %v
@@ -143,11 +149,11 @@ NumGC: %d`,
 		strings.Join(lo.Map(system.keys, func(item ebiten.Key, index int) string {
 			return item.String()
 		}), ", "),
-		screenPosition.X, screenPosition.Y,
-		worldPosition.X, worldPosition.Y,
-		system.camera.Position.X, system.camera.Position.Y,
-		system.camera.ZoomFactor,
-		system.camera.Rotation,
+		cursorScreenPosition.X, cursorScreenPosition.Y,
+		cursorWorldPosition.X, cursorWorldPosition.Y,
+		system.transform.LocalPosition.X, system.transform.LocalPosition.Y,
+		system.transform.LocalScale,
+		system.transform.LocalRotation,
 		draw.FormatBytes(ms.Alloc), draw.FormatBytes(ms.TotalAlloc), draw.FormatBytes(ms.Sys),
 		draw.FormatBytes(ms.NextGC), ms.NumGC)
 
