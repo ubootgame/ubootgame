@@ -2,9 +2,9 @@ package game_system
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/ubootgame/ubootgame/internal/framework/ecs/injector"
+	"github.com/ubootgame/ubootgame/internal/framework/ecs/systems"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
-	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
-	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi/ecs"
 	"gonum.org/v1/gonum/spatial/r2"
 )

@@ -5,13 +5,14 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/samber/lo"
+	"github.com/ubootgame/ubootgame/internal"
+	"github.com/ubootgame/ubootgame/internal/framework/draw"
+	"github.com/ubootgame/ubootgame/internal/framework/ecs/injector"
+	"github.com/ubootgame/ubootgame/internal/framework/ecs/systems"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
-	"github.com/ubootgame/ubootgame/internal/utility/draw"
-	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
-	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/features/transform"
@@ -24,9 +25,9 @@ import (
 type SpriteSystem struct {
 	systems.BaseSystem
 
-	camera  *game_system.CameraData
-	debug   *game_system.DebugData
-	display *game_system.DisplayData
+	settings *internal.Settings
+
+	camera *game_system.CameraData
 
 	query      *donburi.Query
 	debugQuery *donburi.Query
@@ -38,8 +39,9 @@ type SpriteSystem struct {
 	debugTextPositionOpts *ebiten.DrawImageOptions
 }
 
-func NewSpriteSystem() *SpriteSystem {
+func NewSpriteSystem(settings *internal.Settings) *SpriteSystem {
 	system := &SpriteSystem{
+		settings:               settings,
 		query:                  donburi.NewQuery(filter.Contains(visuals.Sprite, transform.Transform)),
 		debugQuery:             donburi.NewQuery(filter.Contains(visuals.Sprite, transform.Transform, geometry.Velocity)),
 		spriteDrawImageOptions: &ebiten.DrawImageOptions{},
@@ -53,8 +55,6 @@ func NewSpriteSystem() *SpriteSystem {
 	system.Injector = injector.NewInjector([]injector.Injection{
 		injector.Once([]injector.Injection{
 			injector.Component(&system.camera, game_system.Camera),
-			injector.Component(&system.debug, game_system.Debug),
-			injector.Component(&system.display, game_system.Display),
 		}),
 	})
 	return system
@@ -107,7 +107,7 @@ func (system *SpriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 }
 
 func (system *SpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
-	if !system.debug.DrawPositions {
+	if !system.settings.Debug.DrawPositions {
 		return
 	}
 
@@ -132,11 +132,11 @@ func (system *SpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 			Y: worldPosition.Y + (scale.NormalizedSize.Y*worldScale.Y)/2,
 		})
 
-		metrics := system.debug.FontFace.Metrics()
+		metrics := system.settings.Debug.FontFace.Metrics()
 		system.debugTextOptions.LineSpacing = metrics.HAscent + metrics.HDescent + metrics.HLineGap
 		system.debugTextOptions.GeoM.Reset()
 		system.debugTextOptions.GeoM.Translate(spriteBottomRight.X, spriteBottomRight.Y)
 
-		text.Draw(screen, debugText, system.debug.FontFace, system.debugTextOptions)
+		text.Draw(screen, debugText, system.settings.Debug.FontFace, system.debugTextOptions)
 	})
 }

@@ -4,10 +4,10 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/pkg/profile"
-	"github.com/ubootgame/ubootgame/internal/config"
+	"github.com/ubootgame/ubootgame/internal"
+	"github.com/ubootgame/ubootgame/internal/framework"
+	"github.com/ubootgame/ubootgame/internal/framework/resources"
 	"github.com/ubootgame/ubootgame/internal/scenes/game"
-	"github.com/ubootgame/ubootgame/internal/utility"
-	"github.com/ubootgame/ubootgame/internal/utility/resources"
 	_ "image/png"
 	"log"
 	"net/http"
@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	if ok, _ := utility.GetEnvBool("DEBUG"); ok {
+	if ok, _ := framework.GetEnvBool("DEBUG"); ok {
 		defer profile.Start(profile.CPUProfile, profile.MemProfile).Stop()
 
 		go func() {
@@ -24,10 +24,12 @@ func main() {
 		}()
 	}
 
+	settings := internal.NewSettings()
+
 	ebiten.SetWindowTitle("U-Boot")
-	ebiten.SetWindowSize(int(config.C.DefaultWindowSize.X), int(config.C.DefaultWindowSize.Y))
+	ebiten.SetWindowSize(int(settings.DefaultWindowSize.X), int(settings.DefaultWindowSize.Y))
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-	ebiten.SetTPS(config.C.TargetTPS)
+	ebiten.SetTPS(settings.TargetTPS)
 	ebiten.SetVsyncEnabled(true)
 
 	debug.SetGCPercent(100)
@@ -35,14 +37,13 @@ func main() {
 	audioContext := audio.NewContext(44100)
 	resourceRegistry := resources.NewRegistry(audioContext)
 
-	gameScene := game.NewGameScene(resourceRegistry)
+	g := framework.NewGame(settings, resourceRegistry)
 
-	err := resourceRegistry.RegisterResources(gameScene.Assets())
-	if err != nil {
+	if err := g.LoadScene(game.NewScene(settings)); err != nil {
 		panic(err)
 	}
 
-	if err := ebiten.RunGame(utility.NewGame(gameScene)); err != nil {
+	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
 	}
 }

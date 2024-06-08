@@ -1,37 +1,30 @@
 package game_system
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/samber/lo"
-	"github.com/ubootgame/ubootgame/internal/config"
+	"github.com/ubootgame/ubootgame/internal"
+	"github.com/ubootgame/ubootgame/internal/framework/draw"
+	"github.com/ubootgame/ubootgame/internal/framework/ecs/injector"
+	"github.com/ubootgame/ubootgame/internal/framework/ecs/systems"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	game_system2 "github.com/ubootgame/ubootgame/internal/scenes/game/entities/game_system"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/events"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
-	"github.com/ubootgame/ubootgame/internal/utility/draw"
-	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
-	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
-	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/features/transform"
-	"golang.org/x/image/font/gofont/gobold"
-	"log"
 	"runtime"
 	"strings"
 )
 
-var defaultFontSize = 12.0
-
 type DebugSystem struct {
 	systems.BaseSystem
 
-	debug     *game_system.DebugData
+	settings *internal.Settings
+
 	camera    *game_system.CameraData
-	display   *game_system.DisplayData
 	cursor    *game_system.CursorData
 	transform *transform.TransformData
 
@@ -42,8 +35,9 @@ type DebugSystem struct {
 	debugTextOptions *text.DrawOptions
 }
 
-func NewDebugSystem() *DebugSystem {
+func NewDebugSystem(settings *internal.Settings) *DebugSystem {
 	system := &DebugSystem{
+		settings:         settings,
 		keys:             make([]ebiten.Key, 0),
 		memStats:         &runtime.MemStats{},
 		debugTextBuilder: &strings.Builder{},
@@ -55,8 +49,6 @@ func NewDebugSystem() *DebugSystem {
 	}
 	system.Injector = injector.NewInjector([]injector.Injection{
 		injector.Once([]injector.Injection{
-			injector.Component(&system.debug, game_system.Debug),
-			injector.Component(&system.display, game_system.Display),
 			injector.Component(&system.cursor, game_system.Cursor),
 			injector.WithTag(game_system2.CameraTag, []injector.Injection{
 				injector.Component(&system.camera, game_system.Camera),
@@ -77,26 +69,26 @@ func (system *DebugSystem) Update(e *ecs.ECS) {
 	system.BaseSystem.Update(e)
 
 	if inpututil.IsKeyJustPressed(ebiten.KeySlash) {
-		system.debug.Enabled = !system.debug.Enabled
+		system.settings.Debug.Enabled = !system.settings.Debug.Enabled
 	}
 
-	if !system.debug.Enabled {
+	if !system.settings.Debug.Enabled {
 		return
 	}
 
 	system.keys = inpututil.AppendPressedKeys(system.keys[:0])
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyF1) {
-		system.debug.DrawGrid = !system.debug.DrawGrid
+		system.settings.Debug.DrawGrid = !system.settings.Debug.DrawGrid
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyF2) {
-		system.debug.DrawCollisions = !system.debug.DrawCollisions
+		system.settings.Debug.DrawCollisions = !system.settings.Debug.DrawCollisions
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyF3) {
-		system.debug.DrawPositions = !system.debug.DrawPositions
+		system.settings.Debug.DrawPositions = !system.settings.Debug.DrawPositions
 	}
 
-	if system.ticks%uint64(config.C.TargetTPS*2) == 0 {
+	if system.ticks%uint64(system.settings.TargetTPS*2) == 0 {
 		runtime.ReadMemStats(system.memStats)
 	}
 	system.ticks++
@@ -106,10 +98,10 @@ func (system *DebugSystem) Update(e *ecs.ECS) {
 func (system *DebugSystem) DrawDebug(_ *ecs.ECS, screen *ebiten.Image) {
 	debugText := system.generateDebugText()
 
-	metrics := system.debug.FontFace.Metrics()
+	metrics := system.settings.Debug.FontFace.Metrics()
 	system.debugTextOptions.LineSpacing = metrics.HAscent + metrics.HDescent + metrics.HLineGap
 
-	text.Draw(screen, debugText, system.debug.FontFace, system.debugTextOptions)
+	text.Draw(screen, debugText, system.settings.Debug.FontFace, system.debugTextOptions)
 }
 
 func (system *DebugSystem) generateDebugText() string {
@@ -139,13 +131,13 @@ Total: %s
 Sys: %s
 NextGC: %s
 NumGC: %d`,
-		system.debug.DrawGrid,
-		system.debug.DrawCollisions,
-		system.debug.DrawPositions,
+		system.settings.Debug.DrawGrid,
+		system.settings.Debug.DrawCollisions,
+		system.settings.Debug.DrawPositions,
 		ebiten.ActualFPS(),
 		ebiten.ActualTPS(),
 		ebiten.IsVsyncEnabled(),
-		system.display.ScalingFactor,
+		system.settings.Display.ScalingFactor,
 		strings.Join(lo.Map(system.keys, func(item ebiten.Key, index int) string {
 			return item.String()
 		}), ", "),
@@ -158,20 +150,4 @@ NumGC: %d`,
 		draw.FormatBytes(ms.NextGC), ms.NumGC)
 
 	return system.debugTextBuilder.String()
-}
-
-func (system *DebugSystem) UpdateFontFace(w donburi.World, event events.DisplayUpdatedEventData) {
-	system.Inject(w)
-
-	if system.debug.FontScale != event.ScalingFactor || system.debug.FontFace == nil {
-		s, err := text.NewGoTextFaceSource(bytes.NewReader(gobold.TTF))
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		system.debug.FontFace = &text.GoTextFace{
-			Source: s,
-			Size:   defaultFontSize * event.ScalingFactor,
-		}
-	}
 }

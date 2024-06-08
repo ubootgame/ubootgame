@@ -3,31 +3,23 @@ package environment
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/samber/lo"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
+	"github.com/ubootgame/ubootgame/internal"
+	"github.com/ubootgame/ubootgame/internal/framework/ecs/systems"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
-	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
-	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi/ecs"
 )
 
 type WaterSystem struct {
 	systems.BaseSystem
 
-	display *game_system.DisplayData
-	sprite  *visuals.SpriteData
+	settings *internal.Settings
+
+	sprite *visuals.SpriteData
 }
 
-func NewWaterSystem() *WaterSystem {
-	system := &WaterSystem{}
-	system.Injector = injector.NewInjector([]injector.Injection{
-		injector.Once([]injector.Injection{
-			injector.Component(&system.display, game_system.Display),
-		}),
-		//injector.WithTag(environment.WaterTag, []injector.Injection{
-		//	injector.Component(&system.sprite, visuals.Sprite),
-		//}),
-	})
+func NewWaterSystem(settings *internal.Settings) *WaterSystem {
+	system := &WaterSystem{settings: settings}
 	return system
 }
 

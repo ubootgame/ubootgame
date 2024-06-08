@@ -3,13 +3,13 @@ package visuals
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/samber/lo"
-	"github.com/ubootgame/ubootgame/internal/config"
+	"github.com/ubootgame/ubootgame/internal"
+	"github.com/ubootgame/ubootgame/internal/framework/draw"
+	"github.com/ubootgame/ubootgame/internal/framework/ecs/injector"
+	"github.com/ubootgame/ubootgame/internal/framework/ecs/systems"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
-	"github.com/ubootgame/ubootgame/internal/utility/draw"
-	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
-	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/features/transform"
@@ -22,6 +22,8 @@ import (
 type AnimatedSpriteSystem struct {
 	systems.BaseSystem
 
+	settings *internal.Settings
+
 	camera *game_system.CameraData
 
 	updateQuery *donburi.Query
@@ -30,8 +32,9 @@ type AnimatedSpriteSystem struct {
 	spriteDrawImageOptions *ebiten.DrawImageOptions
 }
 
-func NewAnimatedSpriteSystem() *AnimatedSpriteSystem {
+func NewAnimatedSpriteSystem(settings *internal.Settings) *AnimatedSpriteSystem {
 	system := &AnimatedSpriteSystem{
+		settings:               settings,
 		updateQuery:            donburi.NewQuery(filter.Contains(visuals.AnimatedSprite)),
 		drawQuery:              donburi.NewQuery(filter.Contains(visuals.AnimatedSprite, transform.Transform)),
 		spriteDrawImageOptions: &ebiten.DrawImageOptions{},
@@ -56,7 +59,7 @@ func (system *AnimatedSpriteSystem) Update(e *ecs.ECS) {
 
 	system.updateQuery.Each(e.World, func(entry *donburi.Entry) {
 		animatedSprite := visuals.AnimatedSprite.Get(entry)
-		animatedSprite.Aseprite.Player.Update(1.0 / float32(config.C.TargetTPS) * animatedSprite.Speed)
+		animatedSprite.Aseprite.Player.Update(1.0 / float32(system.settings.TargetTPS) * animatedSprite.Speed)
 	})
 }
 

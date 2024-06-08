@@ -3,7 +3,7 @@ package assets
 import (
 	_ "embed"
 	"github.com/quasilyte/ebitengine-resource"
-	"github.com/ubootgame/ubootgame/internal/utility/resources"
+	"github.com/ubootgame/ubootgame/internal/framework/resources"
 )
 
 const (

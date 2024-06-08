@@ -5,13 +5,14 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/samber/lo"
 	"github.com/solarlune/resolv"
+	"github.com/ubootgame/ubootgame/internal"
+	"github.com/ubootgame/ubootgame/internal/framework/draw"
+	"github.com/ubootgame/ubootgame/internal/framework/ecs/injector"
+	"github.com/ubootgame/ubootgame/internal/framework/ecs/systems"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
-	"github.com/ubootgame/ubootgame/internal/utility/draw"
-	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
-	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/features/transform"
@@ -20,27 +21,26 @@ import (
 	"image/color"
 )
 
-type ResolvSystem struct {
+type CollisionSystem struct {
 	systems.BaseSystem
 
-	debug           *game_system.DebugData
+	settings *internal.Settings
+
 	camera          *game_system.CameraData
-	display         *game_system.DisplayData
 	cursor          *game_system.CursorData
 	playerTransform *transform.TransformData
 
 	query *donburi.Query
 }
 
-func NewResolvSystem() *ResolvSystem {
-	system := &ResolvSystem{
-		query: donburi.NewQuery(filter.Contains(transform.Transform, geometry.Bounds, geometry.Scale)),
+func NewCollisionSystem(settings *internal.Settings) *CollisionSystem {
+	system := &CollisionSystem{
+		settings: settings,
+		query:    donburi.NewQuery(filter.Contains(transform.Transform, geometry.Bounds, geometry.Scale)),
 	}
 	system.Injector = injector.NewInjector([]injector.Injection{
 		injector.Once([]injector.Injection{
-			injector.Component(&system.debug, game_system.Debug),
 			injector.Component(&system.camera, game_system.Camera),
-			injector.Component(&system.display, game_system.Display),
 			injector.Component(&system.cursor, game_system.Cursor),
 		}),
 		injector.WithTag(actors.PlayerTag, []injector.Injection{
@@ -50,13 +50,13 @@ func NewResolvSystem() *ResolvSystem {
 	return system
 }
 
-func (system *ResolvSystem) Layers() []lo.Tuple2[ecs.LayerID, systems.Renderer] {
+func (system *CollisionSystem) Layers() []lo.Tuple2[ecs.LayerID, systems.Renderer] {
 	return []lo.Tuple2[ecs.LayerID, systems.Renderer]{
 		{A: layers.Debug, B: system.DrawDebug},
 	}
 }
 
-func (system *ResolvSystem) Update(e *ecs.ECS) {
+func (system *CollisionSystem) Update(e *ecs.ECS) {
 	system.BaseSystem.Update(e)
 
 	system.query.Each(e.World, func(entry *donburi.Entry) {
@@ -73,8 +73,8 @@ func (system *ResolvSystem) Update(e *ecs.ECS) {
 	})
 }
 
-func (system *ResolvSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
-	if !system.debug.DrawCollisions {
+func (system *CollisionSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
+	if !system.settings.Debug.DrawCollisions {
 		return
 	}
 

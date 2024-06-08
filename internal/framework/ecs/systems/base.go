@@ -3,7 +3,7 @@ package systems
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/samber/lo"
-	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
+	"github.com/ubootgame/ubootgame/internal/framework/ecs/injector"
 	"github.com/yohamta/donburi/ecs"
 )
 

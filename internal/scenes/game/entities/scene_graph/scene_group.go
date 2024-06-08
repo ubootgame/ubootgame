@@ -1,8 +1,8 @@
 package scene_graph
 
 import (
+	"github.com/ubootgame/ubootgame/internal/framework/ecs/archetypes"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
-	"github.com/ubootgame/ubootgame/internal/utility/ecs/archetypes"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/features/math"

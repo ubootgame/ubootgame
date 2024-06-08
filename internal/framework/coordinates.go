@@ -1,6 +1,7 @@
-package utility
+package framework
 
 import (
+	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/yohamta/donburi/features/transform"
 	"gonum.org/v1/gonum/spatial/r2"
@@ -9,7 +10,7 @@ import (
 
 var WorldSizeBase = 1000.0
 
-func UpdateCameraMatrix(display *game_system.DisplayData, camera *game_system.CameraData, transform *transform.TransformData) {
+func UpdateCameraMatrix(display *internal.Display, camera *game_system.CameraData, transform *transform.TransformData) {
 	camera.Matrix.Reset()
 
 	// Position camera in world coordinates
