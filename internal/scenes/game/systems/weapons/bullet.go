@@ -18,7 +18,6 @@ import (
 	"github.com/yohamta/donburi/features/transform"
 	"github.com/yohamta/donburi/filter"
 	"golang.org/x/image/colornames"
-	"gonum.org/v1/gonum/spatial/r2"
 )
 
 type BulletSystem struct {
@@ -59,12 +58,10 @@ func (system *BulletSystem) Update(e *ecs.ECS) {
 	weapons.BulletTag.Each(e.World, func(bulletEntry *donburi.Entry) {
 		worldPosition := transform.WorldPosition(bulletEntry)
 
-		bulletScreen := system.camera.WorldToScreenPosition(r2.Vec(worldPosition))
-
 		actors.EnemyTag.Each(e.World, func(enemyEntry *donburi.Entry) {
-			shape := geometry.Shape.Get(enemyEntry)
+			bounds := geometry.Bounds.Get(enemyEntry)
 
-			if shape.PointInside(resolv.Vector{X: bulletScreen.X, Y: bulletScreen.Y}) {
+			if bounds.PointInside(resolv.Vector{X: worldPosition.X, Y: worldPosition.Y}) {
 				e.World.Remove(enemyEntry.Entity())
 				e.World.Remove(bulletEntry.Entity())
 			}
@@ -80,11 +77,10 @@ func (system *BulletSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 
 	system.query.Each(e.World, func(entry *donburi.Entry) {
 		worldPosition := transform.WorldPosition(entry)
+		worldScale := transform.WorldScale(entry)
 
 		system.drawImageOptions.GeoM.Reset()
-
-		system.drawImageOptions.GeoM.Translate(-1, -1)
-		system.drawImageOptions.GeoM.Scale(0.001, 0.001)
+		system.drawImageOptions.GeoM.Scale(worldScale.X, worldScale.Y)
 		system.drawImageOptions.GeoM.Translate(worldPosition.X, worldPosition.Y)
 		system.drawImageOptions.GeoM.Concat(*system.camera.Matrix)
 

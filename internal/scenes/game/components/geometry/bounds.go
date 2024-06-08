@@ -5,4 +5,4 @@ import (
 	"github.com/yohamta/donburi"
 )
 
-var Shape = donburi.NewComponentType[resolv.ConvexPolygon]()
+var Bounds = donburi.NewComponentType[resolv.ConvexPolygon]()

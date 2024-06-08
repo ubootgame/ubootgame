@@ -8,6 +8,7 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/weapons"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/tags"
+	"github.com/ubootgame/ubootgame/internal/utility"
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/injector"
 	"github.com/ubootgame/ubootgame/internal/utility/ecs/systems"
 	"github.com/yohamta/donburi/ecs"
@@ -42,31 +43,31 @@ func NewPlayerSystem() *PlayerSystem {
 func (system *PlayerSystem) Update(e *ecs.ECS) {
 	system.BaseSystem.Update(e)
 
-	acceleration := 0.01
-	friction := 0.05
-	maxSpeed := 0.25
+	acceleration := 10.0
+	friction := 50.0
+	maxSpeed := 250.0
 
 	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
 		if system.velocity.X > 0 {
-			system.velocity.X *= 1 - friction
+			system.velocity.X *= 1 - friction/utility.WorldSizeBase
 		}
 		system.velocity.X -= acceleration
 		system.velocity.X = max(system.velocity.X, -maxSpeed)
 	} else if ebiten.IsKeyPressed(ebiten.KeyRight) {
 		if system.velocity.X < 0 {
-			system.velocity.X *= 1 - friction
+			system.velocity.X *= 1 - friction/utility.WorldSizeBase
 		}
 		system.velocity.X += acceleration
 		system.velocity.X = min(system.velocity.X, maxSpeed)
 	} else {
-		system.velocity.X *= 1 - friction
+		system.velocity.X *= 1 - friction/utility.WorldSizeBase
 	}
 
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		if system.fireTick%uint64(config.C.TargetTPS/8) == 0 {
 			player, _ := actors.PlayerTag.First(e.World)
 			playerWorld := transform.WorldPosition(player)
-			bullet := weapons.CreateBullet(e, r2.Vec{X: playerWorld.X, Y: playerWorld.Y}, system.cursor.WorldPosition)
+			bullet := weapons.CreateBullet(e, r2.Vec(playerWorld), system.cursor.WorldPosition)
 
 			projectilesGroup, _ := tags.ProjectilesTag.First(e.World)
 			transform.AppendChild(projectilesGroup, bullet, true)

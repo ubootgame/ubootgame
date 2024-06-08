@@ -34,7 +34,7 @@ type ResolvSystem struct {
 
 func NewResolvSystem() *ResolvSystem {
 	system := &ResolvSystem{
-		query: donburi.NewQuery(filter.Contains(transform.Transform, geometry.Shape)),
+		query: donburi.NewQuery(filter.Contains(transform.Transform, geometry.Bounds, geometry.Scale)),
 	}
 	system.Injector = injector.NewInjector([]injector.Injection{
 		injector.Once([]injector.Injection{
@@ -60,16 +60,16 @@ func (system *ResolvSystem) Update(e *ecs.ECS) {
 	system.BaseSystem.Update(e)
 
 	system.query.Each(e.World, func(entry *donburi.Entry) {
-		shape := geometry.Shape.Get(entry)
+		bounds := geometry.Bounds.Get(entry)
 		scale := geometry.Scale.Get(entry)
 
 		worldScale := transform.WorldScale(entry)
 		worldPosition := transform.WorldPosition(entry)
 		worldRotation := transform.WorldRotation(entry)
 
-		shape.SetPosition(worldPosition.X-(scale.NormalizedSize.X*worldScale.X)/2, worldPosition.Y-(scale.NormalizedSize.Y*worldScale.Y)/2)
-		shape.SetScale(worldScale.X, worldScale.Y)
-		shape.SetRotation(resolv.ToRadians(worldRotation))
+		bounds.SetRotation(resolv.ToRadians(worldRotation))
+		bounds.SetScale(worldScale.X, worldScale.Y)
+		bounds.SetPosition(worldPosition.X-(scale.NormalizedSize.X*worldScale.X)/2, worldPosition.Y-(scale.NormalizedSize.Y*worldScale.Y)/2)
 	})
 }
 
@@ -83,31 +83,34 @@ func (system *ResolvSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 	playerWorld := transform.WorldPosition(player)
 	playerScreen := system.camera.WorldToScreenPosition(r2.Vec(playerWorld))
 
-	line := resolv.NewLine(playerScreen.X, playerScreen.Y, system.cursor.ScreenPosition.X, system.cursor.ScreenPosition.Y)
+	line := resolv.NewLine(playerWorld.X, playerWorld.Y, system.cursor.WorldPosition.X, system.cursor.WorldPosition.Y)
 
 	intersectionPoints := make([]resolv.Vector, 0)
 	lineColor := color.RGBA{R: 255, G: 255, A: 255}
 
-	geometry.Shape.Each(e.World, func(shapeEntry *donburi.Entry) {
-		shape := geometry.Shape.Get(shapeEntry)
+	geometry.Bounds.Each(e.World, func(shapeEntry *donburi.Entry) {
+		bounds := geometry.Bounds.Get(shapeEntry)
 
-		if intersection := line.Intersection(0, 0, shape); intersection != nil {
+		if intersection := line.Intersection(0, 0, bounds); intersection != nil {
 			intersectionPoints = append(intersectionPoints, intersection.Points...)
 			lineColor = color.RGBA{R: 255, A: 255}
 		}
 
-		drawPolygon(screen, system.camera, shape, color.White)
+		drawPolygon(screen, system.camera, bounds, color.White)
 	})
 
 	l := line.Lines()[0]
 
-	vector.StrokeLine(screen, float32(l.Start.X), float32(l.Start.Y), float32(l.End.X), float32(l.End.Y), 2, lineColor, true)
+	lineStart := system.camera.WorldToScreenPosition(r2.Vec(l.Start))
+	lineEnd := system.camera.WorldToScreenPosition(r2.Vec(l.End))
+
+	vector.StrokeLine(screen, float32(lineStart.X), float32(lineStart.Y), float32(lineEnd.X), float32(lineEnd.Y), 2, lineColor, true)
 
 	draw.BigDot(screen, playerScreen, lineColor)
 
 	for _, point := range intersectionPoints {
-		pointVec := r2.Vec{X: point.X, Y: point.Y}
-		draw.BigDot(screen, pointVec, color.RGBA{G: 255, A: 255})
+		pointScreen := system.camera.WorldToScreenPosition(r2.Vec{X: point.X, Y: point.Y})
+		draw.BigDot(screen, pointScreen, color.RGBA{G: 255, A: 255})
 	}
 }
 
@@ -118,12 +121,11 @@ func drawPolygon(screen *ebiten.Image, camera *game_system.CameraData, shape *re
 		vertScreen := camera.WorldToScreenPosition(r2.Vec(vert))
 
 		next := vertices[0]
-		nextScreen := camera.WorldToScreenPosition(r2.Vec(next))
-
 		if i < len(vertices)-1 {
 			next = vertices[i+1]
-			nextScreen = camera.WorldToScreenPosition(r2.Vec(next))
 		}
+		nextScreen := camera.WorldToScreenPosition(r2.Vec(next))
+
 		vector.StrokeLine(screen, float32(vertScreen.X), float32(vertScreen.Y), float32(nextScreen.X), float32(nextScreen.Y), 1, color, true)
 	}
 }

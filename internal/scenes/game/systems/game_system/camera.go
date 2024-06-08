@@ -13,8 +13,8 @@ import (
 	"github.com/yohamta/donburi/features/transform"
 )
 
-const translationSpeed, zoomSpeed = 0.5, 0.1 // world unit
-const rotationSpeed = 2                      // degrees
+const translationSpeed, zoomSpeed = 500.0, 0.1 // world unit
+const rotationSpeed = 2                        // degrees
 const minZoom, maxZoom = 0.5, 2.0
 
 type CameraSystem struct {
@@ -77,6 +77,5 @@ func (system *CameraSystem) Update(e *ecs.ECS) {
 		system.transform.LocalRotation = newCameraRotation
 	}
 
-	//camera, _ := gameSystemEntities.CameraTag.First(e.World)
 	utility.UpdateCameraMatrix(system.display, system.camera, system.transform)
 }

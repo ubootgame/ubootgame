@@ -22,7 +22,7 @@ var Enemy = archetypes.NewArchetype(
 	EnemyTag,
 	transform.Transform,
 	geometry.Scale,
-	geometry.Shape,
+	geometry.Bounds,
 	geometry.Direction,
 	visuals.Sprite,
 	geometry.Velocity,
@@ -62,9 +62,9 @@ func CreateEnemy(ecs *ecs.ECS, registry *resources.Registry, scaler utility.Scal
 		Vertical:       geometry.Up,
 	})
 
-	shape := *resolv.NewRectangle(position.X-normalizedSize.X/2, position.Y-normalizedSize.Y/2, normalizedSize.X, normalizedSize.Y)
-	shape.SetScale(localScale, localScale)
-	geometry.Shape.SetValue(entry, shape)
+	shape := resolv.NewRectangle(normalizedSize.X/2, normalizedSize.Y/2, normalizedSize.X, normalizedSize.Y)
+	shape.RecenterPoints()
+	geometry.Bounds.Set(entry, shape)
 
 	return entry
 }

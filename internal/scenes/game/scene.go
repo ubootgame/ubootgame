@@ -133,10 +133,10 @@ func (scene *Scene) setup() {
 	//transform.AppendChild(environment, animatedWater, false)
 
 	// Objects
-	player := actorEntities.CreatePlayer(scene.ecs, scene.resourceRegistry, utility.HScale(0.1))
+	player := actorEntities.CreatePlayer(scene.ecs, scene.resourceRegistry, utility.HScale(100))
 	enemies := []*donburi.Entry{
-		actorEntities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScale(0.1), r2.Vec{X: -0.7, Y: 0.05}, r2.Vec{X: 0.1}),
-		actorEntities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScale(0.1), r2.Vec{X: 0.8, Y: 0.2}, r2.Vec{X: -0.05}),
+		actorEntities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScale(100), r2.Vec{X: -700, Y: 300}, r2.Vec{X: 100}),
+		actorEntities.CreateEnemy(scene.ecs, scene.resourceRegistry, utility.HScale(100), r2.Vec{X: 800, Y: 150}, r2.Vec{X: -50}),
 	}
 
 	objects := scene_graph.CreateSceneGroup(scene.ecs, tags.ObjectsTag)

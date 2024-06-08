@@ -7,6 +7,8 @@ import (
 	"math"
 )
 
+var WorldSizeBase = 1000.0
+
 func UpdateCameraMatrix(display *game_system.DisplayData, camera *game_system.CameraData, transform *transform.TransformData) {
 	camera.Matrix.Reset()
 
@@ -16,42 +18,25 @@ func UpdateCameraMatrix(display *game_system.DisplayData, camera *game_system.Ca
 	camera.Matrix.Translate(transform.LocalPosition.X, transform.LocalPosition.Y)
 
 	// Move mid-point to center of screen
-	camera.Matrix.Scale(display.VirtualResolution.X, display.VirtualResolution.X)
+	camera.Matrix.Scale(WorldSizeBase/display.VirtualResolution.X, WorldSizeBase/display.VirtualResolution.X)
 	camera.Matrix.Translate(display.VirtualResolution.X/2, display.VirtualResolution.Y/2)
 }
 
 type Scaler interface {
 	GetNormalizedSizeAndScale(size r2.Vec) (normalizedSize r2.Vec, baseScale float64, localScale float64)
-	//GetNormalizedScale(size r2.Vec) float64
 }
 
 type HScale float64
 
 func (s HScale) GetNormalizedSizeAndScale(size r2.Vec) (r2.Vec, float64, float64) {
-	scale := 1.0 / size.X
-	return r2.Vec{X: 1.0, Y: size.Y * scale}, scale, float64(s)
+	scale := WorldSizeBase / size.X
+	return r2.Vec{X: WorldSizeBase, Y: size.Y * scale}, scale, float64(s) / WorldSizeBase
 }
-
-//func (s HScale) GetNormalizedScale(size r2.Vec) float64 {
-//	return (1.0 / size.X) * float64(s)
-//}
-
-//func HScaler(scale float64) Scaler {
-//	return HScale{scale}
-//}
 
 type VScale float64
 
 func (s VScale) GetNormalizedSizeAndScale(size r2.Vec) (r2.Vec, float64, float64) {
-	scale := 1.0 / size.X
+	scale := WorldSizeBase / size.X
 	ratio := size.X / size.Y
-	return r2.Vec{X: 1.0, Y: size.Y * scale}, scale, float64(s) * ratio
+	return r2.Vec{X: WorldSizeBase, Y: size.Y * scale}, scale, (float64(s) * ratio) / WorldSizeBase
 }
-
-//func (s VScale) GetNormalizedScale(size r2.Vec) float64 {
-//	return (1.0 / size.Y) * float64(s)
-//}
-
-//func VScaler(scale float64) Scaler {
-//	return VScale{scale}
-//}
