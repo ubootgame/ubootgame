@@ -4,7 +4,7 @@ import (
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/framework"
 	"github.com/ubootgame/ubootgame/internal/framework/coordinate_system"
-	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/weapons"
@@ -23,7 +23,7 @@ const (
 )
 
 type System struct {
-	ecs2.System
+	ecsFramework.System
 
 	ecs      *ecs.ECS
 	settings *internal.Settings
@@ -38,10 +38,10 @@ type System struct {
 
 func NewPlayerSystem(ecs *ecs.ECS, settings *internal.Settings, cursor *framework.Cursor) *System {
 	system := &System{ecs: ecs, settings: settings, cursor: cursor}
-	system.Injector = ecs2.NewInjector([]ecs2.Injection{
-		ecs2.WithTag(actors.PlayerTag, []ecs2.Injection{
-			ecs2.Component(&system.velocity, geometry.Velocity),
-			ecs2.Component(&system.transform, transform.Transform),
+	system.Injector = ecsFramework.NewInjector([]ecsFramework.Injection{
+		ecsFramework.WithTag(actors.PlayerTag, []ecsFramework.Injection{
+			ecsFramework.Component(&system.velocity, geometry.Velocity),
+			ecsFramework.Component(&system.transform, transform.Transform),
 		}),
 	})
 

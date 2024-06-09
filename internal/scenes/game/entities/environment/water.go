@@ -2,7 +2,7 @@ package environment
 
 import (
 	"github.com/ubootgame/ubootgame/internal/framework/coordinate_system"
-	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/framework/resources"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
@@ -15,7 +15,7 @@ import (
 
 var WaterTag = donburi.NewTag().SetName("Game")
 
-var Water = ecs2.NewArchetype(
+var Water = ecsFramework.NewArchetype(
 	WaterTag,
 	geometry.Scale,
 	visuals.Sprite,

@@ -9,7 +9,7 @@ import (
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/framework"
 	"github.com/ubootgame/ubootgame/internal/framework/draw"
-	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -19,7 +19,7 @@ import (
 )
 
 type System struct {
-	ecs2.System
+	ecsFramework.System
 
 	settings *internal.Settings
 	cursor   *framework.Cursor
@@ -55,8 +55,8 @@ func NewDebugSystem(e *ecs.ECS, settings *internal.Settings, cursor *framework.C
 	return system
 }
 
-func (system *System) Layers() []lo.Tuple2[ecs.LayerID, ecs2.Renderer] {
-	return []lo.Tuple2[ecs.LayerID, ecs2.Renderer]{
+func (system *System) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
+	return []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer]{
 		{A: layers.Debug, B: system.DrawDebug},
 	}
 }

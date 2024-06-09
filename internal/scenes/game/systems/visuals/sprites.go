@@ -8,7 +8,7 @@ import (
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/framework"
 	"github.com/ubootgame/ubootgame/internal/framework/draw"
-	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
@@ -22,7 +22,7 @@ import (
 )
 
 type SpriteSystem struct {
-	ecs2.System
+	ecsFramework.System
 
 	settings *internal.Settings
 
@@ -54,8 +54,8 @@ func NewSpriteSystem(settings *internal.Settings, camera *framework.Camera) *Spr
 	}
 }
 
-func (system *SpriteSystem) Layers() []lo.Tuple2[ecs.LayerID, ecs2.Renderer] {
-	return []lo.Tuple2[ecs.LayerID, ecs2.Renderer]{
+func (system *SpriteSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
+	return []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer]{
 		{A: layers.Game, B: system.Draw},
 		{A: layers.Debug, B: system.DrawDebug},
 	}

@@ -20,4 +20,4 @@ func (system *System) Layers() []lo.Tuple2[ecs.LayerID, Renderer] {
 	return []lo.Tuple2[ecs.LayerID, Renderer]{}
 }
 
-type Renderer func(e *ecs.ECS, screen *ebiten.Image)
+type Renderer ecs.RendererWithArg[ebiten.Image]

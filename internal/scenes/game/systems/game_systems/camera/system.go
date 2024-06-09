@@ -3,7 +3,7 @@ package camera
 import (
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/framework"
-	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"go/types"
@@ -15,7 +15,7 @@ const rotationSpeed = 2                        // degrees
 const minZoom, maxZoom = 0.5, 2.0
 
 type System struct {
-	ecs2.System
+	ecsFramework.System
 
 	settings *internal.Settings
 	camera   *framework.Camera

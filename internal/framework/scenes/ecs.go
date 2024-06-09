@@ -3,7 +3,7 @@ package scenes
 import (
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal"
-	ecsSystems "github.com/ubootgame/ubootgame/internal/framework/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/framework/resources"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -11,7 +11,7 @@ import (
 
 type System interface {
 	Update(e *ecs.ECS)
-	Layers() []lo.Tuple2[ecs.LayerID, ecsSystems.Renderer]
+	Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer]
 }
 
 type ECSScene struct {

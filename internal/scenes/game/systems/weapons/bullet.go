@@ -7,7 +7,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/solarlune/resolv"
 	"github.com/ubootgame/ubootgame/internal/framework"
-	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/weapons"
@@ -20,7 +20,7 @@ import (
 )
 
 type BulletSystem struct {
-	ecs2.System
+	ecsFramework.System
 
 	camera *framework.Camera
 
@@ -39,8 +39,8 @@ func NewBulletSystem(camera *framework.Camera) *BulletSystem {
 	}
 }
 
-func (system *BulletSystem) Layers() []lo.Tuple2[ecs.LayerID, ecs2.Renderer] {
-	return []lo.Tuple2[ecs.LayerID, ecs2.Renderer]{
+func (system *BulletSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
+	return []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer]{
 		{A: layers.Game, B: system.Draw},
 		{A: layers.Debug, B: system.DrawDebug},
 	}

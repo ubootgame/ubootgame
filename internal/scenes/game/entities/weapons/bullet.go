@@ -2,7 +2,7 @@ package weapons
 
 import (
 	"github.com/ubootgame/ubootgame/internal/framework/coordinate_system"
-	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/yohamta/donburi"
@@ -14,7 +14,7 @@ import (
 
 var BulletTag = donburi.NewTag().SetName("Bullet")
 
-var Bullet = ecs2.NewArchetype(
+var Bullet = ecsFramework.NewArchetype(
 	BulletTag,
 	transform.Transform,
 	geometry.Velocity,

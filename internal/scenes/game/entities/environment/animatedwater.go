@@ -2,7 +2,7 @@ package environment
 
 import (
 	"github.com/ubootgame/ubootgame/internal/framework/coordinate_system"
-	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/framework/resources"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
@@ -16,7 +16,7 @@ import (
 
 var AnimatedWaterTag = donburi.NewTag().SetName("Animated Game")
 
-var AnimatedWater = ecs2.NewArchetype(
+var AnimatedWater = ecsFramework.NewArchetype(
 	AnimatedWaterTag,
 	transform.Transform,
 	visuals.AnimatedSprite,

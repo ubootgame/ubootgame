@@ -39,8 +39,7 @@ func (g *Game) Update() error {
 		return errors.New("no scene loaded")
 	}
 
-	g.scene.Update()
-	return nil
+	return g.scene.Update()
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {

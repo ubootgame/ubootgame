@@ -2,7 +2,7 @@ package actors
 
 import (
 	"github.com/ubootgame/ubootgame/internal/framework/coordinate_system"
-	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/framework/resources"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
@@ -17,7 +17,7 @@ import (
 
 var PlayerTag = donburi.NewTag().SetName("Player")
 
-var Player = ecs2.NewArchetype(
+var Player = ecsFramework.NewArchetype(
 	PlayerTag,
 	transform.Transform,
 	geometry.Scale,

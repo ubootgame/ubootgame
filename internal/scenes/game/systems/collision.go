@@ -8,7 +8,7 @@ import (
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/framework"
 	"github.com/ubootgame/ubootgame/internal/framework/draw"
-	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
@@ -21,7 +21,7 @@ import (
 )
 
 type CollisionSystem struct {
-	ecs2.System
+	ecsFramework.System
 
 	settings *internal.Settings
 
@@ -39,16 +39,16 @@ func NewCollisionSystem(settings *internal.Settings, cursor *framework.Cursor, c
 		camera:   camera,
 		query:    donburi.NewQuery(filter.Contains(transform.Transform, geometry.Bounds, geometry.Scale)),
 	}
-	system.Injector = ecs2.NewInjector([]ecs2.Injection{
-		ecs2.WithTag(actors.PlayerTag, []ecs2.Injection{
-			ecs2.Component(&system.playerTransform, transform.Transform),
+	system.Injector = ecsFramework.NewInjector([]ecsFramework.Injection{
+		ecsFramework.WithTag(actors.PlayerTag, []ecsFramework.Injection{
+			ecsFramework.Component(&system.playerTransform, transform.Transform),
 		}),
 	})
 	return system
 }
 
-func (system *CollisionSystem) Layers() []lo.Tuple2[ecs.LayerID, ecs2.Renderer] {
-	return []lo.Tuple2[ecs.LayerID, ecs2.Renderer]{
+func (system *CollisionSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
+	return []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer]{
 		{A: layers.Debug, B: system.DrawDebug},
 	}
 }

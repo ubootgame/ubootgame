@@ -2,7 +2,7 @@ package systems
 
 import (
 	"github.com/ubootgame/ubootgame/internal"
-	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -11,7 +11,7 @@ import (
 )
 
 type MovementSystem struct {
-	ecs2.System
+	ecsFramework.System
 
 	settings *internal.Settings
 

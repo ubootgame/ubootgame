@@ -6,7 +6,7 @@ import (
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/framework"
 	"github.com/ubootgame/ubootgame/internal/framework/draw"
-	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/yohamta/donburi"
@@ -19,7 +19,7 @@ import (
 )
 
 type AnimatedSpriteSystem struct {
-	ecs2.System
+	ecsFramework.System
 
 	settings *internal.Settings
 
@@ -40,8 +40,8 @@ func NewAnimatedSpriteSystem(settings *internal.Settings) *AnimatedSpriteSystem 
 	}
 }
 
-func (system *AnimatedSpriteSystem) Layers() []lo.Tuple2[ecs.LayerID, ecs2.Renderer] {
-	return []lo.Tuple2[ecs.LayerID, ecs2.Renderer]{
+func (system *AnimatedSpriteSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
+	return []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer]{
 		{A: layers.Game, B: system.Draw},
 		{A: layers.Debug, B: system.DrawDebug},
 	}

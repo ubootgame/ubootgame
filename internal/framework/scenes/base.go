@@ -1,6 +1,7 @@
 package scenes
 
 import (
+	"errors"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/framework/resources"
@@ -41,10 +42,11 @@ func (scene *BaseScene) Load(resourceRegistry *resources.Registry) error {
 	}
 }
 
-func (scene *BaseScene) Update() {
+func (scene *BaseScene) Update() error {
 	if !scene.loaded {
-		panic("scene not loaded")
+		return errors.New("scene not loaded")
 	}
+	return nil
 }
 
 func (scene *BaseScene) Draw(_ *ebiten.Image) {

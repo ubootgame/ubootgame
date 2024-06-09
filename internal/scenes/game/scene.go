@@ -13,10 +13,10 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/actors/player"
-	environmentSystems "github.com/ubootgame/ubootgame/internal/scenes/game/systems/environment"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_system"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_system/camera"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_system/debug"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/environment"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_systems"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_systems/camera"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_systems/debug"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/weapons"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/tags"
@@ -49,13 +49,13 @@ func (scene *Scene) Load(resourceRegistry *resources.Registry) error {
 
 	// Systems
 	scene.RegisterSystem(debug.NewDebugSystem(scene.ECS, scene.Settings, scene.cursor, scene.camera))
-	scene.RegisterSystem(game_system.NewInputSystem(scene.cursor, scene.camera))
+	scene.RegisterSystem(game_systems.NewInputSystem(scene.cursor, scene.camera))
 	scene.RegisterSystem(camera.NewCameraSystem(scene.ECS, scene.Settings, scene.camera))
 	scene.RegisterSystem(player.NewPlayerSystem(scene.ECS, scene.Settings, scene.cursor))
 	scene.RegisterSystem(weapons.NewBulletSystem(scene.camera))
 	scene.RegisterSystem(systems.NewMovementSystem(scene.Settings))
 	scene.RegisterSystem(systems.NewCollisionSystem(scene.Settings, scene.cursor, scene.camera))
-	scene.RegisterSystem(environmentSystems.NewWaterSystem(scene.Settings))
+	scene.RegisterSystem(environment.NewWaterSystem(scene.Settings))
 	scene.RegisterSystem(visuals.NewSpriteSystem(scene.Settings, scene.camera))
 	scene.RegisterSystem(visuals.NewAnimatedSpriteSystem(scene.Settings))
 
@@ -63,37 +63,39 @@ func (scene *Scene) Load(resourceRegistry *resources.Registry) error {
 	//water := environmentEntities.CreateWater(scene.ecs, scene.resourceRegistry, utility.VScale(0.1))
 	//animatedWater := environmentEntities.CreateAnimatedWater(scene.ecs, scene.resourceRegistry, utility.HScale(0.2), r2.Vec{})
 
-	environment := scene_graph.CreateSceneGroup(scene.ECS, tags.EnvironmentTag)
-	//transform.AppendChild(environment, water, false)
-	//transform.AppendChild(environment, animatedWater, false)
+	environmentGroup := scene_graph.CreateSceneGroup(scene.ECS, tags.EnvironmentTag)
+	//transform.AppendChild(environmentGroup, water, false)
+	//transform.AppendChild(environmentGroup, animatedWater, false)
 
 	// Objects
-	p := actorEntities.CreatePlayer(scene.ECS, scene.ResourceRegistry, coordinate_system.HScale(100))
-	enemies := []*donburi.Entry{
+	playerEntry := actorEntities.CreatePlayer(scene.ECS, scene.ResourceRegistry, coordinate_system.HScale(100))
+	enemyEntries := []*donburi.Entry{
 		actorEntities.CreateEnemy(scene.ECS, scene.ResourceRegistry, coordinate_system.HScale(100), r2.Vec{X: -700, Y: 300}, r2.Vec{X: 100}),
 		actorEntities.CreateEnemy(scene.ECS, scene.ResourceRegistry, coordinate_system.HScale(100), r2.Vec{X: 800, Y: 150}, r2.Vec{X: -50}),
 	}
 
-	objects := scene_graph.CreateSceneGroup(scene.ECS, tags.ObjectsTag)
-	transform.AppendChild(objects, p, true)
-	for _, enemy := range enemies {
-		transform.AppendChild(objects, enemy, true)
+	objectsGroup := scene_graph.CreateSceneGroup(scene.ECS, tags.ObjectsTag)
+	transform.AppendChild(objectsGroup, playerEntry, true)
+	for _, enemy := range enemyEntries {
+		transform.AppendChild(objectsGroup, enemy, true)
 	}
 
 	// Projectiles
-	projectiles := scene_graph.CreateSceneGroup(scene.ECS, tags.ProjectilesTag)
+	projectilesGroup := scene_graph.CreateSceneGroup(scene.ECS, tags.ProjectilesTag)
 
 	// Scene graph
 	sceneGraph := scene_graph.CreateSceneGraph(scene.ECS)
-	transform.AppendChild(sceneGraph, environment, false)
-	transform.AppendChild(sceneGraph, objects, false)
-	transform.AppendChild(sceneGraph, projectiles, false)
+	transform.AppendChild(sceneGraph, environmentGroup, false)
+	transform.AppendChild(sceneGraph, objectsGroup, false)
+	transform.AppendChild(sceneGraph, projectilesGroup, false)
 
 	return nil
 }
 
 func (scene *Scene) Update() error {
-	scene.ECSScene.Update()
+	if err := scene.ECSScene.Update(); err != nil {
+		return err
+	}
 
 	devents.ProcessAllEvents(scene.ECS.World)
 
