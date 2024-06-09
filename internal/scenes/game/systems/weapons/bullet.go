@@ -6,8 +6,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/samber/lo"
 	"github.com/solarlune/resolv"
+	"github.com/ubootgame/ubootgame/internal/framework"
 	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/weapons"
@@ -22,7 +22,7 @@ import (
 type BulletSystem struct {
 	ecs2.System
 
-	camera *game_system.CameraData
+	camera *framework.Camera
 
 	query *donburi.Query
 	tick  uint64
@@ -31,17 +31,12 @@ type BulletSystem struct {
 	drawImageOptions *ebiten.DrawImageOptions
 }
 
-func NewBulletSystem() *BulletSystem {
-	system := &BulletSystem{
+func NewBulletSystem(camera *framework.Camera) *BulletSystem {
+	return &BulletSystem{
+		camera:           camera,
 		query:            donburi.NewQuery(filter.Contains(weapons.BulletTag)),
 		drawImageOptions: &ebiten.DrawImageOptions{},
 	}
-	system.Injector = ecs2.NewInjector([]ecs2.Injection{
-		ecs2.Once([]ecs2.Injection{
-			ecs2.Component(&system.camera, game_system.Camera),
-		}),
-	})
-	return system
 }
 
 func (system *BulletSystem) Layers() []lo.Tuple2[ecs.LayerID, ecs2.Renderer] {
@@ -81,7 +76,7 @@ func (system *BulletSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 		system.drawImageOptions.GeoM.Reset()
 		system.drawImageOptions.GeoM.Scale(worldScale.X, worldScale.Y)
 		system.drawImageOptions.GeoM.Translate(worldPosition.X, worldPosition.Y)
-		system.drawImageOptions.GeoM.Concat(*system.camera.Matrix)
+		system.camera.Apply(&system.drawImageOptions.GeoM)
 
 		screen.DrawImage(system.image, system.drawImageOptions)
 	})

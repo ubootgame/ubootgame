@@ -2,6 +2,7 @@ package game_system
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/ubootgame/ubootgame/internal/framework"
 	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/yohamta/donburi/ecs"
@@ -12,15 +13,14 @@ type CursorSystem struct {
 	ecs2.System
 
 	cursor *game_system.CursorData
-	camera *game_system.CameraData
+	camera *framework.Camera
 }
 
-func NewCursorSystem() *CursorSystem {
-	system := &CursorSystem{}
+func NewCursorSystem(camera *framework.Camera) *CursorSystem {
+	system := &CursorSystem{camera: camera}
 	system.Injector = ecs2.NewInjector([]ecs2.Injection{
 		ecs2.Once([]ecs2.Injection{
 			ecs2.Component(&system.cursor, game_system.Cursor),
-			ecs2.Component(&system.camera, game_system.Camera),
 		}),
 	})
 	return system

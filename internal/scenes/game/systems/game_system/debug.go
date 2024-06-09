@@ -7,13 +7,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal"
+	"github.com/ubootgame/ubootgame/internal/framework"
 	"github.com/ubootgame/ubootgame/internal/framework/draw"
 	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
-	game_system2 "github.com/ubootgame/ubootgame/internal/scenes/game/entities/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/yohamta/donburi/ecs"
-	"github.com/yohamta/donburi/features/transform"
 	"runtime"
 	"strings"
 )
@@ -23,9 +22,8 @@ type DebugSystem struct {
 
 	settings *internal.Settings
 
-	camera    *game_system.CameraData
-	cursor    *game_system.CursorData
-	transform *transform.TransformData
+	camera *framework.Camera
+	cursor *game_system.CursorData
 
 	keys             []ebiten.Key
 	memStats         *runtime.MemStats
@@ -34,9 +32,10 @@ type DebugSystem struct {
 	debugTextOptions *text.DrawOptions
 }
 
-func NewDebugSystem(settings *internal.Settings) *DebugSystem {
+func NewDebugSystem(settings *internal.Settings, camera *framework.Camera) *DebugSystem {
 	system := &DebugSystem{
 		settings:         settings,
+		camera:           camera,
 		keys:             make([]ebiten.Key, 0),
 		memStats:         &runtime.MemStats{},
 		debugTextBuilder: &strings.Builder{},
@@ -49,10 +48,6 @@ func NewDebugSystem(settings *internal.Settings) *DebugSystem {
 	system.Injector = ecs2.NewInjector([]ecs2.Injection{
 		ecs2.Once([]ecs2.Injection{
 			ecs2.Component(&system.cursor, game_system.Cursor),
-			ecs2.WithTag(game_system2.CameraTag, []ecs2.Injection{
-				ecs2.Component(&system.camera, game_system.Camera),
-				ecs2.Component(&system.transform, transform.Transform),
-			}),
 		}),
 	})
 	return system
@@ -142,9 +137,9 @@ NumGC: %d`,
 		}), ", "),
 		cursorScreenPosition.X, cursorScreenPosition.Y,
 		cursorWorldPosition.X, cursorWorldPosition.Y,
-		system.transform.LocalPosition.X, system.transform.LocalPosition.Y,
-		system.transform.LocalScale,
-		system.transform.LocalRotation,
+		system.camera.Position.X, system.camera.Position.Y,
+		system.camera.Scale,
+		system.camera.Rotation,
 		draw.FormatBytes(ms.Alloc), draw.FormatBytes(ms.TotalAlloc), draw.FormatBytes(ms.Sys),
 		draw.FormatBytes(ms.NextGC), ms.NumGC)
 

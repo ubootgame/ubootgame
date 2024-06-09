@@ -6,9 +6,9 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal"
+	"github.com/ubootgame/ubootgame/internal/framework"
 	"github.com/ubootgame/ubootgame/internal/framework/draw"
 	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
@@ -26,7 +26,7 @@ type SpriteSystem struct {
 
 	settings *internal.Settings
 
-	camera *game_system.CameraData
+	camera *framework.Camera
 
 	query      *donburi.Query
 	debugQuery *donburi.Query
@@ -38,9 +38,10 @@ type SpriteSystem struct {
 	debugTextPositionOpts *ebiten.DrawImageOptions
 }
 
-func NewSpriteSystem(settings *internal.Settings) *SpriteSystem {
-	system := &SpriteSystem{
+func NewSpriteSystem(settings *internal.Settings, camera *framework.Camera) *SpriteSystem {
+	return &SpriteSystem{
 		settings:               settings,
+		camera:                 camera,
 		query:                  donburi.NewQuery(filter.Contains(visuals.Sprite, transform.Transform)),
 		debugQuery:             donburi.NewQuery(filter.Contains(visuals.Sprite, transform.Transform, geometry.Velocity)),
 		spriteDrawImageOptions: &ebiten.DrawImageOptions{},
@@ -51,12 +52,6 @@ func NewSpriteSystem(settings *internal.Settings) *SpriteSystem {
 		},
 		debugTextPositionOpts: &ebiten.DrawImageOptions{},
 	}
-	system.Injector = ecs2.NewInjector([]ecs2.Injection{
-		ecs2.Once([]ecs2.Injection{
-			ecs2.Component(&system.camera, game_system.Camera),
-		}),
-	})
-	return system
 }
 
 func (system *SpriteSystem) Layers() []lo.Tuple2[ecs.LayerID, ecs2.Renderer] {
@@ -97,7 +92,7 @@ func (system *SpriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 		system.spriteDrawImageOptions.GeoM.Rotate(float64(worldRotation) * 2 * math.Pi / 360)
 		system.spriteDrawImageOptions.GeoM.Scale(worldScale.X, worldScale.Y)
 		system.spriteDrawImageOptions.GeoM.Translate(worldPosition.X, worldPosition.Y)
-		system.spriteDrawImageOptions.GeoM.Concat(*system.camera.Matrix)
+		system.camera.Apply(&system.spriteDrawImageOptions.GeoM)
 
 		system.spriteDrawImageOptions.Filter = ebiten.FilterLinear
 

@@ -6,6 +6,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/solarlune/resolv"
 	"github.com/ubootgame/ubootgame/internal"
+	"github.com/ubootgame/ubootgame/internal/framework"
 	"github.com/ubootgame/ubootgame/internal/framework/draw"
 	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
@@ -25,21 +26,21 @@ type CollisionSystem struct {
 
 	settings *internal.Settings
 
-	camera          *game_system.CameraData
+	camera          *framework.Camera
 	cursor          *game_system.CursorData
 	playerTransform *transform.TransformData
 
 	query *donburi.Query
 }
 
-func NewCollisionSystem(settings *internal.Settings) *CollisionSystem {
+func NewCollisionSystem(settings *internal.Settings, camera *framework.Camera) *CollisionSystem {
 	system := &CollisionSystem{
 		settings: settings,
+		camera:   camera,
 		query:    donburi.NewQuery(filter.Contains(transform.Transform, geometry.Bounds, geometry.Scale)),
 	}
 	system.Injector = ecs2.NewInjector([]ecs2.Injection{
 		ecs2.Once([]ecs2.Injection{
-			ecs2.Component(&system.camera, game_system.Camera),
 			ecs2.Component(&system.cursor, game_system.Cursor),
 		}),
 		ecs2.WithTag(actors.PlayerTag, []ecs2.Injection{
@@ -113,7 +114,7 @@ func (system *CollisionSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 	}
 }
 
-func drawPolygon(screen *ebiten.Image, camera *game_system.CameraData, shape *resolv.ConvexPolygon, color color.Color) {
+func drawPolygon(screen *ebiten.Image, camera *framework.Camera, shape *resolv.ConvexPolygon, color color.Color) {
 	vertices := shape.Transformed()
 	for i := 0; i < len(vertices); i++ {
 		vert := vertices[i]

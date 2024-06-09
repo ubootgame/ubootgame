@@ -3,19 +3,20 @@ package game
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal"
+	"github.com/ubootgame/ubootgame/internal/framework"
 	"github.com/ubootgame/ubootgame/internal/framework/coordinate_system"
 	"github.com/ubootgame/ubootgame/internal/framework/resources"
 	"github.com/ubootgame/ubootgame/internal/framework/scenes"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	gameSystemComponents "github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	actorEntities "github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
-	gameSystemEntities "github.com/ubootgame/ubootgame/internal/scenes/game/entities/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/scene_graph"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems"
-	actorSystems "github.com/ubootgame/ubootgame/internal/scenes/game/systems/actors"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/actors/player"
 	environmentSystems "github.com/ubootgame/ubootgame/internal/scenes/game/systems/environment"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_system"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_system/camera"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/weapons"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/tags"
@@ -28,10 +29,14 @@ import (
 
 type Scene struct {
 	*scenes.ECSScene
+	camera *framework.Camera
 }
 
 func NewScene(settings *internal.Settings) *Scene {
-	return &Scene{ECSScene: scenes.NewECSScene(settings, assets.Assets)}
+	return &Scene{
+		ECSScene: scenes.NewECSScene(settings, assets.Assets),
+		camera:   framework.NewCamera(settings),
+	}
 }
 
 func (scene *Scene) Load(resourceRegistry *resources.Registry) error {
@@ -40,21 +45,19 @@ func (scene *Scene) Load(resourceRegistry *resources.Registry) error {
 	}
 
 	// Game system components
-	scene.ECS.World.Entry(scene.ECS.World.Create(gameSystemComponents.Camera))
 	scene.ECS.World.Entry(scene.ECS.World.Create(gameSystemComponents.Cursor))
 
 	// Systems
-	debugSystem := game_system.NewDebugSystem(scene.Settings)
-
-	scene.RegisterSystem(debugSystem)
-	scene.RegisterSystem(game_system.NewCameraSystem(scene.Settings))
-	scene.RegisterSystem(game_system.NewCursorSystem())
-	scene.RegisterSystem(actorSystems.NewPlayerSystem(scene.Settings))
-	scene.RegisterSystem(weapons.NewBulletSystem())
+	scene.RegisterSystem(game_system.NewDebugSystem(scene.Settings, scene.camera))
+	scene.RegisterSystem(game_system.NewInputSystem())
+	scene.RegisterSystem(game_system.NewCursorSystem(scene.camera))
+	scene.RegisterSystem(camera.NewCameraSystem(scene.ECS, scene.Settings, scene.camera))
+	scene.RegisterSystem(player.NewPlayerSystem(scene.ECS, scene.Settings))
+	scene.RegisterSystem(weapons.NewBulletSystem(scene.camera))
 	scene.RegisterSystem(systems.NewMovementSystem(scene.Settings))
-	scene.RegisterSystem(systems.NewCollisionSystem(scene.Settings))
+	scene.RegisterSystem(systems.NewCollisionSystem(scene.Settings, scene.camera))
 	scene.RegisterSystem(environmentSystems.NewWaterSystem(scene.Settings))
-	scene.RegisterSystem(visuals.NewSpriteSystem(scene.Settings))
+	scene.RegisterSystem(visuals.NewSpriteSystem(scene.Settings, scene.camera))
 	scene.RegisterSystem(visuals.NewAnimatedSpriteSystem(scene.Settings))
 
 	// Environment
@@ -87,9 +90,6 @@ func (scene *Scene) Load(resourceRegistry *resources.Registry) error {
 	transform.AppendChild(sceneGraph, objects, false)
 	transform.AppendChild(sceneGraph, projectiles, false)
 
-	camera := gameSystemEntities.CreateCamera(scene.ECS)
-	transform.AppendChild(sceneGraph, camera, false)
-
 	return nil
 }
 
@@ -99,6 +99,8 @@ func (scene *Scene) Update() error {
 	devents.ProcessAllEvents(scene.ECS.World)
 
 	scene.ECS.Update()
+
+	scene.camera.UpdateCameraMatrix()
 
 	return nil
 }

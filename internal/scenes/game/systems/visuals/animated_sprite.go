@@ -4,9 +4,9 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal"
+	"github.com/ubootgame/ubootgame/internal/framework"
 	"github.com/ubootgame/ubootgame/internal/framework/draw"
 	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/yohamta/donburi"
@@ -23,7 +23,7 @@ type AnimatedSpriteSystem struct {
 
 	settings *internal.Settings
 
-	camera *game_system.CameraData
+	camera *framework.Camera
 
 	updateQuery *donburi.Query
 	drawQuery   *donburi.Query
@@ -32,18 +32,12 @@ type AnimatedSpriteSystem struct {
 }
 
 func NewAnimatedSpriteSystem(settings *internal.Settings) *AnimatedSpriteSystem {
-	system := &AnimatedSpriteSystem{
+	return &AnimatedSpriteSystem{
 		settings:               settings,
 		updateQuery:            donburi.NewQuery(filter.Contains(visuals.AnimatedSprite)),
 		drawQuery:              donburi.NewQuery(filter.Contains(visuals.AnimatedSprite, transform.Transform)),
 		spriteDrawImageOptions: &ebiten.DrawImageOptions{},
 	}
-	system.Injector = ecs2.NewInjector([]ecs2.Injection{
-		ecs2.Once([]ecs2.Injection{
-			ecs2.Component(&system.camera, game_system.Camera),
-		}),
-	})
-	return system
 }
 
 func (system *AnimatedSpriteSystem) Layers() []lo.Tuple2[ecs.LayerID, ecs2.Renderer] {
@@ -74,7 +68,7 @@ func (system *AnimatedSpriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 		system.spriteDrawImageOptions.GeoM.Translate(-float64(animatedSprite.Aseprite.Player.File.FrameWidth/2), -float64(animatedSprite.Aseprite.Player.File.FrameHeight/2))
 		system.spriteDrawImageOptions.GeoM.Scale(worldScale.X, worldScale.Y)
 		system.spriteDrawImageOptions.GeoM.Translate(worldPosition.X, worldPosition.Y)
-		system.spriteDrawImageOptions.GeoM.Concat(*system.camera.Matrix)
+		system.camera.Apply(&system.spriteDrawImageOptions.GeoM)
 
 		system.spriteDrawImageOptions.Filter = ebiten.FilterLinear
 
