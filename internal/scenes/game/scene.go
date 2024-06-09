@@ -8,7 +8,6 @@ import (
 	"github.com/ubootgame/ubootgame/internal/framework/resources"
 	"github.com/ubootgame/ubootgame/internal/framework/scenes"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
-	gameSystemComponents "github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	actorEntities "github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/scene_graph"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
@@ -29,13 +28,16 @@ import (
 
 type Scene struct {
 	*scenes.ECSScene
+
 	camera *framework.Camera
+	cursor *framework.Cursor
 }
 
 func NewScene(settings *internal.Settings) *Scene {
 	return &Scene{
 		ECSScene: scenes.NewECSScene(settings, assets.Assets),
 		camera:   framework.NewCamera(settings),
+		cursor:   framework.NewCursor(),
 	}
 }
 
@@ -44,18 +46,14 @@ func (scene *Scene) Load(resourceRegistry *resources.Registry) error {
 		return err
 	}
 
-	// Game system components
-	scene.ECS.World.Entry(scene.ECS.World.Create(gameSystemComponents.Cursor))
-
 	// Systems
-	scene.RegisterSystem(game_system.NewDebugSystem(scene.Settings, scene.camera))
-	scene.RegisterSystem(game_system.NewInputSystem())
-	scene.RegisterSystem(game_system.NewCursorSystem(scene.camera))
+	scene.RegisterSystem(game_system.NewDebugSystem(scene.Settings, scene.cursor, scene.camera))
+	scene.RegisterSystem(game_system.NewInputSystem(scene.cursor, scene.camera))
 	scene.RegisterSystem(camera.NewCameraSystem(scene.ECS, scene.Settings, scene.camera))
-	scene.RegisterSystem(player.NewPlayerSystem(scene.ECS, scene.Settings))
+	scene.RegisterSystem(player.NewPlayerSystem(scene.ECS, scene.Settings, scene.cursor))
 	scene.RegisterSystem(weapons.NewBulletSystem(scene.camera))
 	scene.RegisterSystem(systems.NewMovementSystem(scene.Settings))
-	scene.RegisterSystem(systems.NewCollisionSystem(scene.Settings, scene.camera))
+	scene.RegisterSystem(systems.NewCollisionSystem(scene.Settings, scene.cursor, scene.camera))
 	scene.RegisterSystem(environmentSystems.NewWaterSystem(scene.Settings))
 	scene.RegisterSystem(visuals.NewSpriteSystem(scene.Settings, scene.camera))
 	scene.RegisterSystem(visuals.NewAnimatedSpriteSystem(scene.Settings))
@@ -69,14 +67,14 @@ func (scene *Scene) Load(resourceRegistry *resources.Registry) error {
 	//transform.AppendChild(environment, animatedWater, false)
 
 	// Objects
-	player := actorEntities.CreatePlayer(scene.ECS, scene.ResourceRegistry, coordinate_system.HScale(100))
+	p := actorEntities.CreatePlayer(scene.ECS, scene.ResourceRegistry, coordinate_system.HScale(100))
 	enemies := []*donburi.Entry{
 		actorEntities.CreateEnemy(scene.ECS, scene.ResourceRegistry, coordinate_system.HScale(100), r2.Vec{X: -700, Y: 300}, r2.Vec{X: 100}),
 		actorEntities.CreateEnemy(scene.ECS, scene.ResourceRegistry, coordinate_system.HScale(100), r2.Vec{X: 800, Y: 150}, r2.Vec{X: -50}),
 	}
 
 	objects := scene_graph.CreateSceneGroup(scene.ECS, tags.ObjectsTag)
-	transform.AppendChild(objects, player, true)
+	transform.AppendChild(objects, p, true)
 	for _, enemy := range enemies {
 		transform.AppendChild(objects, enemy, true)
 	}

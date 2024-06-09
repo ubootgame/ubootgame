@@ -2,9 +2,9 @@ package player
 
 import (
 	"github.com/ubootgame/ubootgame/internal"
+	"github.com/ubootgame/ubootgame/internal/framework"
 	"github.com/ubootgame/ubootgame/internal/framework/coordinate_system"
 	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/weapons"
@@ -27,8 +27,8 @@ type System struct {
 
 	ecs      *ecs.ECS
 	settings *internal.Settings
+	cursor   *framework.Cursor
 
-	cursor    *game_system.CursorData
 	transform *transform.TransformData
 	velocity  *r2.Vec
 
@@ -36,12 +36,9 @@ type System struct {
 	fireTick         uint64
 }
 
-func NewPlayerSystem(ecs *ecs.ECS, settings *internal.Settings) *System {
-	system := &System{ecs: ecs, settings: settings}
+func NewPlayerSystem(ecs *ecs.ECS, settings *internal.Settings, cursor *framework.Cursor) *System {
+	system := &System{ecs: ecs, settings: settings, cursor: cursor}
 	system.Injector = ecs2.NewInjector([]ecs2.Injection{
-		ecs2.Once([]ecs2.Injection{
-			ecs2.Component(&system.cursor, game_system.Cursor),
-		}),
 		ecs2.WithTag(actors.PlayerTag, []ecs2.Injection{
 			ecs2.Component(&system.velocity, geometry.Velocity),
 			ecs2.Component(&system.transform, transform.Transform),

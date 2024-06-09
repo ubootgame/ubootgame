@@ -2,22 +2,32 @@ package game_system
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/ubootgame/ubootgame/internal/framework"
 	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/actors/player"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_system/camera"
 	"github.com/yohamta/donburi/ecs"
 	"go/types"
+	"gonum.org/v1/gonum/spatial/r2"
 )
 
 type InputSystem struct {
 	ecs2.System
+
+	cursor *framework.Cursor
+	camera *framework.Camera
 }
 
-func NewInputSystem() *InputSystem {
-	return &InputSystem{}
+func NewInputSystem(cursor *framework.Cursor, camera *framework.Camera) *InputSystem {
+	return &InputSystem{cursor: cursor, camera: camera}
 }
 
 func (system *InputSystem) Update(e *ecs.ECS) {
+	screenX, screenY := ebiten.CursorPosition()
+	screenPosition := r2.Vec{X: float64(screenX), Y: float64(screenY)}
+	system.cursor.ScreenPosition = screenPosition
+	system.cursor.WorldPosition = system.camera.ScreenToWorldPosition(screenPosition)
+
 	//Camera
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
 		camera.PanLeftEvent.Publish(e.World, types.Nil{})

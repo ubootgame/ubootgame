@@ -10,7 +10,6 @@ import (
 	"github.com/ubootgame/ubootgame/internal/framework"
 	"github.com/ubootgame/ubootgame/internal/framework/draw"
 	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/yohamta/donburi/ecs"
 	"runtime"
@@ -21,9 +20,8 @@ type DebugSystem struct {
 	ecs2.System
 
 	settings *internal.Settings
-
-	camera *framework.Camera
-	cursor *game_system.CursorData
+	cursor   *framework.Cursor
+	camera   *framework.Camera
 
 	keys             []ebiten.Key
 	memStats         *runtime.MemStats
@@ -32,9 +30,10 @@ type DebugSystem struct {
 	debugTextOptions *text.DrawOptions
 }
 
-func NewDebugSystem(settings *internal.Settings, camera *framework.Camera) *DebugSystem {
-	system := &DebugSystem{
+func NewDebugSystem(settings *internal.Settings, cursor *framework.Cursor, camera *framework.Camera) *DebugSystem {
+	return &DebugSystem{
 		settings:         settings,
+		cursor:           cursor,
 		camera:           camera,
 		keys:             make([]ebiten.Key, 0),
 		memStats:         &runtime.MemStats{},
@@ -45,12 +44,6 @@ func NewDebugSystem(settings *internal.Settings, camera *framework.Camera) *Debu
 			},
 		},
 	}
-	system.Injector = ecs2.NewInjector([]ecs2.Injection{
-		ecs2.Once([]ecs2.Injection{
-			ecs2.Component(&system.cursor, game_system.Cursor),
-		}),
-	})
-	return system
 }
 
 func (system *DebugSystem) Layers() []lo.Tuple2[ecs.LayerID, ecs2.Renderer] {

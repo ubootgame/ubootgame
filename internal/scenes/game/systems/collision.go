@@ -9,7 +9,6 @@ import (
 	"github.com/ubootgame/ubootgame/internal/framework"
 	"github.com/ubootgame/ubootgame/internal/framework/draw"
 	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/components/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
@@ -27,22 +26,20 @@ type CollisionSystem struct {
 	settings *internal.Settings
 
 	camera          *framework.Camera
-	cursor          *game_system.CursorData
+	cursor          *framework.Cursor
 	playerTransform *transform.TransformData
 
 	query *donburi.Query
 }
 
-func NewCollisionSystem(settings *internal.Settings, camera *framework.Camera) *CollisionSystem {
+func NewCollisionSystem(settings *internal.Settings, cursor *framework.Cursor, camera *framework.Camera) *CollisionSystem {
 	system := &CollisionSystem{
 		settings: settings,
+		cursor:   cursor,
 		camera:   camera,
 		query:    donburi.NewQuery(filter.Contains(transform.Transform, geometry.Bounds, geometry.Scale)),
 	}
 	system.Injector = ecs2.NewInjector([]ecs2.Injection{
-		ecs2.Once([]ecs2.Injection{
-			ecs2.Component(&system.cursor, game_system.Cursor),
-		}),
 		ecs2.WithTag(actors.PlayerTag, []ecs2.Injection{
 			ecs2.Component(&system.playerTransform, transform.Transform),
 		}),

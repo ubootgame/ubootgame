@@ -8,10 +8,6 @@ import (
 	"math"
 )
 
-const translationSpeed, zoomSpeed = 500.0, 0.1 // world unit
-const rotationSpeed = 2                        // degrees
-const minZoom, maxZoom = 0.5, 2.0
-
 type Camera struct {
 	settings *internal.Settings
 
