@@ -1,4 +1,4 @@
-package game_system
+package debug
 
 import (
 	"fmt"
@@ -11,12 +11,14 @@ import (
 	"github.com/ubootgame/ubootgame/internal/framework/draw"
 	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
+	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
+	"go/types"
 	"runtime"
 	"strings"
 )
 
-type DebugSystem struct {
+type System struct {
 	ecs2.System
 
 	settings *internal.Settings
@@ -30,8 +32,8 @@ type DebugSystem struct {
 	debugTextOptions *text.DrawOptions
 }
 
-func NewDebugSystem(settings *internal.Settings, cursor *framework.Cursor, camera *framework.Camera) *DebugSystem {
-	return &DebugSystem{
+func NewDebugSystem(e *ecs.ECS, settings *internal.Settings, cursor *framework.Cursor, camera *framework.Camera) *System {
+	system := &System{
 		settings:         settings,
 		cursor:           cursor,
 		camera:           camera,
@@ -44,36 +46,29 @@ func NewDebugSystem(settings *internal.Settings, cursor *framework.Cursor, camer
 			},
 		},
 	}
+
+	ToggleDebugEvent.Subscribe(e.World, system.ToggleDebug)
+	ToggleDrawGrid.Subscribe(e.World, system.ToggleDrawGrid)
+	ToggleDrawCollisions.Subscribe(e.World, system.ToggleDrawCollisions)
+	ToggleDrawPositions.Subscribe(e.World, system.ToggleDrawPositions)
+
+	return system
 }
 
-func (system *DebugSystem) Layers() []lo.Tuple2[ecs.LayerID, ecs2.Renderer] {
+func (system *System) Layers() []lo.Tuple2[ecs.LayerID, ecs2.Renderer] {
 	return []lo.Tuple2[ecs.LayerID, ecs2.Renderer]{
 		{A: layers.Debug, B: system.DrawDebug},
 	}
 }
 
-func (system *DebugSystem) Update(e *ecs.ECS) {
+func (system *System) Update(e *ecs.ECS) {
 	system.System.Update(e)
-
-	if inpututil.IsKeyJustPressed(ebiten.KeySlash) {
-		system.settings.Debug.Enabled = !system.settings.Debug.Enabled
-	}
 
 	if !system.settings.Debug.Enabled {
 		return
 	}
 
 	system.keys = inpututil.AppendPressedKeys(system.keys[:0])
-
-	if inpututil.IsKeyJustPressed(ebiten.KeyF1) {
-		system.settings.Debug.DrawGrid = !system.settings.Debug.DrawGrid
-	}
-	if inpututil.IsKeyJustPressed(ebiten.KeyF2) {
-		system.settings.Debug.DrawCollisions = !system.settings.Debug.DrawCollisions
-	}
-	if inpututil.IsKeyJustPressed(ebiten.KeyF3) {
-		system.settings.Debug.DrawPositions = !system.settings.Debug.DrawPositions
-	}
 
 	if system.ticks%uint64(system.settings.TargetTPS*2) == 0 {
 		runtime.ReadMemStats(system.memStats)
@@ -82,7 +77,7 @@ func (system *DebugSystem) Update(e *ecs.ECS) {
 
 }
 
-func (system *DebugSystem) DrawDebug(_ *ecs.ECS, screen *ebiten.Image) {
+func (system *System) DrawDebug(_ *ecs.ECS, screen *ebiten.Image) {
 	debugText := system.generateDebugText()
 
 	metrics := system.settings.Debug.FontFace.Metrics()
@@ -91,7 +86,23 @@ func (system *DebugSystem) DrawDebug(_ *ecs.ECS, screen *ebiten.Image) {
 	text.Draw(screen, debugText, system.settings.Debug.FontFace, system.debugTextOptions)
 }
 
-func (system *DebugSystem) generateDebugText() string {
+func (system *System) ToggleDebug(_ donburi.World, _ types.Nil) {
+	system.settings.Debug.Enabled = !system.settings.Debug.Enabled
+}
+
+func (system *System) ToggleDrawGrid(_ donburi.World, _ types.Nil) {
+	system.settings.Debug.DrawGrid = !system.settings.Debug.DrawGrid
+}
+
+func (system *System) ToggleDrawCollisions(_ donburi.World, _ types.Nil) {
+	system.settings.Debug.DrawCollisions = !system.settings.Debug.DrawCollisions
+}
+
+func (system *System) ToggleDrawPositions(_ donburi.World, _ types.Nil) {
+	system.settings.Debug.DrawPositions = !system.settings.Debug.DrawPositions
+}
+
+func (system *System) generateDebugText() string {
 	system.debugTextBuilder.Reset()
 
 	ms := system.memStats

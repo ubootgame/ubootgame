@@ -16,6 +16,7 @@ import (
 	environmentSystems "github.com/ubootgame/ubootgame/internal/scenes/game/systems/environment"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_system"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_system/camera"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_system/debug"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/weapons"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/tags"
@@ -47,7 +48,7 @@ func (scene *Scene) Load(resourceRegistry *resources.Registry) error {
 	}
 
 	// Systems
-	scene.RegisterSystem(game_system.NewDebugSystem(scene.Settings, scene.cursor, scene.camera))
+	scene.RegisterSystem(debug.NewDebugSystem(scene.ECS, scene.Settings, scene.cursor, scene.camera))
 	scene.RegisterSystem(game_system.NewInputSystem(scene.cursor, scene.camera))
 	scene.RegisterSystem(camera.NewCameraSystem(scene.ECS, scene.Settings, scene.camera))
 	scene.RegisterSystem(player.NewPlayerSystem(scene.ECS, scene.Settings, scene.cursor))

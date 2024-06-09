@@ -2,10 +2,12 @@ package game_system
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/ubootgame/ubootgame/internal/framework"
 	ecs2 "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/actors/player"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_system/camera"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_system/debug"
 	"github.com/yohamta/donburi/ecs"
 	"go/types"
 	"gonum.org/v1/gonum/spatial/r2"
@@ -28,7 +30,7 @@ func (system *InputSystem) Update(e *ecs.ECS) {
 	system.cursor.ScreenPosition = screenPosition
 	system.cursor.WorldPosition = system.camera.ScreenToWorldPosition(screenPosition)
 
-	//Camera
+	// Camera
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
 		camera.PanLeftEvent.Publish(e.World, types.Nil{})
 	}
@@ -54,7 +56,7 @@ func (system *InputSystem) Update(e *ecs.ECS) {
 		camera.RotateRightEvent.Publish(e.World, types.Nil{})
 	}
 
-	//Player
+	// Player
 	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
 		player.MoveLeftEvent.Publish(e.World, types.Nil{})
 	}
@@ -63,5 +65,19 @@ func (system *InputSystem) Update(e *ecs.ECS) {
 	}
 	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 		player.ShootEvent.Publish(e.World, types.Nil{})
+	}
+
+	// Debug
+	if inpututil.IsKeyJustPressed(ebiten.KeySlash) {
+		debug.ToggleDebugEvent.Publish(e.World, types.Nil{})
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyF1) {
+		debug.ToggleDrawGrid.Publish(e.World, types.Nil{})
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyF2) {
+		debug.ToggleDrawCollisions.Publish(e.World, types.Nil{})
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyF3) {
+		debug.ToggleDrawPositions.Publish(e.World, types.Nil{})
 	}
 }
