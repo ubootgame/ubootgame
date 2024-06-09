@@ -2,13 +2,14 @@ package player
 
 import (
 	"github.com/ubootgame/ubootgame/internal"
-	"github.com/ubootgame/ubootgame/internal/framework"
-	"github.com/ubootgame/ubootgame/internal/framework/coordinate_system"
-	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/weapons"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/tags"
+	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
+	"github.com/ubootgame/ubootgame/pkg/input"
+	"github.com/ubootgame/ubootgame/pkg/settings"
+	"github.com/ubootgame/ubootgame/pkg/world"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/features/transform"
@@ -26,8 +27,8 @@ type System struct {
 	ecsFramework.System
 
 	ecs      *ecs.ECS
-	settings *internal.Settings
-	cursor   *framework.Cursor
+	settings *settings.Settings[internal.Settings]
+	cursor   *input.Cursor
 
 	transform *transform.TransformData
 	velocity  *r2.Vec
@@ -36,7 +37,7 @@ type System struct {
 	fireTick         uint64
 }
 
-func NewPlayerSystem(ecs *ecs.ECS, settings *internal.Settings, cursor *framework.Cursor) *System {
+func NewPlayerSystem(ecs *ecs.ECS, settings *settings.Settings[internal.Settings], cursor *input.Cursor) *System {
 	system := &System{ecs: ecs, settings: settings, cursor: cursor}
 	system.Injector = ecsFramework.NewInjector([]ecsFramework.Injection{
 		ecsFramework.WithTag(actors.PlayerTag, []ecsFramework.Injection{
@@ -58,7 +59,7 @@ func (system *System) Update(e *ecs.ECS) {
 	if system.moving {
 		system.moving = false
 	} else {
-		system.velocity.X *= 1 - friction/coordinate_system.WorldSizeBase
+		system.velocity.X *= 1 - friction/world.WorldSizeBase
 	}
 
 	if system.shooting {
@@ -70,7 +71,7 @@ func (system *System) Update(e *ecs.ECS) {
 
 func (system *System) MoveLeft(_ donburi.World, _ types.Nil) {
 	if system.velocity.X > 0 {
-		system.velocity.X *= 1 - friction/coordinate_system.WorldSizeBase
+		system.velocity.X *= 1 - friction/world.WorldSizeBase
 	}
 	system.velocity.X -= acceleration
 	system.velocity.X = max(system.velocity.X, -maxSpeed)
@@ -80,7 +81,7 @@ func (system *System) MoveLeft(_ donburi.World, _ types.Nil) {
 
 func (system *System) MoveRight(_ donburi.World, _ types.Nil) {
 	if system.velocity.X < 0 {
-		system.velocity.X *= 1 - friction/coordinate_system.WorldSizeBase
+		system.velocity.X *= 1 - friction/world.WorldSizeBase
 	}
 	system.velocity.X += acceleration
 	system.velocity.X = min(system.velocity.X, maxSpeed)

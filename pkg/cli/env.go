@@ -1,4 +1,4 @@
-package framework
+package cli
 
 import (
 	"errors"

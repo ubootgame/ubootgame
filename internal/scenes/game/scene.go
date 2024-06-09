@@ -3,12 +3,8 @@ package game
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/internal"
-	"github.com/ubootgame/ubootgame/internal/framework"
-	"github.com/ubootgame/ubootgame/internal/framework/coordinate_system"
-	"github.com/ubootgame/ubootgame/internal/framework/resources"
-	"github.com/ubootgame/ubootgame/internal/framework/scenes"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
-	actorEntities "github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
+	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/scene_graph"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems"
@@ -20,6 +16,13 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/weapons"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/tags"
+	camera2 "github.com/ubootgame/ubootgame/pkg/camera"
+	"github.com/ubootgame/ubootgame/pkg/game"
+	"github.com/ubootgame/ubootgame/pkg/input"
+	"github.com/ubootgame/ubootgame/pkg/resources"
+	"github.com/ubootgame/ubootgame/pkg/scenes"
+	"github.com/ubootgame/ubootgame/pkg/settings"
+	"github.com/ubootgame/ubootgame/pkg/world"
 	"github.com/yohamta/donburi"
 	devents "github.com/yohamta/donburi/features/events"
 	"github.com/yohamta/donburi/features/transform"
@@ -28,17 +31,20 @@ import (
 )
 
 type Scene struct {
-	*scenes.ECSScene
+	*scenes.ECSScene[internal.Settings]
 
-	camera *framework.Camera
-	cursor *framework.Cursor
+	displayInfo *game.DisplayInfo
+
+	camera *camera2.Camera
+	cursor *input.Cursor
 }
 
-func NewScene(settings *internal.Settings) *Scene {
+func NewScene(settings *settings.Settings[internal.Settings], displayInfo *game.DisplayInfo) *Scene {
 	return &Scene{
-		ECSScene: scenes.NewECSScene(settings, assets.Assets),
-		camera:   framework.NewCamera(settings),
-		cursor:   framework.NewCursor(),
+		ECSScene:    scenes.NewECSScene(settings, assets.Assets),
+		displayInfo: displayInfo,
+		camera:      camera2.NewCamera(displayInfo),
+		cursor:      input.NewCursor(),
 	}
 }
 
@@ -48,7 +54,7 @@ func (scene *Scene) Load(resourceRegistry *resources.Registry) error {
 	}
 
 	// Systems
-	scene.RegisterSystem(debug.NewDebugSystem(scene.ECS, scene.Settings, scene.cursor, scene.camera))
+	scene.RegisterSystem(debug.NewDebugSystem(scene.ECS, scene.Settings, scene.cursor, scene.camera, scene.displayInfo))
 	scene.RegisterSystem(game_systems.NewInputSystem(scene.cursor, scene.camera))
 	scene.RegisterSystem(camera.NewCameraSystem(scene.ECS, scene.Settings, scene.camera))
 	scene.RegisterSystem(player.NewPlayerSystem(scene.ECS, scene.Settings, scene.cursor))
@@ -68,10 +74,10 @@ func (scene *Scene) Load(resourceRegistry *resources.Registry) error {
 	//transform.AppendChild(environmentGroup, animatedWater, false)
 
 	// Objects
-	playerEntry := actorEntities.CreatePlayer(scene.ECS, scene.ResourceRegistry, coordinate_system.HScale(100))
+	playerEntry := actors.CreatePlayer(scene.ECS, scene.ResourceRegistry, world.HScale(100))
 	enemyEntries := []*donburi.Entry{
-		actorEntities.CreateEnemy(scene.ECS, scene.ResourceRegistry, coordinate_system.HScale(100), r2.Vec{X: -700, Y: 300}, r2.Vec{X: 100}),
-		actorEntities.CreateEnemy(scene.ECS, scene.ResourceRegistry, coordinate_system.HScale(100), r2.Vec{X: 800, Y: 150}, r2.Vec{X: -50}),
+		actors.CreateEnemy(scene.ECS, scene.ResourceRegistry, world.HScale(100), r2.Vec{X: -700, Y: 300}, r2.Vec{X: 100}),
+		actors.CreateEnemy(scene.ECS, scene.ResourceRegistry, world.HScale(100), r2.Vec{X: 800, Y: 150}, r2.Vec{X: -50}),
 	}
 
 	objectsGroup := scene_graph.CreateSceneGroup(scene.ECS, tags.ObjectsTag)

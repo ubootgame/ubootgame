@@ -7,10 +7,13 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal"
-	"github.com/ubootgame/ubootgame/internal/framework"
-	"github.com/ubootgame/ubootgame/internal/framework/draw"
-	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
+	"github.com/ubootgame/ubootgame/pkg/camera"
+	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
+	"github.com/ubootgame/ubootgame/pkg/game"
+	"github.com/ubootgame/ubootgame/pkg/graphics"
+	"github.com/ubootgame/ubootgame/pkg/input"
+	"github.com/ubootgame/ubootgame/pkg/settings"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"go/types"
@@ -21,9 +24,10 @@ import (
 type System struct {
 	ecsFramework.System
 
-	settings *internal.Settings
-	cursor   *framework.Cursor
-	camera   *framework.Camera
+	settings    *settings.Settings[internal.Settings]
+	cursor      *input.Cursor
+	camera      *camera.Camera
+	displayInfo *game.DisplayInfo
 
 	keys             []ebiten.Key
 	memStats         *runtime.MemStats
@@ -32,11 +36,12 @@ type System struct {
 	debugTextOptions *text.DrawOptions
 }
 
-func NewDebugSystem(e *ecs.ECS, settings *internal.Settings, cursor *framework.Cursor, camera *framework.Camera) *System {
+func NewDebugSystem(e *ecs.ECS, settings *settings.Settings[internal.Settings], cursor *input.Cursor, camera *camera.Camera, displayInfo *game.DisplayInfo) *System {
 	system := &System{
 		settings:         settings,
 		cursor:           cursor,
 		camera:           camera,
+		displayInfo:      displayInfo,
 		keys:             make([]ebiten.Key, 0),
 		memStats:         &runtime.MemStats{},
 		debugTextBuilder: &strings.Builder{},
@@ -135,7 +140,7 @@ NumGC: %d`,
 		ebiten.ActualFPS(),
 		ebiten.ActualTPS(),
 		ebiten.IsVsyncEnabled(),
-		system.settings.Display.ScalingFactor,
+		system.displayInfo.ScalingFactor,
 		strings.Join(lo.Map(system.keys, func(item ebiten.Key, index int) string {
 			return item.String()
 		}), ", "),
@@ -144,8 +149,8 @@ NumGC: %d`,
 		system.camera.Position.X, system.camera.Position.Y,
 		system.camera.Scale,
 		system.camera.Rotation,
-		draw.FormatBytes(ms.Alloc), draw.FormatBytes(ms.TotalAlloc), draw.FormatBytes(ms.Sys),
-		draw.FormatBytes(ms.NextGC), ms.NumGC)
+		graphics.FormatBytes(ms.Alloc), graphics.FormatBytes(ms.TotalAlloc), graphics.FormatBytes(ms.Sys),
+		graphics.FormatBytes(ms.NextGC), ms.NumGC)
 
 	return system.debugTextBuilder.String()
 }

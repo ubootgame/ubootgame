@@ -1,10 +1,10 @@
 package weapons
 
 import (
-	"github.com/ubootgame/ubootgame/internal/framework/coordinate_system"
-	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
+	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
+	"github.com/ubootgame/ubootgame/pkg/world"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/features/math"
@@ -31,7 +31,7 @@ func CreateBullet(ecs *ecs.ECS, from, to r2.Vec) *donburi.Entry {
 		LocalScale:    math.NewVec2(1, 1),
 		LocalRotation: 0,
 	})
-	geometry.Velocity.SetValue(entry, r2.Scale(coordinate_system.WorldSizeBase, velocity))
+	geometry.Velocity.SetValue(entry, r2.Scale(world.WorldSizeBase, velocity))
 
 	return entry
 }

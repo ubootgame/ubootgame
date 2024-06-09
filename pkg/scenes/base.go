@@ -3,8 +3,8 @@ package scenes
 import (
 	"errors"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/ubootgame/ubootgame/internal"
-	"github.com/ubootgame/ubootgame/internal/framework/resources"
+	"github.com/ubootgame/ubootgame/pkg/resources"
+	framework "github.com/ubootgame/ubootgame/pkg/settings"
 	"sync"
 )
 
@@ -14,24 +14,24 @@ type Scene interface {
 	Draw(screen *ebiten.Image)
 }
 
-type BaseScene struct {
+type BaseScene[S any] struct {
 	once sync.Once
 
 	loaded    bool
 	Resources *resources.Library
 
-	Settings         *internal.Settings
+	Settings         *framework.Settings[S]
 	ResourceRegistry *resources.Registry
 }
 
-func NewBaseScene(settings *internal.Settings, resources *resources.Library) *BaseScene {
-	return &BaseScene{
+func NewBaseScene[S any](settings *framework.Settings[S], resources *resources.Library) *BaseScene[S] {
+	return &BaseScene[S]{
 		Settings:  settings,
 		Resources: resources,
 	}
 }
 
-func (scene *BaseScene) Load(resourceRegistry *resources.Registry) error {
+func (scene *BaseScene[S]) Load(resourceRegistry *resources.Registry) error {
 	scene.ResourceRegistry = resourceRegistry
 
 	if err := resourceRegistry.RegisterResources(scene.Resources); err == nil {
@@ -42,13 +42,13 @@ func (scene *BaseScene) Load(resourceRegistry *resources.Registry) error {
 	}
 }
 
-func (scene *BaseScene) Update() error {
+func (scene *BaseScene[S]) Update() error {
 	if !scene.loaded {
 		return errors.New("scene not loaded")
 	}
 	return nil
 }
 
-func (scene *BaseScene) Draw(_ *ebiten.Image) {
+func (scene *BaseScene[S]) Draw(_ *ebiten.Image) {
 	panic("must be overridden")
 }

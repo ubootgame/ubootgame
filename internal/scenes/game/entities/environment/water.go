@@ -1,13 +1,13 @@
 package environment
 
 import (
-	"github.com/ubootgame/ubootgame/internal/framework/coordinate_system"
-	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
-	"github.com/ubootgame/ubootgame/internal/framework/resources"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
+	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
+	"github.com/ubootgame/ubootgame/pkg/resources"
+	"github.com/ubootgame/ubootgame/pkg/world"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"gonum.org/v1/gonum/spatial/r2"
@@ -21,7 +21,7 @@ var Water = ecsFramework.NewArchetype(
 	visuals.Sprite,
 )
 
-func CreateWater(ecs *ecs.ECS, registry *resources.Registry, scaler coordinate_system.Scaler) *donburi.Entry {
+func CreateWater(ecs *ecs.ECS, registry *resources.Registry, scaler world.Scaler) *donburi.Entry {
 	entry := Water.Spawn(ecs, layers.Game)
 
 	sprite := registry.LoadTile(assets.Water, "fishTile_088.png")

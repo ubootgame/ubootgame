@@ -2,13 +2,13 @@ package actors
 
 import (
 	"github.com/solarlune/resolv"
-	"github.com/ubootgame/ubootgame/internal/framework/coordinate_system"
-	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
-	"github.com/ubootgame/ubootgame/internal/framework/resources"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
+	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
+	"github.com/ubootgame/ubootgame/pkg/resources"
+	"github.com/ubootgame/ubootgame/pkg/world"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/features/math"
@@ -28,7 +28,7 @@ var Enemy = ecsFramework.NewArchetype(
 	geometry.Velocity,
 )
 
-func CreateEnemy(ecs *ecs.ECS, registry *resources.Registry, scaler coordinate_system.Scaler, position, velocity r2.Vec) *donburi.Entry {
+func CreateEnemy(ecs *ecs.ECS, registry *resources.Registry, scaler world.Scaler, position, velocity r2.Vec) *donburi.Entry {
 	entry := Enemy.Spawn(ecs, layers.Game)
 
 	sprite := registry.LoadImage(assets.Submarine)

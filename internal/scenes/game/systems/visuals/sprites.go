@@ -6,12 +6,13 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal"
-	"github.com/ubootgame/ubootgame/internal/framework"
-	"github.com/ubootgame/ubootgame/internal/framework/draw"
-	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
+	"github.com/ubootgame/ubootgame/pkg/camera"
+	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
+	"github.com/ubootgame/ubootgame/pkg/graphics"
+	"github.com/ubootgame/ubootgame/pkg/settings"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/features/transform"
@@ -24,9 +25,8 @@ import (
 type SpriteSystem struct {
 	ecsFramework.System
 
-	settings *internal.Settings
-
-	camera *framework.Camera
+	settings *settings.Settings[internal.Settings]
+	camera   *camera.Camera
 
 	query      *donburi.Query
 	debugQuery *donburi.Query
@@ -38,7 +38,7 @@ type SpriteSystem struct {
 	debugTextPositionOpts *ebiten.DrawImageOptions
 }
 
-func NewSpriteSystem(settings *internal.Settings, camera *framework.Camera) *SpriteSystem {
+func NewSpriteSystem(settings *settings.Settings[internal.Settings], camera *camera.Camera) *SpriteSystem {
 	return &SpriteSystem{
 		settings:               settings,
 		camera:                 camera,
@@ -114,7 +114,7 @@ func (system *SpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 
 		// Center dot
 		spriteCenter := system.camera.WorldToScreenPosition(r2.Vec(worldPosition))
-		draw.Dot(screen, spriteCenter, colornames.Yellow)
+		graphics.Dot(screen, spriteCenter, colornames.Yellow)
 
 		// Debug text
 		debugText := fmt.Sprintf("Transform: %.3f, %.3f\nVelocity: %.3f, %.3f",

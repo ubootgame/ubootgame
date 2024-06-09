@@ -4,11 +4,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal"
-	"github.com/ubootgame/ubootgame/internal/framework"
-	"github.com/ubootgame/ubootgame/internal/framework/draw"
-	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
+	"github.com/ubootgame/ubootgame/pkg/camera"
+	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
+	"github.com/ubootgame/ubootgame/pkg/graphics"
+	"github.com/ubootgame/ubootgame/pkg/settings"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/features/transform"
@@ -21,9 +22,8 @@ import (
 type AnimatedSpriteSystem struct {
 	ecsFramework.System
 
-	settings *internal.Settings
-
-	camera *framework.Camera
+	settings *settings.Settings[internal.Settings]
+	camera   *camera.Camera
 
 	updateQuery *donburi.Query
 	drawQuery   *donburi.Query
@@ -31,7 +31,7 @@ type AnimatedSpriteSystem struct {
 	spriteDrawImageOptions *ebiten.DrawImageOptions
 }
 
-func NewAnimatedSpriteSystem(settings *internal.Settings) *AnimatedSpriteSystem {
+func NewAnimatedSpriteSystem(settings *settings.Settings[internal.Settings]) *AnimatedSpriteSystem {
 	return &AnimatedSpriteSystem{
 		settings:               settings,
 		updateQuery:            donburi.NewQuery(filter.Contains(visuals.AnimatedSprite)),
@@ -83,6 +83,6 @@ func (system *AnimatedSpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) 
 		worldPosition := transform.WorldPosition(entry)
 		spriteCenter := system.camera.WorldToScreenPosition(r2.Vec(worldPosition))
 
-		draw.Dot(screen, spriteCenter, colornames.Green)
+		graphics.Dot(screen, spriteCenter, colornames.Green)
 	})
 }

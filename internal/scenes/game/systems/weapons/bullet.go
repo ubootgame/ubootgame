@@ -6,12 +6,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/samber/lo"
 	"github.com/solarlune/resolv"
-	"github.com/ubootgame/ubootgame/internal/framework"
-	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/weapons"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
+	"github.com/ubootgame/ubootgame/pkg/camera"
+	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/features/transform"
@@ -22,7 +22,7 @@ import (
 type BulletSystem struct {
 	ecsFramework.System
 
-	camera *framework.Camera
+	camera *camera.Camera
 
 	query *donburi.Query
 	tick  uint64
@@ -31,7 +31,7 @@ type BulletSystem struct {
 	drawImageOptions *ebiten.DrawImageOptions
 }
 
-func NewBulletSystem(camera *framework.Camera) *BulletSystem {
+func NewBulletSystem(camera *camera.Camera) *BulletSystem {
 	return &BulletSystem{
 		camera:           camera,
 		query:            donburi.NewQuery(filter.Contains(weapons.BulletTag)),

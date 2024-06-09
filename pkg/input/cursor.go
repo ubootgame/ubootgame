@@ -1,4 +1,4 @@
-package framework
+package input
 
 import "gonum.org/v1/gonum/spatial/r2"
 

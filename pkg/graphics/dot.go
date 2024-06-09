@@ -1,4 +1,4 @@
-package draw
+package graphics
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"

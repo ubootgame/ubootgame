@@ -3,11 +3,12 @@ package game_systems
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
-	"github.com/ubootgame/ubootgame/internal/framework"
-	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/actors/player"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_systems/camera"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_systems/debug"
+	camera2 "github.com/ubootgame/ubootgame/pkg/camera"
+	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
+	"github.com/ubootgame/ubootgame/pkg/input"
 	"github.com/yohamta/donburi/ecs"
 	"go/types"
 	"gonum.org/v1/gonum/spatial/r2"
@@ -16,11 +17,11 @@ import (
 type InputSystem struct {
 	ecsFramework.System
 
-	cursor *framework.Cursor
-	camera *framework.Camera
+	cursor *input.Cursor
+	camera *camera2.Camera
 }
 
-func NewInputSystem(cursor *framework.Cursor, camera *framework.Camera) *InputSystem {
+func NewInputSystem(cursor *input.Cursor, camera *camera2.Camera) *InputSystem {
 	return &InputSystem{cursor: cursor, camera: camera}
 }
 

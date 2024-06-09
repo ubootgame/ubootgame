@@ -4,21 +4,22 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/internal"
-	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
+	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
+	"github.com/ubootgame/ubootgame/pkg/settings"
 	"github.com/yohamta/donburi/ecs"
 )
 
 type WaterSystem struct {
 	ecsFramework.System
 
-	settings *internal.Settings
+	settings *settings.Settings[internal.Settings]
 
 	sprite *visuals.SpriteData
 }
 
-func NewWaterSystem(settings *internal.Settings) *WaterSystem {
+func NewWaterSystem(settings *settings.Settings[internal.Settings]) *WaterSystem {
 	system := &WaterSystem{settings: settings}
 	return system
 }

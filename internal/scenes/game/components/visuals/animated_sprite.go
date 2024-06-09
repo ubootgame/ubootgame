@@ -1,7 +1,7 @@
 package visuals
 
 import (
-	"github.com/ubootgame/ubootgame/internal/framework/resources"
+	"github.com/ubootgame/ubootgame/pkg/resources"
 	"github.com/yohamta/donburi"
 )
 

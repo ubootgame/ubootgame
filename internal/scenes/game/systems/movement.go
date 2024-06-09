@@ -2,8 +2,9 @@ package systems
 
 import (
 	"github.com/ubootgame/ubootgame/internal"
-	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
+	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
+	"github.com/ubootgame/ubootgame/pkg/settings"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/features/transform"
@@ -13,12 +14,12 @@ import (
 type MovementSystem struct {
 	ecsFramework.System
 
-	settings *internal.Settings
+	settings *settings.Settings[internal.Settings]
 
 	query *donburi.Query
 }
 
-func NewMovementSystem(settings *internal.Settings) *MovementSystem {
+func NewMovementSystem(settings *settings.Settings[internal.Settings]) *MovementSystem {
 	system := &MovementSystem{
 		settings: settings,
 		query:    donburi.NewQuery(filter.Contains(transform.Transform, geometry.Velocity)),

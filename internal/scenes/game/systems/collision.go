@@ -6,12 +6,14 @@ import (
 	"github.com/samber/lo"
 	"github.com/solarlune/resolv"
 	"github.com/ubootgame/ubootgame/internal"
-	"github.com/ubootgame/ubootgame/internal/framework"
-	"github.com/ubootgame/ubootgame/internal/framework/draw"
-	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
+	"github.com/ubootgame/ubootgame/pkg/camera"
+	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
+	"github.com/ubootgame/ubootgame/pkg/graphics"
+	"github.com/ubootgame/ubootgame/pkg/input"
+	"github.com/ubootgame/ubootgame/pkg/settings"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/features/transform"
@@ -23,16 +25,16 @@ import (
 type CollisionSystem struct {
 	ecsFramework.System
 
-	settings *internal.Settings
+	settings *settings.Settings[internal.Settings]
+	camera   *camera.Camera
+	cursor   *input.Cursor
 
-	camera          *framework.Camera
-	cursor          *framework.Cursor
 	playerTransform *transform.TransformData
 
 	query *donburi.Query
 }
 
-func NewCollisionSystem(settings *internal.Settings, cursor *framework.Cursor, camera *framework.Camera) *CollisionSystem {
+func NewCollisionSystem(settings *settings.Settings[internal.Settings], cursor *input.Cursor, camera *camera.Camera) *CollisionSystem {
 	system := &CollisionSystem{
 		settings: settings,
 		cursor:   cursor,
@@ -103,15 +105,15 @@ func (system *CollisionSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 
 	vector.StrokeLine(screen, float32(lineStart.X), float32(lineStart.Y), float32(lineEnd.X), float32(lineEnd.Y), 2, lineColor, true)
 
-	draw.Dot(screen, playerScreen, lineColor)
+	graphics.Dot(screen, playerScreen, lineColor)
 
 	for _, point := range intersectionPoints {
 		pointScreen := system.camera.WorldToScreenPosition(r2.Vec{X: point.X, Y: point.Y})
-		draw.Dot(screen, pointScreen, color.RGBA{G: 255, A: 255})
+		graphics.Dot(screen, pointScreen, color.RGBA{G: 255, A: 255})
 	}
 }
 
-func drawPolygon(screen *ebiten.Image, camera *framework.Camera, shape *resolv.ConvexPolygon, color color.Color) {
+func drawPolygon(screen *ebiten.Image, camera *camera.Camera, shape *resolv.ConvexPolygon, color color.Color) {
 	vertices := shape.Transformed()
 	for i := 0; i < len(vertices); i++ {
 		vert := vertices[i]

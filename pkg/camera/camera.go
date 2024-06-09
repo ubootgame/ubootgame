@@ -1,28 +1,28 @@
-package framework
+package camera
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/ubootgame/ubootgame/internal"
-	"github.com/ubootgame/ubootgame/internal/framework/coordinate_system"
+	"github.com/ubootgame/ubootgame/pkg/game"
+	"github.com/ubootgame/ubootgame/pkg/world"
 	"gonum.org/v1/gonum/spatial/r2"
 	"math"
 )
 
 type Camera struct {
-	settings *internal.Settings
+	displayInfo *game.DisplayInfo
 
 	matrix ebiten.GeoM
 
 	Position r2.Vec
-	Rotation float64
 	Scale    r2.Vec
+	Rotation float64
 }
 
-func NewCamera(settings *internal.Settings) *Camera {
+func NewCamera(displayInfo *game.DisplayInfo) *Camera {
 	return &Camera{
-		settings: settings,
-		matrix:   ebiten.GeoM{},
-		Scale:    r2.Vec{X: 1, Y: 1},
+		displayInfo: displayInfo,
+		matrix:      ebiten.GeoM{},
+		Scale:       r2.Vec{X: 1, Y: 1},
 	}
 }
 
@@ -50,6 +50,6 @@ func (camera *Camera) UpdateCameraMatrix() {
 	camera.matrix.Translate(camera.Position.X, camera.Position.Y)
 
 	// Move mid-point to center of screen
-	camera.matrix.Scale(coordinate_system.WorldSizeBase/camera.settings.Display.VirtualResolution.X, coordinate_system.WorldSizeBase/camera.settings.Display.VirtualResolution.X)
-	camera.matrix.Translate(camera.settings.Display.VirtualResolution.X/2, camera.settings.Display.VirtualResolution.Y/2)
+	camera.matrix.Scale(world.WorldSizeBase/camera.displayInfo.VirtualResolution.X, world.WorldSizeBase/camera.displayInfo.VirtualResolution.X)
+	camera.matrix.Translate(camera.displayInfo.VirtualResolution.X/2, camera.displayInfo.VirtualResolution.Y/2)
 }

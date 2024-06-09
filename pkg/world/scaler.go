@@ -1,4 +1,4 @@
-package coordinate_system
+package world
 
 import (
 	"gonum.org/v1/gonum/spatial/r2"

@@ -1,3 +1,3 @@
-package coordinate_system
+package world
 
 var WorldSizeBase = 1000.0

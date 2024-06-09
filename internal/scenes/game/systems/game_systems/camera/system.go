@@ -2,8 +2,9 @@ package camera
 
 import (
 	"github.com/ubootgame/ubootgame/internal"
-	"github.com/ubootgame/ubootgame/internal/framework"
-	ecsFramework "github.com/ubootgame/ubootgame/internal/framework/ecs"
+	"github.com/ubootgame/ubootgame/pkg/camera"
+	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
+	"github.com/ubootgame/ubootgame/pkg/settings"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"go/types"
@@ -17,11 +18,11 @@ const minZoom, maxZoom = 0.5, 2.0
 type System struct {
 	ecsFramework.System
 
-	settings *internal.Settings
-	camera   *framework.Camera
+	settings *settings.Settings[internal.Settings]
+	camera   *camera.Camera
 }
 
-func NewCameraSystem(e *ecs.ECS, settings *internal.Settings, camera *framework.Camera) *System {
+func NewCameraSystem(e *ecs.ECS, settings *settings.Settings[internal.Settings], camera *camera.Camera) *System {
 	system := &System{settings: settings, camera: camera}
 
 	PanLeftEvent.Subscribe(e.World, system.PanLeft)
