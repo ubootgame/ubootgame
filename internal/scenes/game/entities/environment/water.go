@@ -6,7 +6,7 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
-	"github.com/ubootgame/ubootgame/pkg/resources"
+	"github.com/ubootgame/ubootgame/pkg/services/resources"
 	"github.com/ubootgame/ubootgame/pkg/world"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -21,7 +21,7 @@ var Water = ecsFramework.NewArchetype(
 	visuals.Sprite,
 )
 
-func CreateWater(ecs *ecs.ECS, registry *resources.Registry, scaler world.Scaler) *donburi.Entry {
+func CreateWater(ecs *ecs.ECS, registry *resources.Service, scaler world.Scaler) *donburi.Entry {
 	entry := Water.Spawn(ecs, layers.Game)
 
 	sprite := registry.LoadTile(assets.Water, "fishTile_088.png")

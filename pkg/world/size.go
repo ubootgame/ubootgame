@@ -1,3 +1,3 @@
 package world
 
-var WorldSizeBase = 1000.0
+var BaseSize = 1000.0

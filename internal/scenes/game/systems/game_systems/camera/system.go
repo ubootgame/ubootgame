@@ -2,9 +2,9 @@ package camera
 
 import (
 	"github.com/ubootgame/ubootgame/internal"
+	"github.com/ubootgame/ubootgame/pkg"
 	"github.com/ubootgame/ubootgame/pkg/camera"
 	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
-	"github.com/ubootgame/ubootgame/pkg/settings"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"go/types"
@@ -18,11 +18,11 @@ const minZoom, maxZoom = 0.5, 2.0
 type System struct {
 	ecsFramework.System
 
-	settings *settings.Settings[internal.Settings]
+	settings pkg.SettingsService[internal.Settings]
 	camera   *camera.Camera
 }
 
-func NewCameraSystem(e *ecs.ECS, settings *settings.Settings[internal.Settings], camera *camera.Camera) *System {
+func NewCameraSystem(settings pkg.SettingsService[internal.Settings], e *ecs.ECS, camera *camera.Camera) *System {
 	system := &System{settings: settings, camera: camera}
 
 	PanLeftEvent.Subscribe(e.World, system.PanLeft)
@@ -44,29 +44,29 @@ func (system *System) Update(e *ecs.ECS) {
 }
 
 func (system *System) PanLeft(_ donburi.World, _ types.Nil) {
-	system.camera.Position.X -= translationSpeed / float64(system.settings.TargetTPS)
+	system.camera.Position.X -= translationSpeed / float64(system.settings.Settings().Internals.TPS)
 }
 
 func (system *System) PanRight(_ donburi.World, _ types.Nil) {
-	system.camera.Position.X += translationSpeed / float64(system.settings.TargetTPS)
+	system.camera.Position.X += translationSpeed / float64(system.settings.Settings().Internals.TPS)
 }
 
 func (system *System) PanUp(_ donburi.World, _ types.Nil) {
-	system.camera.Position.Y -= translationSpeed / float64(system.settings.TargetTPS)
+	system.camera.Position.Y -= translationSpeed / float64(system.settings.Settings().Internals.TPS)
 }
 
 func (system *System) PanDown(_ donburi.World, _ types.Nil) {
-	system.camera.Position.Y += translationSpeed / float64(system.settings.TargetTPS)
+	system.camera.Position.Y += translationSpeed / float64(system.settings.Settings().Internals.TPS)
 }
 
 func (system *System) ZoomIn(_ donburi.World, _ types.Nil) {
-	scale := min(maxZoom, system.camera.Scale.X+zoomSpeed)
-	system.camera.Scale = r2.Vec{X: scale, Y: scale}
+	scale := min(maxZoom, system.camera.Zoom.X+zoomSpeed)
+	system.camera.Zoom = r2.Vec{X: scale, Y: scale}
 }
 
 func (system *System) ZoomOut(_ donburi.World, _ types.Nil) {
-	scale := max(minZoom, system.camera.Scale.X-zoomSpeed)
-	system.camera.Scale = r2.Vec{X: scale, Y: scale}
+	scale := max(minZoom, system.camera.Zoom.X-zoomSpeed)
+	system.camera.Zoom = r2.Vec{X: scale, Y: scale}
 }
 
 func (system *System) RotateLeft(_ donburi.World, _ types.Nil) {

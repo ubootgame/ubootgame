@@ -6,20 +6,20 @@ import (
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
+	"github.com/ubootgame/ubootgame/pkg"
 	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
-	"github.com/ubootgame/ubootgame/pkg/settings"
 	"github.com/yohamta/donburi/ecs"
 )
 
 type WaterSystem struct {
 	ecsFramework.System
 
-	settings *settings.Settings[internal.Settings]
+	settings pkg.SettingsService[internal.Settings]
 
 	sprite *visuals.SpriteData
 }
 
-func NewWaterSystem(settings *settings.Settings[internal.Settings]) *WaterSystem {
+func NewWaterSystem(settings pkg.SettingsService[internal.Settings]) *WaterSystem {
 	system := &WaterSystem{settings: settings}
 	return system
 }
@@ -40,7 +40,7 @@ func (system *WaterSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	//op := &ebiten.DrawImageOptions{}
 	//
 	//op.GeoM.Translate(float64(-w)/2, float64(-h)/2)
-	//op.GeoM.Scale(sizeScale*system.display.ScalingFactor, sizeScale*system.display.ScalingFactor)
+	//op.GeoM.Zoom(sizeScale*system.display.ScalingFactor, sizeScale*system.display.ScalingFactor)
 	//op.GeoM.Translate(0, y)
 	//op.ColorScale.ScaleAlpha(0.1)
 	//

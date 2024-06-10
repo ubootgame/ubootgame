@@ -3,8 +3,8 @@ package systems
 import (
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
+	"github.com/ubootgame/ubootgame/pkg"
 	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
-	"github.com/ubootgame/ubootgame/pkg/settings"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/features/transform"
@@ -14,12 +14,12 @@ import (
 type MovementSystem struct {
 	ecsFramework.System
 
-	settings *settings.Settings[internal.Settings]
+	settings pkg.SettingsService[internal.Settings]
 
 	query *donburi.Query
 }
 
-func NewMovementSystem(settings *settings.Settings[internal.Settings]) *MovementSystem {
+func NewMovementSystem(settings pkg.SettingsService[internal.Settings]) *MovementSystem {
 	system := &MovementSystem{
 		settings: settings,
 		query:    donburi.NewQuery(filter.Contains(transform.Transform, geometry.Velocity)),
@@ -34,8 +34,8 @@ func (system *MovementSystem) Update(e *ecs.ECS) {
 		velocity := geometry.Velocity.Get(entry)
 		t := transform.Transform.Get(entry)
 
-		t.LocalPosition.X += velocity.X / float64(system.settings.TargetTPS)
-		t.LocalPosition.Y += velocity.Y / float64(system.settings.TargetTPS)
+		t.LocalPosition.X += velocity.X / float64(system.settings.Settings().Internals.TPS)
+		t.LocalPosition.Y += velocity.Y / float64(system.settings.Settings().Internals.TPS)
 
 		if entry.HasComponent(geometry.Direction) {
 			direction := geometry.Direction.Get(entry)

@@ -22,7 +22,7 @@ type Tile struct {
 	X, Y, Width, Height int
 }
 
-func LoadTileSheet(info TilesheetInfo, registry *Registry) (TilesheetEntry, error) {
+func LoadTileSheet(info TilesheetInfo, registry *Service) (TilesheetEntry, error) {
 	xmlFile := lo.Must(assets.FS.ReadFile(info.Path))
 
 	var textureAtlas TextureAtlas

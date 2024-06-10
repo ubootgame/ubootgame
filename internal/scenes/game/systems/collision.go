@@ -9,11 +9,11 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
+	"github.com/ubootgame/ubootgame/pkg"
 	"github.com/ubootgame/ubootgame/pkg/camera"
 	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
 	"github.com/ubootgame/ubootgame/pkg/graphics"
 	"github.com/ubootgame/ubootgame/pkg/input"
-	"github.com/ubootgame/ubootgame/pkg/settings"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/features/transform"
@@ -25,16 +25,17 @@ import (
 type CollisionSystem struct {
 	ecsFramework.System
 
-	settings *settings.Settings[internal.Settings]
-	camera   *camera.Camera
-	cursor   *input.Cursor
+	settings pkg.SettingsService[internal.Settings]
+
+	camera *camera.Camera
+	cursor *input.Cursor
 
 	playerTransform *transform.TransformData
 
 	query *donburi.Query
 }
 
-func NewCollisionSystem(settings *settings.Settings[internal.Settings], cursor *input.Cursor, camera *camera.Camera) *CollisionSystem {
+func NewCollisionSystem(settings pkg.SettingsService[internal.Settings], cursor *input.Cursor, camera *camera.Camera) *CollisionSystem {
 	system := &CollisionSystem{
 		settings: settings,
 		cursor:   cursor,
@@ -73,7 +74,7 @@ func (system *CollisionSystem) Update(e *ecs.ECS) {
 }
 
 func (system *CollisionSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
-	if !system.settings.Debug.DrawCollisions {
+	if !system.settings.Settings().Debug.DrawCollisions {
 		return
 	}
 

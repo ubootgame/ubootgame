@@ -9,10 +9,10 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
+	"github.com/ubootgame/ubootgame/pkg"
 	"github.com/ubootgame/ubootgame/pkg/camera"
 	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
 	"github.com/ubootgame/ubootgame/pkg/graphics"
-	"github.com/ubootgame/ubootgame/pkg/settings"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/features/transform"
@@ -25,8 +25,9 @@ import (
 type SpriteSystem struct {
 	ecsFramework.System
 
-	settings *settings.Settings[internal.Settings]
-	camera   *camera.Camera
+	settings pkg.SettingsService[internal.Settings]
+
+	camera *camera.Camera
 
 	query      *donburi.Query
 	debugQuery *donburi.Query
@@ -38,7 +39,7 @@ type SpriteSystem struct {
 	debugTextPositionOpts *ebiten.DrawImageOptions
 }
 
-func NewSpriteSystem(settings *settings.Settings[internal.Settings], camera *camera.Camera) *SpriteSystem {
+func NewSpriteSystem(settings pkg.SettingsService[internal.Settings], camera *camera.Camera) *SpriteSystem {
 	return &SpriteSystem{
 		settings:               settings,
 		camera:                 camera,
@@ -101,7 +102,7 @@ func (system *SpriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 }
 
 func (system *SpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
-	if !system.settings.Debug.DrawPositions {
+	if !system.settings.Settings().Debug.DrawPositions {
 		return
 	}
 
@@ -126,11 +127,11 @@ func (system *SpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 			Y: worldPosition.Y + (scale.NormalizedSize.Y*worldScale.Y)/2,
 		})
 
-		metrics := system.settings.Debug.FontFace.Metrics()
+		metrics := system.settings.Settings().Debug.FontFace.Metrics()
 		system.debugTextOptions.LineSpacing = metrics.HAscent + metrics.HDescent + metrics.HLineGap
 		system.debugTextOptions.GeoM.Reset()
 		system.debugTextOptions.GeoM.Translate(spriteBottomRight.X, spriteBottomRight.Y)
 
-		text.Draw(screen, debugText, system.settings.Debug.FontFace, system.debugTextOptions)
+		text.Draw(screen, debugText, system.settings.Settings().Debug.FontFace, system.debugTextOptions)
 	})
 }

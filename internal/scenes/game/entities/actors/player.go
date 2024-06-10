@@ -5,8 +5,8 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
+	"github.com/ubootgame/ubootgame/pkg"
 	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
-	"github.com/ubootgame/ubootgame/pkg/resources"
 	"github.com/ubootgame/ubootgame/pkg/world"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -26,10 +26,10 @@ var Player = ecsFramework.NewArchetype(
 	geometry.Direction,
 )
 
-func CreatePlayer(ecs *ecs.ECS, registry *resources.Registry, scaler world.Scaler) *donburi.Entry {
+func CreatePlayer(resources pkg.ResourceService, ecs *ecs.ECS, scaler world.Scaler) *donburi.Entry {
 	entry := Player.Spawn(ecs, layers.Game)
 
-	sprite := registry.LoadImage(assets.Battleship)
+	sprite := resources.LoadImage(assets.Battleship)
 
 	normalizedSize, normalizedScale, localScale := scaler.GetNormalizedSizeAndScale(r2.Vec{X: float64(sprite.Data.Bounds().Size().X), Y: float64(sprite.Data.Bounds().Size().Y)})
 

@@ -6,8 +6,8 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
+	"github.com/ubootgame/ubootgame/pkg"
 	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
-	"github.com/ubootgame/ubootgame/pkg/resources"
 	"github.com/ubootgame/ubootgame/pkg/world"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -28,10 +28,10 @@ var Enemy = ecsFramework.NewArchetype(
 	geometry.Velocity,
 )
 
-func CreateEnemy(ecs *ecs.ECS, registry *resources.Registry, scaler world.Scaler, position, velocity r2.Vec) *donburi.Entry {
+func CreateEnemy(resources pkg.ResourceService, ecs *ecs.ECS, scaler world.Scaler, position, velocity r2.Vec) *donburi.Entry {
 	entry := Enemy.Spawn(ecs, layers.Game)
 
-	sprite := registry.LoadImage(assets.Submarine)
+	sprite := resources.LoadImage(assets.Submarine)
 
 	normalizedSize, normalizedScale, localScale := scaler.GetNormalizedSizeAndScale(r2.Vec{X: float64(sprite.Data.Bounds().Size().X), Y: float64(sprite.Data.Bounds().Size().Y)})
 

@@ -6,10 +6,10 @@ import (
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
+	"github.com/ubootgame/ubootgame/pkg"
 	"github.com/ubootgame/ubootgame/pkg/camera"
 	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
 	"github.com/ubootgame/ubootgame/pkg/graphics"
-	"github.com/ubootgame/ubootgame/pkg/settings"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 	"github.com/yohamta/donburi/features/transform"
@@ -22,8 +22,9 @@ import (
 type AnimatedSpriteSystem struct {
 	ecsFramework.System
 
-	settings *settings.Settings[internal.Settings]
-	camera   *camera.Camera
+	settings pkg.SettingsService[internal.Settings]
+
+	camera *camera.Camera
 
 	updateQuery *donburi.Query
 	drawQuery   *donburi.Query
@@ -31,7 +32,7 @@ type AnimatedSpriteSystem struct {
 	spriteDrawImageOptions *ebiten.DrawImageOptions
 }
 
-func NewAnimatedSpriteSystem(settings *settings.Settings[internal.Settings]) *AnimatedSpriteSystem {
+func NewAnimatedSpriteSystem(settings pkg.SettingsService[internal.Settings]) *AnimatedSpriteSystem {
 	return &AnimatedSpriteSystem{
 		settings:               settings,
 		updateQuery:            donburi.NewQuery(filter.Contains(visuals.AnimatedSprite)),
@@ -52,7 +53,7 @@ func (system *AnimatedSpriteSystem) Update(e *ecs.ECS) {
 
 	system.updateQuery.Each(e.World, func(entry *donburi.Entry) {
 		animatedSprite := visuals.AnimatedSprite.Get(entry)
-		animatedSprite.Aseprite.Player.Update(1.0 / float32(system.settings.TargetTPS) * animatedSprite.Speed)
+		animatedSprite.Aseprite.Player.Update(1.0 / float32(system.settings.Settings().Internals.TPS) * animatedSprite.Speed)
 	})
 }
 

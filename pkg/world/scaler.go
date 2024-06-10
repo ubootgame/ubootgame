@@ -11,14 +11,14 @@ type Scaler interface {
 type HScale float64
 
 func (s HScale) GetNormalizedSizeAndScale(size r2.Vec) (r2.Vec, float64, float64) {
-	scale := WorldSizeBase / size.X
-	return r2.Vec{X: WorldSizeBase, Y: size.Y * scale}, scale, float64(s) / WorldSizeBase
+	scale := BaseSize / size.X
+	return r2.Vec{X: BaseSize, Y: size.Y * scale}, scale, float64(s) / BaseSize
 }
 
 type VScale float64
 
 func (s VScale) GetNormalizedSizeAndScale(size r2.Vec) (r2.Vec, float64, float64) {
-	scale := WorldSizeBase / size.X
+	scale := BaseSize / size.X
 	ratio := size.X / size.Y
-	return r2.Vec{X: WorldSizeBase, Y: size.Y * scale}, scale, (float64(s) * ratio) / WorldSizeBase
+	return r2.Vec{X: BaseSize, Y: size.Y * scale}, scale, (float64(s) * ratio) / BaseSize
 }

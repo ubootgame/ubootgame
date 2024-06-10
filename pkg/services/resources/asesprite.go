@@ -24,7 +24,7 @@ type Aseprite struct {
 	Player *goaseprite.Player
 }
 
-func LoadAseprite(info AsepriteInfo, registry *Registry) (AsepriteEntry, error) {
+func LoadAseprite(info AsepriteInfo, registry *Service) (AsepriteEntry, error) {
 	json, _ := assets.FS.ReadFile(info.Path)
 	file := goaseprite.Read(json)
 	player := file.CreatePlayer()

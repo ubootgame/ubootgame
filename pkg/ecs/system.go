@@ -6,6 +6,8 @@ import (
 	"github.com/yohamta/donburi/ecs"
 )
 
+type Renderer ecs.RendererWithArg[ebiten.Image]
+
 type System struct {
 	*Injector
 }
@@ -19,5 +21,3 @@ func (system *System) Update(e *ecs.ECS) {
 func (system *System) Layers() []lo.Tuple2[ecs.LayerID, Renderer] {
 	return []lo.Tuple2[ecs.LayerID, Renderer]{}
 }
-
-type Renderer ecs.RendererWithArg[ebiten.Image]

@@ -2,9 +2,9 @@ package scenes
 
 import (
 	"github.com/samber/lo"
+	"github.com/ubootgame/ubootgame/pkg"
 	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
-	"github.com/ubootgame/ubootgame/pkg/resources"
-	framework "github.com/ubootgame/ubootgame/pkg/settings"
+	"github.com/ubootgame/ubootgame/pkg/services/resources"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 )
@@ -19,9 +19,9 @@ type ECSScene[S any] struct {
 	ECS *ecs.ECS
 }
 
-func NewECSScene[S any](settings *framework.Settings[S], resources *resources.Library) *ECSScene[S] {
+func NewECSScene[S any](settings pkg.SettingsService[S], resources pkg.ResourceService, resourceLibrary *resources.Library) *ECSScene[S] {
 	return &ECSScene[S]{
-		BaseScene: NewBaseScene(settings, resources),
+		BaseScene: NewBaseScene(settings, resources, resourceLibrary),
 		ECS:       ecs.NewECS(donburi.NewWorld()),
 	}
 }

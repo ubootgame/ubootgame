@@ -6,15 +6,18 @@ import (
 	"github.com/pkg/profile"
 	"github.com/ubootgame/ubootgame/internal"
 	gameScene "github.com/ubootgame/ubootgame/internal/scenes/game"
+	"github.com/ubootgame/ubootgame/pkg"
 	"github.com/ubootgame/ubootgame/pkg/cli"
 	"github.com/ubootgame/ubootgame/pkg/game"
-	"github.com/ubootgame/ubootgame/pkg/resources"
-	"github.com/ubootgame/ubootgame/pkg/settings"
+	"github.com/ubootgame/ubootgame/pkg/services/display"
+	"github.com/ubootgame/ubootgame/pkg/services/resources"
+	"github.com/ubootgame/ubootgame/pkg/services/scenes"
+	"github.com/ubootgame/ubootgame/pkg/services/settings"
+	"gonum.org/v1/gonum/spatial/r2"
 	_ "image/png"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
-	"runtime/debug"
 )
 
 func main() {
@@ -26,22 +29,47 @@ func main() {
 		}()
 	}
 
-	s := settings.NewSettings(&internal.Settings{})
+	s := &settings.Settings[internal.Settings]{
+		Window: settings.Window{
+			Title:        "U-Boot",
+			ResizingMode: ebiten.WindowResizingModeEnabled,
+			DefaultSize:  r2.Vec{X: 1280, Y: 720},
+			Ratio:        1280.0 / 720.0,
+		},
+		Debug: settings.Debug{
+			Enabled:        true,
+			DrawGrid:       true,
+			DrawCollisions: true,
+			DrawPositions:  true,
+			FontScale:      1.0,
+		},
+		Graphics: settings.Graphics{
+			VSync: true,
+		},
+		Internals: settings.Internals{
+			TPS:       60,
+			GCPercent: 100,
+		},
+		Game: internal.Settings{},
+	}
 
-	ebiten.SetWindowTitle("U-Boot")
-	ebiten.SetWindowSize(int(s.Display.DefaultWindowSize.X), int(s.Display.DefaultWindowSize.Y))
-	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-	ebiten.SetTPS(s.TargetTPS)
-	ebiten.SetVsyncEnabled(true)
-
-	debug.SetGCPercent(100)
+	settingsService := settings.NewService(s)
 
 	audioContext := audio.NewContext(44100)
-	resourceRegistry := resources.NewRegistry(audioContext)
+	resourceService := resources.NewService(audioContext)
 
-	g := game.NewGame(s, resourceRegistry)
+	displayService := display.NewService[internal.Settings](settingsService)
 
-	if err := g.LoadScene(gameScene.NewScene(s, g.DisplayInfo())); err != nil {
+	sceneService := scenes.NewService(scenes.SceneMap{
+		"game": func() pkg.Scene {
+			return gameScene.NewScene(settingsService, displayService, resourceService)
+		},
+	})
+
+	g := game.NewGame[internal.Settings](settingsService, sceneService, displayService)
+	g.ApplySettings()
+
+	if err := g.LoadScene("game"); err != nil {
 		panic(err)
 	}
 

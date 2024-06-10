@@ -31,7 +31,7 @@ func CreateBullet(ecs *ecs.ECS, from, to r2.Vec) *donburi.Entry {
 		LocalScale:    math.NewVec2(1, 1),
 		LocalRotation: 0,
 	})
-	geometry.Velocity.SetValue(entry, r2.Scale(world.WorldSizeBase, velocity))
+	geometry.Velocity.SetValue(entry, r2.Scale(world.BaseSize, velocity))
 
 	return entry
 }

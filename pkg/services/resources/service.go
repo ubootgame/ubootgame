@@ -24,7 +24,7 @@ type Library struct {
 	Aseprites  map[AsepriteID]AsepriteInfo
 }
 
-type Registry struct {
+type Service struct {
 	l              *resource.Loader
 	highestImageID ImageID
 	highestAudioID AudioID
@@ -34,10 +34,10 @@ type Registry struct {
 	aseprites      map[AsepriteID]AsepriteEntry
 }
 
-func NewRegistry(audioContext *audio.Context) *Registry {
+func NewService(audioContext *audio.Context) *Service {
 	l := resource.NewLoader(audioContext)
 
-	registry := Registry{l: l,
+	registry := Service{l: l,
 		tilesheets: map[TilesheetID]TilesheetEntry{},
 		aseprites:  map[AsepriteID]AsepriteEntry{},
 	}
@@ -47,79 +47,79 @@ func NewRegistry(audioContext *audio.Context) *Registry {
 	return &registry
 }
 
-func (registry *Registry) openAsset(path string) io.ReadCloser {
+func (service *Service) openAsset(path string) io.ReadCloser {
 	f := lo.Must(assets.FS.Open(path))
 	reader := bufio.NewReader(f)
 
 	return io.NopCloser(reader)
 }
 
-func (registry *Registry) RegisterResources(library *Library) error {
+func (service *Service) RegisterResources(library *Library) error {
 	if library.Images != nil {
 		for key, info := range library.Images {
-			registry.RegisterImage(key, info)
+			service.RegisterImage(key, info)
 		}
 	}
 	if library.Audio != nil {
 		for key, info := range library.Audio {
-			registry.RegisterAudio(key, info)
+			service.RegisterAudio(key, info)
 		}
 	}
 	if library.Tilesheets != nil {
 		for key, info := range library.Tilesheets {
-			tileSheet, err := LoadTileSheet(info, registry)
+			tileSheet, err := LoadTileSheet(info, service)
 			if err != nil {
 				return err
 			}
-			registry.tilesheets[key] = tileSheet
+			service.tilesheets[key] = tileSheet
 		}
 	}
 	if library.Aseprites != nil {
 		for key, info := range library.Aseprites {
-			aseprite, err := LoadAseprite(info, registry)
+			aseprite, err := LoadAseprite(info, service)
 			if err != nil {
 				return err
 			}
-			registry.aseprites[key] = aseprite
+			service.aseprites[key] = aseprite
 		}
 	}
 	return nil
 }
 
-func (registry *Registry) NextImageID() ImageID {
-	return ImageID(int(registry.highestImageID) + 1)
+func (service *Service) NextImageID() ImageID {
+	return ImageID(int(service.highestImageID) + 1)
 }
 
-func (registry *Registry) NextAudioID() AudioID {
-	return AudioID(int(registry.highestAudioID) + 1)
+func (service *Service) NextAudioID() AudioID {
+	return AudioID(int(service.highestAudioID) + 1)
 }
 
-func (registry *Registry) RegisterImage(id ImageID, info ImageInfo) {
-	if int(id) > int(registry.highestImageID) {
-		registry.highestImageID = id
+func (service *Service) RegisterImage(id ImageID, info ImageInfo) {
+	if int(id) > int(service.highestImageID) {
+		service.highestImageID = id
 	}
-	registry.l.ImageRegistry.Set(id, info)
+	service.l.ImageRegistry.Set(id, info)
 }
 
-func (registry *Registry) RegisterAudio(id AudioID, info AudioInfo) {
-	if int(id) > int(registry.highestAudioID) {
-		registry.highestAudioID = id
+func (service *Service) RegisterAudio(id AudioID, info AudioInfo) {
+	if int(id) > int(service.highestAudioID) {
+		service.highestAudioID = id
 	}
-	registry.l.AudioRegistry.Set(id, info)
+	service.l.AudioRegistry.Set(id, info)
 }
 
-func (registry *Registry) LoadImage(id ImageID) resource.Image {
-	return registry.l.LoadImage(id)
+func (service *Service) LoadImage(id ImageID) resource.Image {
+	return service.l.LoadImage(id)
 }
 
-func (registry *Registry) LoadAudio(id AudioID) resource.Audio {
-	return registry.l.LoadAudio(id)
+func (service *Service) LoadAudio(id AudioID) resource.Audio {
+	return service.l.LoadAudio(id)
 }
 
-func (registry *Registry) LoadTile(id TilesheetID, name string) resource.Image {
-	tileSheet := registry.tilesheets[id]
+func (service *Service) LoadTile(id TilesheetID, name string) resource.Image {
+	tileSheet := service.tilesheets[id]
 	tile := tileSheet.Tiles[name]
-	img := registry.l.LoadImage(tileSheet.ImageID)
+	img := service.l.LoadImage(tileSheet.ImageID)
 	tileImage := img.Data.SubImage(image.Rect(tile.X, tile.Y, tile.X+tile.Width, tile.Y+tile.Height)).(*ebiten.Image)
 
 	return resource.Image{
@@ -130,9 +130,9 @@ func (registry *Registry) LoadTile(id TilesheetID, name string) resource.Image {
 	}
 }
 
-func (registry *Registry) LoadAseprite(id AsepriteID) Aseprite {
-	asepriteEntry := registry.aseprites[id]
-	img := registry.l.LoadImage(asepriteEntry.ImageID)
+func (service *Service) LoadAseprite(id AsepriteID) Aseprite {
+	asepriteEntry := service.aseprites[id]
+	img := service.l.LoadImage(asepriteEntry.ImageID)
 
 	return Aseprite{
 		ID:     id,
@@ -141,11 +141,11 @@ func (registry *Registry) LoadAseprite(id AsepriteID) Aseprite {
 	}
 }
 
-func (registry *Registry) Preload() {
-	for _, id := range registry.images {
-		registry.l.LoadImage(id)
+func (service *Service) Preload() {
+	for _, id := range service.images {
+		service.l.LoadImage(id)
 	}
-	for _, id := range registry.audio {
-		registry.l.LoadAudio(id)
+	for _, id := range service.audio {
+		service.l.LoadAudio(id)
 	}
 }

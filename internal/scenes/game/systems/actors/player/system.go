@@ -6,9 +6,9 @@ import (
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/weapons"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/tags"
+	"github.com/ubootgame/ubootgame/pkg"
 	ecsFramework "github.com/ubootgame/ubootgame/pkg/ecs"
 	"github.com/ubootgame/ubootgame/pkg/input"
-	"github.com/ubootgame/ubootgame/pkg/settings"
 	"github.com/ubootgame/ubootgame/pkg/world"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -26,9 +26,10 @@ const (
 type System struct {
 	ecsFramework.System
 
-	ecs      *ecs.ECS
-	settings *settings.Settings[internal.Settings]
-	cursor   *input.Cursor
+	settings pkg.SettingsService[internal.Settings]
+
+	ecs    *ecs.ECS
+	cursor *input.Cursor
 
 	transform *transform.TransformData
 	velocity  *r2.Vec
@@ -37,7 +38,7 @@ type System struct {
 	fireTick         uint64
 }
 
-func NewPlayerSystem(ecs *ecs.ECS, settings *settings.Settings[internal.Settings], cursor *input.Cursor) *System {
+func NewPlayerSystem(settings pkg.SettingsService[internal.Settings], ecs *ecs.ECS, cursor *input.Cursor) *System {
 	system := &System{ecs: ecs, settings: settings, cursor: cursor}
 	system.Injector = ecsFramework.NewInjector([]ecsFramework.Injection{
 		ecsFramework.WithTag(actors.PlayerTag, []ecsFramework.Injection{
@@ -59,7 +60,7 @@ func (system *System) Update(e *ecs.ECS) {
 	if system.moving {
 		system.moving = false
 	} else {
-		system.velocity.X *= 1 - friction/world.WorldSizeBase
+		system.velocity.X *= 1 - friction/world.BaseSize
 	}
 
 	if system.shooting {
@@ -71,7 +72,7 @@ func (system *System) Update(e *ecs.ECS) {
 
 func (system *System) MoveLeft(_ donburi.World, _ types.Nil) {
 	if system.velocity.X > 0 {
-		system.velocity.X *= 1 - friction/world.WorldSizeBase
+		system.velocity.X *= 1 - friction/world.BaseSize
 	}
 	system.velocity.X -= acceleration
 	system.velocity.X = max(system.velocity.X, -maxSpeed)
@@ -81,7 +82,7 @@ func (system *System) MoveLeft(_ donburi.World, _ types.Nil) {
 
 func (system *System) MoveRight(_ donburi.World, _ types.Nil) {
 	if system.velocity.X < 0 {
-		system.velocity.X *= 1 - friction/world.WorldSizeBase
+		system.velocity.X *= 1 - friction/world.BaseSize
 	}
 	system.velocity.X += acceleration
 	system.velocity.X = min(system.velocity.X, maxSpeed)
@@ -90,7 +91,7 @@ func (system *System) MoveRight(_ donburi.World, _ types.Nil) {
 }
 
 func (system *System) Shoot(w donburi.World, _ types.Nil) {
-	if system.fireTick%uint64(system.settings.TargetTPS/8) == 0 {
+	if system.fireTick%uint64(system.settings.Settings().Internals.TPS/8) == 0 {
 		player, _ := actors.PlayerTag.First(w)
 		playerWorld := transform.WorldPosition(player)
 		bullet := weapons.CreateBullet(system.ecs, r2.Vec(playerWorld), system.cursor.WorldPosition)
