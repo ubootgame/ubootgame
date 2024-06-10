@@ -29,8 +29,9 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: 'go.mod'
-      - run: env GOOS=js GOARCH=wasm go build -o dist/uboot.wasm cmd/main.go
+          go-version-file: 'game/go.mod'
+          cache-dependency-path: 'game/go.sum'
+      - run: cd game && env GOOS=js GOARCH=wasm go build -o ../dist/uboot.wasm
       - run: cp -r static/. dist
       - name: Setup Pages
         uses: actions/configure-pages@v4
