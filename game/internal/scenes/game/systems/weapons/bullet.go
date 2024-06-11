@@ -1,9 +1,7 @@
 package weapons
 
 import (
-	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/samber/lo"
 	"github.com/solarlune/resolv"
 	ecsFramework "github.com/ubootgame/ubootgame/framework/game/ecs"
@@ -40,7 +38,6 @@ func NewBulletSystem(camera *camera.Camera) *BulletSystem {
 func (system *BulletSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
 	return []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer]{
 		{A: layers.Game, B: system.Draw},
-		{A: layers.Debug, B: system.DrawDebug},
 	}
 }
 
@@ -76,14 +73,4 @@ func (system *BulletSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 
 		screen.DrawImage(system.image, system.drawImageOptions)
 	})
-}
-
-func (system *BulletSystem) DrawDebug(e *ecs.ECS, _ *ebiten.Image) {
-	if inpututil.IsKeyJustPressed(ebiten.KeyF12) {
-		donburi.NewQuery(filter.Contains(weapons.BulletTag)).Each(e.World, func(entry *donburi.Entry) {
-			t := transform.Transform.Get(entry)
-			velocity := geometry.Velocity.Get(entry)
-			fmt.Printf("%v %v\n", t, velocity)
-		})
-	}
 }
