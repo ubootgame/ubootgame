@@ -31,8 +31,7 @@ type System struct {
 	ecs    *ecs.ECS
 	cursor *input.Cursor
 
-	transform *transform.TransformData
-	velocity  *r2.Vec
+	player *donburi.Entry
 
 	moving, shooting bool
 	fireTick         uint64
@@ -40,12 +39,6 @@ type System struct {
 
 func NewPlayerSystem(settings framework.SettingsService[internal.Settings], ecs *ecs.ECS, cursor *input.Cursor) *System {
 	system := &System{ecs: ecs, settings: settings, cursor: cursor}
-	system.Injector = ecsFramework.NewInjector([]ecsFramework.Injection{
-		ecsFramework.WithTag(actors.PlayerTag, []ecsFramework.Injection{
-			ecsFramework.Component(&system.velocity, geometry.Velocity),
-			ecsFramework.Component(&system.transform, transform.Transform),
-		}),
-	})
 
 	MoveLeftEvent.Subscribe(ecs.World, system.MoveLeft)
 	MoveRightEvent.Subscribe(ecs.World, system.MoveRight)
@@ -57,10 +50,18 @@ func NewPlayerSystem(settings framework.SettingsService[internal.Settings], ecs 
 func (system *System) Update(e *ecs.ECS) {
 	system.System.Update(e)
 
+	if player, found := actors.PlayerTag.First(e.World); found {
+		system.player = player
+	} else {
+		return
+	}
+
+	velocity := geometry.Velocity.Get(system.player)
+
 	if system.moving {
 		system.moving = false
 	} else {
-		system.velocity.X *= 1 - friction/world.BaseSize
+		velocity.X *= 1 - friction/world.BaseSize
 	}
 
 	if system.shooting {
@@ -71,21 +72,25 @@ func (system *System) Update(e *ecs.ECS) {
 }
 
 func (system *System) MoveLeft(_ donburi.World, _ types.Nil) {
-	if system.velocity.X > 0 {
-		system.velocity.X *= 1 - friction/world.BaseSize
+	velocity := geometry.Velocity.Get(system.player)
+
+	if velocity.X > 0 {
+		velocity.X *= 1 - friction/world.BaseSize
 	}
-	system.velocity.X -= acceleration
-	system.velocity.X = max(system.velocity.X, -maxSpeed)
+	velocity.X -= acceleration
+	velocity.X = max(velocity.X, -maxSpeed)
 
 	system.moving = true
 }
 
 func (system *System) MoveRight(_ donburi.World, _ types.Nil) {
-	if system.velocity.X < 0 {
-		system.velocity.X *= 1 - friction/world.BaseSize
+	velocity := geometry.Velocity.Get(system.player)
+
+	if velocity.X < 0 {
+		velocity.X *= 1 - friction/world.BaseSize
 	}
-	system.velocity.X += acceleration
-	system.velocity.X = min(system.velocity.X, maxSpeed)
+	velocity.X += acceleration
+	velocity.X = min(velocity.X, maxSpeed)
 
 	system.moving = true
 }

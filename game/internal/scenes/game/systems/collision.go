@@ -30,24 +30,16 @@ type CollisionSystem struct {
 	camera *camera.Camera
 	cursor *input.Cursor
 
-	playerTransform *transform.TransformData
-
 	query *donburi.Query
 }
 
 func NewCollisionSystem(settings framework.SettingsService[internal.Settings], cursor *input.Cursor, camera *camera.Camera) *CollisionSystem {
-	system := &CollisionSystem{
+	return &CollisionSystem{
 		settings: settings,
 		cursor:   cursor,
 		camera:   camera,
 		query:    donburi.NewQuery(filter.Contains(transform.Transform, geometry.Bounds, geometry.Scale)),
 	}
-	system.Injector = ecsFramework.NewInjector([]ecsFramework.Injection{
-		ecsFramework.WithTag(actors.PlayerTag, []ecsFramework.Injection{
-			ecsFramework.Component(&system.playerTransform, transform.Transform),
-		}),
-	})
-	return system
 }
 
 func (system *CollisionSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {

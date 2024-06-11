@@ -16,11 +16,13 @@ type Game[S any] struct {
 }
 
 func NewGame[S any](settings framework.SettingsService[S], scenes framework.SceneService, display framework.DisplayService) *Game[S] {
-	return &Game[S]{
+	game := &Game[S]{
 		settings: settings,
 		scenes:   scenes,
 		display:  display,
 	}
+	game.ApplySettings()
+	return game
 }
 
 func (g *Game[S]) ApplySettings() {

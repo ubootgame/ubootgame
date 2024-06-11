@@ -8,14 +8,9 @@ import (
 
 type Renderer ecs.RendererWithArg[ebiten.Image]
 
-type System struct {
-	*Injector
-}
+type System struct{}
 
 func (system *System) Update(e *ecs.ECS) {
-	if system.Injector != nil {
-		system.Inject(e.World)
-	}
 }
 
 func (system *System) Layers() []lo.Tuple2[ecs.LayerID, Renderer] {
