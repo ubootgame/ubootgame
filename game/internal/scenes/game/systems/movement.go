@@ -1,8 +1,9 @@
 package systems
 
 import (
+	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/framework"
-	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/framework/game/ecs"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/yohamta/donburi"
@@ -12,8 +13,6 @@ import (
 )
 
 type MovementSystem struct {
-	ecsFramework.System
-
 	settings framework.SettingsService[internal.Settings]
 
 	query *donburi.Query
@@ -27,9 +26,11 @@ func NewMovementSystem(settings framework.SettingsService[internal.Settings]) *M
 	return system
 }
 
-func (system *MovementSystem) Update(e *ecs.ECS) {
-	system.System.Update(e)
+func (system *MovementSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
+	return []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer]{}
+}
 
+func (system *MovementSystem) Update(e *ecs.ECS) {
 	system.query.Each(e.World, func(entry *donburi.Entry) {
 		velocity := geometry.Velocity.Get(entry)
 		t := transform.Transform.Get(entry)

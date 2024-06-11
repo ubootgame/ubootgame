@@ -7,10 +7,10 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/framework"
-	"github.com/ubootgame/ubootgame/framework/camera"
-	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
-	"github.com/ubootgame/ubootgame/framework/graphics"
-	"github.com/ubootgame/ubootgame/framework/input"
+	ecsFramework "github.com/ubootgame/ubootgame/framework/game/ecs"
+	"github.com/ubootgame/ubootgame/framework/game/input"
+	"github.com/ubootgame/ubootgame/framework/graphics/camera"
+	"github.com/ubootgame/ubootgame/framework/graphics/d2d"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/yohamta/donburi"
@@ -21,8 +21,6 @@ import (
 )
 
 type System struct {
-	ecsFramework.System
-
 	settings framework.SettingsService[internal.Settings]
 
 	cursor *input.Cursor
@@ -35,7 +33,7 @@ type System struct {
 	debugTextOptions *text.DrawOptions
 }
 
-func NewDebugSystem(settings framework.SettingsService[internal.Settings], e *ecs.ECS, cursor *input.Cursor, camera *camera.Camera) *System {
+func NewSystem(settings framework.SettingsService[internal.Settings], e *ecs.ECS, cursor *input.Cursor, camera *camera.Camera) *System {
 	system := &System{
 		settings:         settings,
 		cursor:           cursor,
@@ -65,8 +63,6 @@ func (system *System) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
 }
 
 func (system *System) Update(e *ecs.ECS) {
-	system.System.Update(e)
-
 	if !system.settings.Settings().Debug.Enabled {
 		return
 	}
@@ -147,8 +143,8 @@ NumGC: %d`,
 		system.camera.Position.X, system.camera.Position.Y,
 		system.camera.Zoom,
 		system.camera.Rotation,
-		graphics.FormatBytes(ms.Alloc), graphics.FormatBytes(ms.TotalAlloc), graphics.FormatBytes(ms.Sys),
-		graphics.FormatBytes(ms.NextGC), ms.NumGC)
+		d2d.FormatBytes(ms.Alloc), d2d.FormatBytes(ms.TotalAlloc), d2d.FormatBytes(ms.Sys),
+		d2d.FormatBytes(ms.NextGC), ms.NumGC)
 
 	return system.debugTextBuilder.String()
 }

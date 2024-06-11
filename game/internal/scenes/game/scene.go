@@ -3,10 +3,10 @@ package game
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/framework"
-	"github.com/ubootgame/ubootgame/framework/camera"
-	"github.com/ubootgame/ubootgame/framework/input"
-	"github.com/ubootgame/ubootgame/framework/services/scenes"
-	"github.com/ubootgame/ubootgame/framework/world"
+	"github.com/ubootgame/ubootgame/framework/game/ecs"
+	"github.com/ubootgame/ubootgame/framework/game/input"
+	"github.com/ubootgame/ubootgame/framework/game/world"
+	"github.com/ubootgame/ubootgame/framework/graphics/camera"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
@@ -29,7 +29,7 @@ import (
 )
 
 type Scene struct {
-	*scenes.ECSScene[internal.Settings]
+	*ecs.Scene[internal.Settings]
 
 	display framework.DisplayService
 
@@ -39,23 +39,23 @@ type Scene struct {
 
 func NewScene(settings framework.SettingsService[internal.Settings], display framework.DisplayService, resources framework.ResourceService) *Scene {
 	return &Scene{
-		ECSScene: scenes.NewECSScene(settings, resources, assets.Assets),
-		display:  display,
-		camera:   camera.NewCamera(display),
-		cursor:   input.NewCursor(),
+		Scene:   ecs.NewECSScene(settings, resources, assets.Assets),
+		display: display,
+		camera:  camera.NewCamera(display),
+		cursor:  input.NewCursor(),
 	}
 }
 
 func (scene *Scene) Load() error {
-	if err := scene.ECSScene.Load(); err != nil {
+	if err := scene.Scene.Load(); err != nil {
 		return err
 	}
 
 	// Systems
-	scene.RegisterSystem(debug.NewDebugSystem(scene.Settings, scene.ECS, scene.cursor, scene.camera))
+	scene.RegisterSystem(debug.NewSystem(scene.Settings, scene.ECS, scene.cursor, scene.camera))
 	scene.RegisterSystem(game_systems.NewInputSystem(scene.cursor, scene.camera))
-	scene.RegisterSystem(cameraSystem.NewCameraSystem(scene.Settings, scene.ECS, scene.camera))
-	scene.RegisterSystem(player.NewPlayerSystem(scene.Settings, scene.ECS, scene.cursor))
+	scene.RegisterSystem(cameraSystem.NewSystem(scene.Settings, scene.ECS, scene.camera))
+	scene.RegisterSystem(player.NewSystem(scene.Settings, scene.ECS, scene.cursor))
 	scene.RegisterSystem(weapons.NewBulletSystem(scene.camera))
 	scene.RegisterSystem(systems.NewMovementSystem(scene.Settings))
 	scene.RegisterSystem(systems.NewCollisionSystem(scene.Settings, scene.cursor, scene.camera))
@@ -97,7 +97,7 @@ func (scene *Scene) Load() error {
 }
 
 func (scene *Scene) Update() error {
-	if err := scene.ECSScene.Update(); err != nil {
+	if err := scene.Scene.Update(); err != nil {
 		return err
 	}
 

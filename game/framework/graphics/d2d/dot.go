@@ -1,4 +1,4 @@
-package graphics
+package d2d
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"

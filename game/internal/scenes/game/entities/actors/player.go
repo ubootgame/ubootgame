@@ -2,8 +2,8 @@ package actors
 
 import (
 	"github.com/ubootgame/ubootgame/framework"
-	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
-	"github.com/ubootgame/ubootgame/framework/world"
+	ecsFramework "github.com/ubootgame/ubootgame/framework/game/ecs"
+	"github.com/ubootgame/ubootgame/framework/game/world"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"

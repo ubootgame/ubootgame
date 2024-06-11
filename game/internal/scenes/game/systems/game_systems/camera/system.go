@@ -1,9 +1,10 @@
 package camera
 
 import (
+	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/framework"
-	"github.com/ubootgame/ubootgame/framework/camera"
-	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/framework/game/ecs"
+	"github.com/ubootgame/ubootgame/framework/graphics/camera"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -16,13 +17,11 @@ const rotationSpeed = 2                        // degrees
 const minZoom, maxZoom = 0.5, 2.0
 
 type System struct {
-	ecsFramework.System
-
 	settings framework.SettingsService[internal.Settings]
 	camera   *camera.Camera
 }
 
-func NewCameraSystem(settings framework.SettingsService[internal.Settings], e *ecs.ECS, camera *camera.Camera) *System {
+func NewSystem(settings framework.SettingsService[internal.Settings], e *ecs.ECS, camera *camera.Camera) *System {
 	system := &System{settings: settings, camera: camera}
 
 	PanLeftEvent.Subscribe(e.World, system.PanLeft)
@@ -37,9 +36,11 @@ func NewCameraSystem(settings framework.SettingsService[internal.Settings], e *e
 	return system
 }
 
-func (system *System) Update(e *ecs.ECS) {
-	system.System.Update(e)
+func (system *System) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
+	return []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer]{}
+}
 
+func (system *System) Update(e *ecs.ECS) {
 	system.camera.UpdateCameraMatrix()
 }
 

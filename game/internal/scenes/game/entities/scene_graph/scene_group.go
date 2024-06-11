@@ -1,7 +1,7 @@
 package scene_graph
 
 import (
-	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/framework/game/ecs"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"

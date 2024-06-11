@@ -6,8 +6,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/samber/lo"
 	"github.com/solarlune/resolv"
-	"github.com/ubootgame/ubootgame/framework/camera"
-	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/framework/game/ecs"
+	"github.com/ubootgame/ubootgame/framework/graphics/camera"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/weapons"
@@ -20,8 +20,6 @@ import (
 )
 
 type BulletSystem struct {
-	ecsFramework.System
-
 	camera *camera.Camera
 
 	query *donburi.Query
@@ -47,8 +45,6 @@ func (system *BulletSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Rende
 }
 
 func (system *BulletSystem) Update(e *ecs.ECS) {
-	system.System.Update(e)
-
 	weapons.BulletTag.Each(e.World, func(bulletEntry *donburi.Entry) {
 		worldPosition := transform.WorldPosition(bulletEntry)
 

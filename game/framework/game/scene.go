@@ -1,4 +1,4 @@
-package scenes
+package game
 
 import (
 	"errors"

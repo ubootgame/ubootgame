@@ -4,7 +4,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/framework"
-	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/framework/game/ecs"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
@@ -12,8 +12,6 @@ import (
 )
 
 type WaterSystem struct {
-	ecsFramework.System
-
 	settings framework.SettingsService[internal.Settings]
 
 	sprite *visuals.SpriteData
@@ -30,7 +28,9 @@ func (system *WaterSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Render
 	}
 }
 
-func (system *WaterSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
+func (system *WaterSystem) Update(_ *ecs.ECS) {}
+
+func (system *WaterSystem) Draw(_ *ecs.ECS, _ *ebiten.Image) {
 	//sw, sh := float64(screen.Bounds().Dx()), float64(screen.Bounds().Dy())
 	//w, h := float64(system.sprite.Image.Bounds().Size().X), float64(system.sprite.Image.Bounds().Dy())
 	//y := sh / 2

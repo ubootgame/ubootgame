@@ -6,9 +6,9 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/framework"
-	"github.com/ubootgame/ubootgame/framework/camera"
-	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
-	"github.com/ubootgame/ubootgame/framework/graphics"
+	ecsFramework "github.com/ubootgame/ubootgame/framework/game/ecs"
+	"github.com/ubootgame/ubootgame/framework/graphics/camera"
+	"github.com/ubootgame/ubootgame/framework/graphics/d2d"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/visuals"
@@ -23,8 +23,6 @@ import (
 )
 
 type SpriteSystem struct {
-	ecsFramework.System
-
 	settings framework.SettingsService[internal.Settings]
 
 	camera *camera.Camera
@@ -61,6 +59,8 @@ func (system *SpriteSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Rende
 		{A: layers.Debug, B: system.DrawDebug},
 	}
 }
+
+func (system *SpriteSystem) Update(_ *ecs.ECS) {}
 
 func (system *SpriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	system.query.Each(e.World, func(entry *donburi.Entry) {
@@ -115,7 +115,7 @@ func (system *SpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 
 		// Center dot
 		spriteCenter := system.camera.WorldToScreenPosition(r2.Vec(worldPosition))
-		graphics.Dot(screen, spriteCenter, colornames.Yellow)
+		d2d.Dot(screen, spriteCenter, colornames.Yellow)
 
 		// Debug text
 		debugText := fmt.Sprintf("Transform: %.3f, %.3f\nVelocity: %.3f, %.3f",

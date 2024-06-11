@@ -1,8 +1,8 @@
 package weapons
 
 import (
-	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
-	"github.com/ubootgame/ubootgame/framework/world"
+	ecsFramework "github.com/ubootgame/ubootgame/framework/game/ecs"
+	"github.com/ubootgame/ubootgame/framework/game/world"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
 	"github.com/yohamta/donburi"

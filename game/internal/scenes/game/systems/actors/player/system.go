@@ -1,10 +1,11 @@
 package player
 
 import (
+	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/framework"
-	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
-	"github.com/ubootgame/ubootgame/framework/input"
-	"github.com/ubootgame/ubootgame/framework/world"
+	ecsFramework "github.com/ubootgame/ubootgame/framework/game/ecs"
+	"github.com/ubootgame/ubootgame/framework/game/input"
+	"github.com/ubootgame/ubootgame/framework/game/world"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
@@ -24,8 +25,6 @@ const (
 )
 
 type System struct {
-	ecsFramework.System
-
 	settings framework.SettingsService[internal.Settings]
 
 	ecs    *ecs.ECS
@@ -37,7 +36,7 @@ type System struct {
 	fireTick         uint64
 }
 
-func NewPlayerSystem(settings framework.SettingsService[internal.Settings], ecs *ecs.ECS, cursor *input.Cursor) *System {
+func NewSystem(settings framework.SettingsService[internal.Settings], ecs *ecs.ECS, cursor *input.Cursor) *System {
 	system := &System{ecs: ecs, settings: settings, cursor: cursor}
 
 	MoveLeftEvent.Subscribe(ecs.World, system.MoveLeft)
@@ -47,9 +46,11 @@ func NewPlayerSystem(settings framework.SettingsService[internal.Settings], ecs 
 	return system
 }
 
-func (system *System) Update(e *ecs.ECS) {
-	system.System.Update(e)
+func (system *System) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
+	return []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer]{}
+}
 
+func (system *System) Update(e *ecs.ECS) {
 	if player, found := actors.PlayerTag.First(e.World); found {
 		system.player = player
 	} else {

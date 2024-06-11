@@ -6,10 +6,10 @@ import (
 	"github.com/samber/lo"
 	"github.com/solarlune/resolv"
 	"github.com/ubootgame/ubootgame/framework"
-	"github.com/ubootgame/ubootgame/framework/camera"
-	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
-	"github.com/ubootgame/ubootgame/framework/graphics"
-	"github.com/ubootgame/ubootgame/framework/input"
+	ecsFramework "github.com/ubootgame/ubootgame/framework/game/ecs"
+	"github.com/ubootgame/ubootgame/framework/game/input"
+	"github.com/ubootgame/ubootgame/framework/graphics/camera"
+	"github.com/ubootgame/ubootgame/framework/graphics/d2d"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/components/geometry"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
@@ -23,8 +23,6 @@ import (
 )
 
 type CollisionSystem struct {
-	ecsFramework.System
-
 	settings framework.SettingsService[internal.Settings]
 
 	camera *camera.Camera
@@ -49,8 +47,6 @@ func (system *CollisionSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Re
 }
 
 func (system *CollisionSystem) Update(e *ecs.ECS) {
-	system.System.Update(e)
-
 	system.query.Each(e.World, func(entry *donburi.Entry) {
 		bounds := geometry.Bounds.Get(entry)
 		scale := geometry.Scale.Get(entry)
@@ -98,11 +94,11 @@ func (system *CollisionSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 
 	vector.StrokeLine(screen, float32(lineStart.X), float32(lineStart.Y), float32(lineEnd.X), float32(lineEnd.Y), 2, lineColor, true)
 
-	graphics.Dot(screen, playerScreen, lineColor)
+	d2d.Dot(screen, playerScreen, lineColor)
 
 	for _, point := range intersectionPoints {
 		pointScreen := system.camera.WorldToScreenPosition(r2.Vec{X: point.X, Y: point.Y})
-		graphics.Dot(screen, pointScreen, color.RGBA{G: 255, A: 255})
+		d2d.Dot(screen, pointScreen, color.RGBA{G: 255, A: 255})
 	}
 }
 

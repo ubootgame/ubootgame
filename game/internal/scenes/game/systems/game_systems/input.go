@@ -3,9 +3,10 @@ package game_systems
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
-	"github.com/ubootgame/ubootgame/framework/camera"
-	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
-	"github.com/ubootgame/ubootgame/framework/input"
+	"github.com/samber/lo"
+	ecsFramework "github.com/ubootgame/ubootgame/framework/game/ecs"
+	"github.com/ubootgame/ubootgame/framework/game/input"
+	"github.com/ubootgame/ubootgame/framework/graphics/camera"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/actors/player"
 	gameSystem "github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_systems/camera"
 	debugSystem "github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_systems/debug"
@@ -15,14 +16,16 @@ import (
 )
 
 type InputSystem struct {
-	ecsFramework.System
-
 	cursor *input.Cursor
 	camera *camera.Camera
 }
 
 func NewInputSystem(cursor *input.Cursor, camera *camera.Camera) *InputSystem {
 	return &InputSystem{cursor: cursor, camera: camera}
+}
+
+func (system *InputSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
+	return []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer]{}
 }
 
 func (system *InputSystem) Update(e *ecs.ECS) {

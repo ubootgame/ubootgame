@@ -3,7 +3,7 @@ package camera
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/framework"
-	"github.com/ubootgame/ubootgame/framework/world"
+	"github.com/ubootgame/ubootgame/framework/game/world"
 	"gonum.org/v1/gonum/spatial/r2"
 	"math"
 )

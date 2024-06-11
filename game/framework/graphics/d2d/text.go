@@ -1,4 +1,4 @@
-package graphics
+package d2d
 
 import (
 	"fmt"
