@@ -1,37 +1,47 @@
 package display
 
 import (
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/framework"
+	"gonum.org/v1/gonum/spatial/r2"
 )
 
 type Service[S any] struct {
 	settings framework.SettingsService[S]
 
-	virtualResolution virtualResolution
-}
-
-type virtualResolution struct {
-	x, y float64
+	windowSize, virtualResolution r2.Vec
 }
 
 func NewService[S any](settings framework.SettingsService[S]) *Service[S] {
-	return &Service[S]{settings: settings}
+	service := &Service[S]{settings: settings}
+	service.UpdateVirtualResolution(settings.Settings().Window.DefaultSize, ebiten.Monitor().DeviceScaleFactor())
+	return service
 }
 
-func (service *Service[S]) VirtualResolution() (float64, float64) {
-	return service.virtualResolution.x, service.virtualResolution.y
+func (service *Service[S]) WindowSize() r2.Vec {
+	return service.windowSize
 }
 
-func (service *Service[S]) UpdateVirtualResolution(width, height int, scaleFactor float64) (float64, float64) {
-	outerRatio := float64(width) / float64(height)
+func (service *Service[S]) VirtualResolution() r2.Vec {
+	return service.virtualResolution
+}
+
+func (service *Service[S]) UpdateVirtualResolution(windowSize r2.Vec, scaleFactor float64) r2.Vec {
+	outerRatio := windowSize.X / windowSize.Y
+
+	service.windowSize = windowSize
 
 	if outerRatio <= service.settings.Settings().Window.Ratio {
-		service.virtualResolution.x = float64(width) * scaleFactor
-		service.virtualResolution.y = service.virtualResolution.x / service.settings.Settings().Window.Ratio
+		service.virtualResolution.X = windowSize.X * scaleFactor
+		service.virtualResolution.Y = service.virtualResolution.X / service.settings.Settings().Window.Ratio
 	} else {
-		service.virtualResolution.y = float64(height) * scaleFactor
-		service.virtualResolution.x = service.virtualResolution.y * service.settings.Settings().Window.Ratio
+		service.virtualResolution.Y = windowSize.Y * scaleFactor
+		service.virtualResolution.X = service.virtualResolution.Y * service.settings.Settings().Window.Ratio
 	}
 
-	return service.virtualResolution.x, service.virtualResolution.y
+	return service.virtualResolution
+}
+
+func (service *Service[S]) WorldToScreen(v r2.Vec) (float64, float64) {
+	return v.X * service.virtualResolution.X, v.Y * service.virtualResolution.X
 }

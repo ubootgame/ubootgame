@@ -66,7 +66,7 @@ func main() {
 		},
 	})
 
-	g := game.NewGame(settingsService, sceneService, displayService)
+	g := game.NewGame[internal.Settings](settingsService, sceneService, displayService)
 
 	if err := g.LoadScene("game"); err != nil {
 		panic(err)

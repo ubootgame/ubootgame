@@ -4,11 +4,12 @@ go 1.22.4
 
 require (
 	github.com/hajimehoshi/ebiten/v2 v2.7.4
+	github.com/jakecoffman/cp v1.2.1
 	github.com/pkg/profile v1.7.0
 	github.com/quasilyte/ebitengine-resource v0.5.0
 	github.com/samber/lo v1.39.0
+	github.com/setanarut/kamera/v2 v2.4.1
 	github.com/solarlune/goaseprite v0.0.0-20231009060539-335986f05db8
-	github.com/solarlune/resolv v0.7.0
 	github.com/yohamta/donburi v1.4.4
 	golang.org/x/image v0.17.0
 	gonum.org/v1/gonum v0.15.0
@@ -25,6 +26,7 @@ require (
 	github.com/jezek/xgb v1.1.1 // indirect
 	github.com/jfreymuth/oggvorbis v1.0.5 // indirect
 	github.com/jfreymuth/vorbis v1.0.2 // indirect
+	github.com/ojrac/opensimplex-go v1.0.2 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
 	github.com/tidwall/gjson v1.17.1 // indirect
 	github.com/tidwall/match v1.1.1 // indirect

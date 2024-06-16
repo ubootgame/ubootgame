@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/ubootgame/ubootgame/framework"
+	"gonum.org/v1/gonum/spatial/r2"
 	"runtime/debug"
 )
 
@@ -66,6 +67,7 @@ func (g *Game[S]) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHe
 		g.settings.UpdateDebugFontFace(scaleFactor)
 	}
 
-	vx, vy := g.display.UpdateVirtualResolution(outsideWidth, outsideHeight, scaleFactor)
-	return int(vx), int(vy)
+	virtualResolution := g.display.UpdateVirtualResolution(r2.Vec{X: float64(outsideWidth), Y: float64(outsideHeight)}, scaleFactor)
+
+	return int(virtualResolution.X), int(virtualResolution.Y)
 }

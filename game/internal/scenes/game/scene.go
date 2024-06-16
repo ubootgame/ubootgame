@@ -2,29 +2,29 @@ package game
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/jakecoffman/cp"
+	"github.com/setanarut/kamera/v2"
 	"github.com/ubootgame/ubootgame/framework"
 	"github.com/ubootgame/ubootgame/framework/game/ecs"
 	"github.com/ubootgame/ubootgame/framework/game/input"
-	"github.com/ubootgame/ubootgame/framework/game/world"
-	"github.com/ubootgame/ubootgame/framework/graphics/camera"
+	"github.com/ubootgame/ubootgame/framework/services/display"
 	"github.com/ubootgame/ubootgame/internal"
+	"github.com/ubootgame/ubootgame/internal/components"
+	"github.com/ubootgame/ubootgame/internal/components/physics"
+	"github.com/ubootgame/ubootgame/internal/entities/actors"
+	"github.com/ubootgame/ubootgame/internal/layers"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/actors"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/entities/scene_graph"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/layers"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/systems"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/actors/player"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/environment"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_systems"
-	cameraSystem "github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_systems/camera"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/game_systems/debug"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/visuals"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/systems/weapons"
-	"github.com/ubootgame/ubootgame/internal/scenes/game/tags"
+	"github.com/ubootgame/ubootgame/internal/systems"
+	"github.com/ubootgame/ubootgame/internal/systems/actors/enemy"
+	"github.com/ubootgame/ubootgame/internal/systems/actors/player"
+	"github.com/ubootgame/ubootgame/internal/systems/environment"
+	"github.com/ubootgame/ubootgame/internal/systems/game_systems"
+	cameraSystem "github.com/ubootgame/ubootgame/internal/systems/game_systems/camera"
+	"github.com/ubootgame/ubootgame/internal/systems/game_systems/debug"
+	"github.com/ubootgame/ubootgame/internal/systems/graphics"
+	"github.com/ubootgame/ubootgame/internal/systems/weapons"
 	"github.com/yohamta/donburi"
 	devents "github.com/yohamta/donburi/features/events"
-	"github.com/yohamta/donburi/features/transform"
-	"gonum.org/v1/gonum/spatial/r2"
 	"image/color"
 )
 
@@ -33,7 +33,6 @@ type Scene struct {
 
 	display framework.DisplayService
 
-	camera *camera.Camera
 	cursor *input.Cursor
 }
 
@@ -41,7 +40,6 @@ func NewScene(settings framework.SettingsService[internal.Settings], display fra
 	return &Scene{
 		Scene:   ecs.NewECSScene(settings, resources, assets.Assets),
 		display: display,
-		camera:  camera.NewCamera(display),
 		cursor:  input.NewCursor(),
 	}
 }
@@ -51,47 +49,40 @@ func (scene *Scene) Load() error {
 		return err
 	}
 
+	virtualResolution := scene.display.VirtualResolution()
+
+	cameraEntry := scene.ECS.World.Entry(scene.ECS.World.Create(components.Camera))
+	components.Camera.SetValue(cameraEntry, components.CameraData{
+		Camera:        kamera.NewCamera(0, 0, virtualResolution.X, virtualResolution.Y),
+		MoveSpeed:     500,
+		RotationSpeed: 2,
+		ZoomSpeed:     10,
+		MinZoom:       -100,
+		MaxZoom:       100,
+	})
+
+	spaceEntry := scene.ECS.World.Entry(scene.ECS.World.Create(physics.Space))
+	space := cp.NewSpace()
+	physics.Space.Set(spaceEntry, space)
+
 	// Systems
-	scene.RegisterSystem(debug.NewSystem(scene.Settings, scene.ECS, scene.cursor, scene.camera))
-	scene.RegisterSystem(game_systems.NewInputSystem(scene.cursor, scene.camera))
-	scene.RegisterSystem(cameraSystem.NewSystem(scene.Settings, scene.ECS, scene.camera))
+	scene.RegisterSystem(debug.NewSystem(scene.Settings, scene.ECS, scene.cursor))
+	scene.RegisterSystem(game_systems.NewInputSystem(scene.display, scene.cursor))
+	scene.RegisterSystem(cameraSystem.NewSystem(scene.Settings, scene.ECS, scene.display))
 	scene.RegisterSystem(player.NewSystem(scene.Settings, scene.ECS, scene.cursor))
-	scene.RegisterSystem(weapons.NewBulletSystem(scene.camera))
-	scene.RegisterSystem(systems.NewMovementSystem(scene.Settings))
-	scene.RegisterSystem(systems.NewCollisionSystem(scene.Settings, scene.cursor, scene.camera))
+	scene.RegisterSystem(enemy.NewSystem())
+	scene.RegisterSystem(weapons.NewBulletSystem(scene.display))
+	scene.RegisterSystem(systems.NewPhysicsSystem())
 	scene.RegisterSystem(environment.NewWaterSystem(scene.Settings))
-	scene.RegisterSystem(visuals.NewSpriteSystem(scene.Settings, scene.camera))
-	scene.RegisterSystem(visuals.NewAnimatedSpriteSystem(scene.Settings))
-
-	// Environment
-	//water := environmentEntities.CreateWater(scene.ecs, scene.resourceRegistry, utility.VScale(0.1))
-	//animatedWater := environmentEntities.CreateAnimatedWater(scene.ecs, scene.resourceRegistry, utility.HScale(0.2), r2.Vec{})
-
-	environmentGroup := scene_graph.CreateSceneGroup(scene.ECS, tags.EnvironmentTag)
-	//transform.AppendChild(environmentGroup, water, false)
-	//transform.AppendChild(environmentGroup, animatedWater, false)
+	scene.RegisterSystem(graphics.NewSpriteSystem(scene.Settings, scene.display))
+	scene.RegisterSystem(graphics.NewAnimatedSpriteSystem(scene.Settings))
 
 	// Objects
-	playerEntry := actors.CreatePlayer(scene.Resources, scene.ECS, world.HScale(100))
-	enemyEntries := []*donburi.Entry{
-		actors.CreateEnemy(scene.Resources, scene.ECS, world.HScale(100), r2.Vec{X: -700, Y: 300}, r2.Vec{X: 100}),
-		actors.CreateEnemy(scene.Resources, scene.ECS, world.HScale(100), r2.Vec{X: 800, Y: 150}, r2.Vec{X: -50}),
+	_ = actors.CreatePlayer(scene.Resources, scene.ECS, assets.Battleship, display.HScale(0.1), space)
+	_ = []*donburi.Entry{
+		actors.CreateEnemy(scene.Resources, scene.ECS, assets.Submarine, display.HScale(0.1), cp.Vector{X: -0.5, Y: 0.2}, cp.Vector{X: 0.1}, space),
+		actors.CreateEnemy(scene.Resources, scene.ECS, assets.Submarine, display.HScale(0.1), cp.Vector{X: 0.4, Y: 0.1}, cp.Vector{X: -0.05}, space),
 	}
-
-	objectsGroup := scene_graph.CreateSceneGroup(scene.ECS, tags.ObjectsTag)
-	transform.AppendChild(objectsGroup, playerEntry, true)
-	for _, enemy := range enemyEntries {
-		transform.AppendChild(objectsGroup, enemy, true)
-	}
-
-	// Projectiles
-	projectilesGroup := scene_graph.CreateSceneGroup(scene.ECS, tags.ProjectilesTag)
-
-	// Scene graph
-	sceneGraph := scene_graph.CreateSceneGraph(scene.ECS)
-	transform.AppendChild(sceneGraph, environmentGroup, false)
-	transform.AppendChild(sceneGraph, objectsGroup, false)
-	transform.AppendChild(sceneGraph, projectilesGroup, false)
 
 	return nil
 }
@@ -104,8 +95,6 @@ func (scene *Scene) Update() error {
 	devents.ProcessAllEvents(scene.ECS.World)
 
 	scene.ECS.Update()
-
-	scene.camera.UpdateCameraMatrix()
 
 	return nil
 }

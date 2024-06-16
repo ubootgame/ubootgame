@@ -5,6 +5,7 @@ import (
 	"github.com/quasilyte/ebitengine-resource"
 	"github.com/ubootgame/ubootgame/framework/services/resources"
 	"github.com/ubootgame/ubootgame/framework/services/settings"
+	"gonum.org/v1/gonum/spatial/r2"
 )
 
 type ResourceService interface {
@@ -30,8 +31,10 @@ type SceneService interface {
 }
 
 type DisplayService interface {
-	VirtualResolution() (float64, float64)
-	UpdateVirtualResolution(width, height int, scaleFactor float64) (float64, float64)
+	WindowSize() r2.Vec
+	VirtualResolution() r2.Vec
+	UpdateVirtualResolution(windowSize r2.Vec, scaleFactor float64) r2.Vec
+	WorldToScreen(v r2.Vec) (float64, float64)
 }
 
 type Scene interface {

@@ -27,6 +27,8 @@ func (service *Service[S]) UpdateDebugFontFace(scalingFactor float64) {
 		log.Fatal(err)
 	}
 
+	service.settings.Debug.FontScale = scalingFactor
+
 	service.settings.Debug.FontFace = &text.GoTextFace{
 		Source: source,
 		Size:   defaultDebugFontSize * scalingFactor,
