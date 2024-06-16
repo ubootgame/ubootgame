@@ -2,7 +2,7 @@ package weapons
 
 import (
 	"github.com/jakecoffman/cp"
-	ecsFramework "github.com/ubootgame/ubootgame/framework/game/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/components/physics"
 	"github.com/ubootgame/ubootgame/internal/layers"
 	"github.com/yohamta/donburi"

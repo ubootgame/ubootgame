@@ -4,7 +4,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jakecoffman/cp"
 	"github.com/samber/lo"
-	ecsFramework "github.com/ubootgame/ubootgame/framework/game/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/components/physics"
 	"github.com/yohamta/donburi/ecs"
 )

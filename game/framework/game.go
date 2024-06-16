@@ -1,22 +1,21 @@
-package game
+package framework
 
 import (
 	"errors"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/ubootgame/ubootgame/framework"
 	"gonum.org/v1/gonum/spatial/r2"
 	"runtime/debug"
 )
 
 type Game[S any] struct {
-	settings framework.SettingsService[S]
-	scenes   framework.SceneService
-	display  framework.DisplayService
+	settings SettingsService[S]
+	scenes   SceneService
+	display  DisplayService
 
-	activeScene framework.Scene
+	activeScene Scene
 }
 
-func NewGame[S any](settings framework.SettingsService[S], scenes framework.SceneService, display framework.DisplayService) *Game[S] {
+func NewGame[S any](settings SettingsService[S], scenes SceneService, display DisplayService) *Game[S] {
 	game := &Game[S]{
 		settings: settings,
 		scenes:   scenes,
@@ -35,16 +34,16 @@ func (g *Game[S]) ApplySettings() {
 	debug.SetGCPercent(100)
 }
 
-func (g *Game[S]) LoadScene(sceneID framework.SceneID) error {
-	scene, err := g.scenes.Get(sceneID)
-	if err != nil {
+func (g *Game[S]) LoadScene(sceneID SceneID) error {
+	if scene, err := g.scenes.Get(sceneID); err == nil {
+		if err = scene.Load(); err == nil {
+			g.activeScene = scene
+			return nil
+		}
+		return err
+	} else {
 		return err
 	}
-	if err = scene.Load(); err != nil {
-		return err
-	}
-	g.activeScene = scene
-	return nil
 }
 
 func (g *Game[S]) Update() error {

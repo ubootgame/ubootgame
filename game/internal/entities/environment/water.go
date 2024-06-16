@@ -2,7 +2,7 @@ package environment
 
 import (
 	"github.com/ubootgame/ubootgame/framework"
-	ecsFramework "github.com/ubootgame/ubootgame/framework/game/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
 	"github.com/ubootgame/ubootgame/framework/services/display"
 	"github.com/ubootgame/ubootgame/framework/services/resources"
 	"github.com/ubootgame/ubootgame/internal/components/graphics"

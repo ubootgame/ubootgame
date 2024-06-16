@@ -3,7 +3,7 @@ package camera
 import (
 	"github.com/samber/lo"
 	"github.com/ubootgame/ubootgame/framework"
-	ecsFramework "github.com/ubootgame/ubootgame/framework/game/ecs"
+	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/components"
 	"github.com/yohamta/donburi"

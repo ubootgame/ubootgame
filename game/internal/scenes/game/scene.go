@@ -5,8 +5,8 @@ import (
 	"github.com/jakecoffman/cp"
 	"github.com/setanarut/kamera/v2"
 	"github.com/ubootgame/ubootgame/framework"
-	"github.com/ubootgame/ubootgame/framework/game/ecs"
-	"github.com/ubootgame/ubootgame/framework/game/input"
+	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
+	"github.com/ubootgame/ubootgame/framework/input"
 	"github.com/ubootgame/ubootgame/framework/services/display"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/components"
@@ -19,39 +19,58 @@ import (
 	"github.com/ubootgame/ubootgame/internal/systems/actors/player"
 	"github.com/ubootgame/ubootgame/internal/systems/environment"
 	"github.com/ubootgame/ubootgame/internal/systems/game_systems"
-	cameraSystem "github.com/ubootgame/ubootgame/internal/systems/game_systems/camera"
+	"github.com/ubootgame/ubootgame/internal/systems/game_systems/camera"
 	"github.com/ubootgame/ubootgame/internal/systems/game_systems/debug"
 	"github.com/ubootgame/ubootgame/internal/systems/graphics"
 	"github.com/ubootgame/ubootgame/internal/systems/weapons"
 	"github.com/yohamta/donburi"
+	"github.com/yohamta/donburi/ecs"
 	devents "github.com/yohamta/donburi/features/events"
 	"image/color"
 )
 
 type Scene struct {
-	*ecs.Scene[internal.Settings]
+	settings  framework.SettingsService[internal.Settings]
+	resources framework.ResourceService
+	display   framework.DisplayService
 
-	display framework.DisplayService
+	ecs *ecs.ECS
 
 	cursor *input.Cursor
 }
 
-func NewScene(settings framework.SettingsService[internal.Settings], display framework.DisplayService, resources framework.ResourceService) *Scene {
-	return &Scene{
-		Scene:   ecs.NewECSScene(settings, resources, assets.Assets),
-		display: display,
-		cursor:  input.NewCursor(),
+func NewScene(settings framework.SettingsService[internal.Settings], resources framework.ResourceService, display framework.DisplayService) *Scene {
+	scene := &Scene{
+		settings:  settings,
+		resources: resources,
+		display:   display,
+		ecs:       ecs.NewECS(donburi.NewWorld()),
+		cursor:    input.NewCursor(),
 	}
+
+	ecsFramework.RegisterSystem(scene.ecs, debug.NewSystem(scene.settings, scene.ecs, scene.cursor))
+	ecsFramework.RegisterSystem(scene.ecs, game_systems.NewInputSystem(scene.display, scene.cursor))
+	ecsFramework.RegisterSystem(scene.ecs, camera.NewSystem(scene.settings, scene.ecs, scene.display))
+	ecsFramework.RegisterSystem(scene.ecs, player.NewSystem(scene.settings, scene.ecs, scene.cursor))
+	ecsFramework.RegisterSystem(scene.ecs, enemy.NewSystem())
+	ecsFramework.RegisterSystem(scene.ecs, weapons.NewBulletSystem(scene.display))
+	ecsFramework.RegisterSystem(scene.ecs, systems.NewPhysicsSystem())
+	ecsFramework.RegisterSystem(scene.ecs, environment.NewWaterSystem(scene.settings))
+	ecsFramework.RegisterSystem(scene.ecs, graphics.NewSpriteSystem(scene.settings, scene.display))
+	ecsFramework.RegisterSystem(scene.ecs, graphics.NewAnimatedSpriteSystem(scene.settings))
+
+	return scene
 }
 
 func (scene *Scene) Load() error {
-	if err := scene.Scene.Load(); err != nil {
+	if err := scene.resources.RegisterResources(assets.Assets); err != nil {
 		return err
 	}
 
+	// Camera
 	virtualResolution := scene.display.VirtualResolution()
 
-	cameraEntry := scene.ECS.World.Entry(scene.ECS.World.Create(components.Camera))
+	cameraEntry := scene.ecs.World.Entry(scene.ecs.World.Create(components.Camera))
 	components.Camera.SetValue(cameraEntry, components.CameraData{
 		Camera:        kamera.NewCamera(0, 0, virtualResolution.X, virtualResolution.Y),
 		MoveSpeed:     500,
@@ -61,40 +80,25 @@ func (scene *Scene) Load() error {
 		MaxZoom:       100,
 	})
 
-	spaceEntry := scene.ECS.World.Entry(scene.ECS.World.Create(physics.Space))
+	// Physics
+	spaceEntry := scene.ecs.World.Entry(scene.ecs.World.Create(physics.Space))
 	space := cp.NewSpace()
 	physics.Space.Set(spaceEntry, space)
 
-	// Systems
-	scene.RegisterSystem(debug.NewSystem(scene.Settings, scene.ECS, scene.cursor))
-	scene.RegisterSystem(game_systems.NewInputSystem(scene.display, scene.cursor))
-	scene.RegisterSystem(cameraSystem.NewSystem(scene.Settings, scene.ECS, scene.display))
-	scene.RegisterSystem(player.NewSystem(scene.Settings, scene.ECS, scene.cursor))
-	scene.RegisterSystem(enemy.NewSystem())
-	scene.RegisterSystem(weapons.NewBulletSystem(scene.display))
-	scene.RegisterSystem(systems.NewPhysicsSystem())
-	scene.RegisterSystem(environment.NewWaterSystem(scene.Settings))
-	scene.RegisterSystem(graphics.NewSpriteSystem(scene.Settings, scene.display))
-	scene.RegisterSystem(graphics.NewAnimatedSpriteSystem(scene.Settings))
-
 	// Objects
-	_ = actors.CreatePlayer(scene.Resources, scene.ECS, assets.Battleship, display.HScale(0.1), space)
+	_ = actors.CreatePlayer(scene.resources, scene.ecs, assets.Battleship, display.HScale(0.1), space)
 	_ = []*donburi.Entry{
-		actors.CreateEnemy(scene.Resources, scene.ECS, assets.Submarine, display.HScale(0.1), cp.Vector{X: -0.5, Y: 0.2}, cp.Vector{X: 0.1}, space),
-		actors.CreateEnemy(scene.Resources, scene.ECS, assets.Submarine, display.HScale(0.1), cp.Vector{X: 0.4, Y: 0.1}, cp.Vector{X: -0.05}, space),
+		actors.CreateEnemy(scene.resources, scene.ecs, assets.Submarine, display.HScale(0.1), cp.Vector{X: -0.5, Y: 0.2}, cp.Vector{X: 0.1}, space),
+		actors.CreateEnemy(scene.resources, scene.ecs, assets.Submarine, display.HScale(0.1), cp.Vector{X: 0.4, Y: 0.1}, cp.Vector{X: -0.05}, space),
 	}
 
 	return nil
 }
 
 func (scene *Scene) Update() error {
-	if err := scene.Scene.Update(); err != nil {
-		return err
-	}
+	devents.ProcessAllEvents(scene.ecs.World)
 
-	devents.ProcessAllEvents(scene.ECS.World)
-
-	scene.ECS.Update()
+	scene.ecs.Update()
 
 	return nil
 }
@@ -102,8 +106,8 @@ func (scene *Scene) Update() error {
 func (scene *Scene) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{R: 4, G: 0, B: 43, A: 255})
 
-	scene.ECS.DrawLayer(layers.Game, screen)
-	if scene.Settings.Settings().Debug.Enabled {
-		scene.ECS.DrawLayer(layers.Debug, screen)
+	scene.ecs.DrawLayer(layers.Game, screen)
+	if scene.settings.Settings().Debug.Enabled {
+		scene.ecs.DrawLayer(layers.Debug, screen)
 	}
 }

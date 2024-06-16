@@ -6,13 +6,12 @@ import (
 	"github.com/pkg/profile"
 	"github.com/ubootgame/ubootgame/framework"
 	"github.com/ubootgame/ubootgame/framework/cli"
-	"github.com/ubootgame/ubootgame/framework/game"
 	"github.com/ubootgame/ubootgame/framework/services/display"
 	"github.com/ubootgame/ubootgame/framework/services/resources"
 	"github.com/ubootgame/ubootgame/framework/services/scenes"
 	"github.com/ubootgame/ubootgame/framework/services/settings"
 	"github.com/ubootgame/ubootgame/internal"
-	gameScene "github.com/ubootgame/ubootgame/internal/scenes/game"
+	"github.com/ubootgame/ubootgame/internal/scenes/game"
 	"gonum.org/v1/gonum/spatial/r2"
 	_ "image/png"
 	"log"
@@ -62,11 +61,11 @@ func main() {
 
 	sceneService := scenes.NewService(scenes.SceneMap{
 		"game": func() framework.Scene {
-			return gameScene.NewScene(settingsService, displayService, resourceService)
+			return game.NewScene(settingsService, resourceService, displayService)
 		},
 	})
 
-	g := game.NewGame[internal.Settings](settingsService, sceneService, displayService)
+	g := framework.NewGame[internal.Settings](settingsService, sceneService, displayService)
 
 	if err := g.LoadScene("game"); err != nil {
 		panic(err)
