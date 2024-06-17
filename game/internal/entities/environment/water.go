@@ -21,7 +21,7 @@ var Water = ecsFramework.NewArchetype(
 )
 
 func CreateWater(ecs *ecs.ECS, resources resources.Registry, tilesheetID types.TilesheetID, tileName string, scale display.Scale) *donburi.Entry {
-	entry := Water.Spawn(ecs, layers.Game)
+	entry := Water.SpawnOnLayer(ecs, layers.Game)
 
 	//sprite := registry.LoadTile(tilesheetID, tileName)
 	//

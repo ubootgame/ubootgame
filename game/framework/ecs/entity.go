@@ -7,7 +7,7 @@ import (
 
 type EntityFactory[P any] func(i *do.Injector, parameters P) *donburi.Entry
 
-//func Spawn[P any](i *do.Injector, factory EntityFactory[P], parameters P) *donburi.Entry {
+//func SpawnOnLayer[P any](i *do.Injector, factory EntityFactory[P], parameters P) *donburi.Entry {
 //	return factory(i, parameters)
 //}
 

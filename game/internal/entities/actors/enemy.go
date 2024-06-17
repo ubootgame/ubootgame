@@ -9,6 +9,7 @@ import (
 	"github.com/ubootgame/ubootgame/framework/resources/types"
 	"github.com/ubootgame/ubootgame/internal/components/graphics"
 	"github.com/ubootgame/ubootgame/internal/components/physics"
+	"github.com/ubootgame/ubootgame/internal/entities"
 	"github.com/ubootgame/ubootgame/internal/layers"
 	"github.com/yohamta/donburi"
 )
@@ -25,14 +26,13 @@ type NewEnemyParams struct {
 	ImageID            types.ImageID
 	Scale              display.Scale
 	Position, Velocity cp.Vector
-	Space              *cp.Space
 }
 
 var EnemyFactory ecsFramework.EntityFactory[NewEnemyParams] = func(i *do.Injector, params NewEnemyParams) *donburi.Entry {
 	resourceRegistry := do.MustInvoke[resources.Registry](i)
 	ecs := do.MustInvoke[ecsFramework.Service](i)
 
-	entry := Enemy.Spawn(ecs.ECS(), layers.Game)
+	entry := Enemy.SpawnOnLayer(ecs.ECS(), layers.Game)
 
 	image := resourceRegistry.LoadImage(params.ImageID)
 
@@ -41,10 +41,13 @@ var EnemyFactory ecsFramework.EntityFactory[NewEnemyParams] = func(i *do.Injecto
 
 	worldSize := sprite.WorldSize()
 
-	body := params.Space.AddBody(cp.NewBody(1e9, cp.MomentForBox(1e9, worldSize.X, worldSize.Y)))
+	spaceEntry, _ := entities.SpaceTag.First(ecs.World())
+	space := physics.Space.Get(spaceEntry)
+
+	body := space.AddBody(cp.NewBody(1e9, cp.MomentForBox(1e9, worldSize.X, worldSize.Y)))
 	body.SetPosition(params.Position)
 	body.SetVelocityVector(params.Velocity)
-	params.Space.AddShape(cp.NewBox(body, worldSize.X, worldSize.Y, 0))
+	space.AddShape(cp.NewBox(body, worldSize.X, worldSize.Y, 0))
 	physics.Body.Set(entry, body)
 
 	return entry

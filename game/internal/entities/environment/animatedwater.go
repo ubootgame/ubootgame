@@ -22,7 +22,7 @@ var AnimatedWater = ecsFramework.NewArchetype(
 )
 
 func CreateAnimatedWater(ecs *ecs.ECS, resources resources.Registry, asepriteID types.AsepriteID, scale display.Scale, position r2.Vec) *donburi.Entry {
-	entry := AnimatedWater.Spawn(ecs, layers.Game)
+	entry := AnimatedWater.SpawnOnLayer(ecs, layers.Game)
 
 	aseprite := resources.LoadAseprite(asepriteID)
 

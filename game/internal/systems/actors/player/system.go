@@ -110,9 +110,8 @@ func (system *playerSystem) Shoot(w donburi.World, _ types.Nil) {
 		playerWorld := body.Position()
 
 		weapons.BulletFactory.Spawn(system.injector, weapons.NewBulletParams{
-			From:  playerWorld,
-			To:    cp.Vector(system.input.Cursor().WorldPosition),
-			Space: system.space,
+			From: playerWorld,
+			To:   cp.Vector(system.input.Cursor().WorldPosition),
 		})
 	}
 	system.fireTick++

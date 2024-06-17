@@ -4,7 +4,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jakecoffman/cp"
 	"github.com/samber/do"
-	"github.com/setanarut/kamera/v2"
 	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
 	"github.com/ubootgame/ubootgame/framework/game"
 	"github.com/ubootgame/ubootgame/framework/graphics/display"
@@ -12,8 +11,7 @@ import (
 	"github.com/ubootgame/ubootgame/framework/resources"
 	"github.com/ubootgame/ubootgame/framework/settings"
 	"github.com/ubootgame/ubootgame/internal"
-	"github.com/ubootgame/ubootgame/internal/components"
-	"github.com/ubootgame/ubootgame/internal/components/physics"
+	"github.com/ubootgame/ubootgame/internal/entities"
 	"github.com/ubootgame/ubootgame/internal/entities/actors"
 	"github.com/ubootgame/ubootgame/internal/layers"
 	"github.com/ubootgame/ubootgame/internal/scenes/game/assets"
@@ -36,7 +34,6 @@ type gameScene struct {
 	settingsProvider settings.Provider[internal.Settings]
 	resourceRegistry resources.Registry
 	input            input.Input
-	display          display.Display
 	ecs              ecsFramework.Service
 }
 
@@ -46,7 +43,6 @@ func NewGameScene(i *do.Injector) game.Scene {
 		settingsProvider: do.MustInvoke[settings.Provider[internal.Settings]](i),
 		resourceRegistry: do.MustInvoke[resources.Registry](i),
 		input:            do.MustInvoke[input.Input](i),
-		display:          do.MustInvoke[display.Display](i),
 		ecs:              do.MustInvoke[ecsFramework.Service](i),
 	}
 
@@ -70,11 +66,7 @@ func (scene *gameScene) Load() error {
 	}
 
 	// Camera
-	virtualResolution := scene.display.VirtualResolution()
-
-	cameraEntry := scene.ecs.World().Entry(scene.ecs.World().Create(components.Camera))
-	components.Camera.SetValue(cameraEntry, components.CameraData{
-		Camera:        kamera.NewCamera(0, 0, virtualResolution.X, virtualResolution.Y),
+	entities.CameraFactory.Spawn(scene.injector, entities.NewCameraParams{
 		MoveSpeed:     500,
 		RotationSpeed: 2,
 		ZoomSpeed:     10,
@@ -83,15 +75,12 @@ func (scene *gameScene) Load() error {
 	})
 
 	// Physics
-	spaceEntry := scene.ecs.World().Entry(scene.ecs.World().Create(physics.Space))
-	space := cp.NewSpace()
-	physics.Space.Set(spaceEntry, space)
+	entities.SpaceFactory.Spawn(scene.injector, entities.NewSpaceParams{})
 
 	// Objects
 	actors.PlayerFactory.Spawn(scene.injector, actors.NewPlayerParams{
 		ImageID: assets.Battleship,
 		Scale:   display.HScale(0.1),
-		Space:   space,
 	})
 
 	actors.EnemyFactory.Spawn(scene.injector, actors.NewEnemyParams{
@@ -99,14 +88,12 @@ func (scene *gameScene) Load() error {
 		Scale:    display.HScale(0.1),
 		Position: cp.Vector{X: -0.5, Y: 0.2},
 		Velocity: cp.Vector{X: 0.1},
-		Space:    space,
 	})
 	actors.EnemyFactory.Spawn(scene.injector, actors.NewEnemyParams{
 		ImageID:  assets.Submarine,
 		Scale:    display.HScale(0.1),
 		Position: cp.Vector{X: 0.4, Y: 0.1},
 		Velocity: cp.Vector{X: -0.05},
-		Space:    space,
 	})
 
 	return nil

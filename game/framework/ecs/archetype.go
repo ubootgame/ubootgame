@@ -15,7 +15,14 @@ func NewArchetype(cs ...donburi.IComponentType) *Archetype {
 	}
 }
 
-func (a *Archetype) Spawn(e *ecs.ECS, layer ecs.LayerID, cs ...donburi.IComponentType) *donburi.Entry {
+func (a *Archetype) Spawn(e *ecs.ECS, cs ...donburi.IComponentType) *donburi.Entry {
+	entry := e.World.Entry(e.World.Create(
+		append(a.components, cs...)...,
+	))
+	return entry
+}
+
+func (a *Archetype) SpawnOnLayer(e *ecs.ECS, layer ecs.LayerID, cs ...donburi.IComponentType) *donburi.Entry {
 	entry := e.World.Entry(e.Create(
 		layer,
 		append(a.components, cs...)...,
