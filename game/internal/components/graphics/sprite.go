@@ -2,7 +2,7 @@ package graphics
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	resource "github.com/quasilyte/ebitengine-resource"
+	"github.com/quasilyte/ebitengine-resource"
 	"github.com/ubootgame/ubootgame/framework/graphics/display"
 	"github.com/yohamta/donburi"
 	"gonum.org/v1/gonum/spatial/r2"

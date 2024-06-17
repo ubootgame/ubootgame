@@ -11,7 +11,7 @@ type input struct {
 }
 
 func NewInput(_ *do.Injector) (Input, error) {
-	return &input{cursor: NewCursor()}, nil
+	return &input{cursor: &Cursor{}}, nil
 }
 
 func (input *input) Cursor() *Cursor {
