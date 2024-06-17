@@ -11,7 +11,6 @@ import (
 	"github.com/ubootgame/ubootgame/internal/components/physics"
 	"github.com/ubootgame/ubootgame/internal/layers"
 	"github.com/yohamta/donburi"
-	"github.com/yohamta/donburi/ecs"
 )
 
 var PlayerTag = donburi.NewTag().SetName("Player")
@@ -28,10 +27,11 @@ type NewPlayerParams struct {
 	Space   *cp.Space
 }
 
-func CreatePlayer(i *do.Injector, e *ecs.ECS, params NewPlayerParams) *donburi.Entry {
+var PlayerFactory ecsFramework.EntityFactory[NewPlayerParams] = func(i *do.Injector, params NewPlayerParams) *donburi.Entry {
 	resourceRegistry := do.MustInvoke[resources.Registry](i)
+	ecs := do.MustInvoke[ecsFramework.Service](i)
 
-	entry := Player.Spawn(e, layers.Game)
+	entry := Player.Spawn(ecs.ECS(), layers.Game)
 
 	image := resourceRegistry.LoadImage(params.ImageID)
 

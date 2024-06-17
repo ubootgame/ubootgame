@@ -3,6 +3,7 @@ package systems
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/jakecoffman/cp"
+	"github.com/samber/do"
 	"github.com/samber/lo"
 	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/components/physics"
@@ -13,7 +14,7 @@ type physicsSystem struct {
 	space *cp.Space
 }
 
-func NewPhysicsSystem() ecsFramework.System {
+func NewPhysicsSystem(_ *do.Injector) ecsFramework.System {
 	return &physicsSystem{}
 }
 

@@ -7,7 +7,6 @@ import (
 	"github.com/ubootgame/ubootgame/internal/components/physics"
 	"github.com/ubootgame/ubootgame/internal/layers"
 	"github.com/yohamta/donburi"
-	"github.com/yohamta/donburi/ecs"
 )
 
 var BulletTag = donburi.NewTag().SetName("Bullet")
@@ -22,8 +21,10 @@ type NewBulletParams struct {
 	Space    *cp.Space
 }
 
-func CreateBullet(_ *do.Injector, e *ecs.ECS, params NewBulletParams) *donburi.Entry {
-	entry := Bullet.Spawn(e, layers.Game)
+var BulletFactory ecsFramework.EntityFactory[NewBulletParams] = func(i *do.Injector, params NewBulletParams) *donburi.Entry {
+	ecs := do.MustInvoke[ecsFramework.Service](i)
+
+	entry := Bullet.Spawn(ecs.ECS(), layers.Game)
 
 	direction := params.To.Sub(params.From)
 	velocity := direction.Normalize()

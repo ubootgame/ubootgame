@@ -21,20 +21,22 @@ type cameraSystem struct {
 	camera *components.CameraData
 }
 
-func NewCameraSystem(i *do.Injector, e *ecs.ECS) ecsFramework.System {
+func NewCameraSystem(i *do.Injector) ecsFramework.System {
 	system := &cameraSystem{
 		settingsProvider: do.MustInvoke[settings.Provider[internal.Settings]](i),
 		display:          do.MustInvoke[display.Display](i),
 	}
 
-	PanLeftEvent.Subscribe(e.World, system.PanLeft)
-	PanRightEvent.Subscribe(e.World, system.PanRight)
-	PanUpEvent.Subscribe(e.World, system.PanUp)
-	PanDownEvent.Subscribe(e.World, system.PanDown)
-	ZoomInEvent.Subscribe(e.World, system.ZoomIn)
-	ZoomOutEvent.Subscribe(e.World, system.ZoomOut)
-	RotateLeftEvent.Subscribe(e.World, system.RotateLeft)
-	RotateRightEvent.Subscribe(e.World, system.RotateRight)
+	e := do.MustInvoke[ecsFramework.Service](i)
+
+	PanLeftEvent.Subscribe(e.World(), system.PanLeft)
+	PanRightEvent.Subscribe(e.World(), system.PanRight)
+	PanUpEvent.Subscribe(e.World(), system.PanUp)
+	PanDownEvent.Subscribe(e.World(), system.PanDown)
+	ZoomInEvent.Subscribe(e.World(), system.ZoomIn)
+	ZoomOutEvent.Subscribe(e.World(), system.ZoomOut)
+	RotateLeftEvent.Subscribe(e.World(), system.RotateLeft)
+	RotateRightEvent.Subscribe(e.World(), system.RotateRight)
 
 	return system
 }

@@ -26,8 +26,6 @@ import (
 	"github.com/ubootgame/ubootgame/internal/systems/game_systems/debug"
 	"github.com/ubootgame/ubootgame/internal/systems/graphics"
 	"github.com/ubootgame/ubootgame/internal/systems/weapons"
-	"github.com/yohamta/donburi"
-	"github.com/yohamta/donburi/ecs"
 	devents "github.com/yohamta/donburi/features/events"
 	"image/color"
 )
@@ -39,31 +37,29 @@ type gameScene struct {
 	resourceRegistry resources.Registry
 	input            input.Input
 	display          display.Display
-
-	ecs *ecs.ECS
+	ecs              ecsFramework.Service
 }
 
 func NewGameScene(i *do.Injector) game.Scene {
-	e := ecs.NewECS(donburi.NewWorld())
 	scene := &gameScene{
 		injector:         i,
 		settingsProvider: do.MustInvoke[settings.Provider[internal.Settings]](i),
 		resourceRegistry: do.MustInvoke[resources.Registry](i),
 		input:            do.MustInvoke[input.Input](i),
 		display:          do.MustInvoke[display.Display](i),
-		ecs:              e,
+		ecs:              do.MustInvoke[ecsFramework.Service](i),
 	}
 
-	ecsFramework.RegisterSystem(scene.ecs, debug.NewDebugSystem(i, scene.ecs))
-	ecsFramework.RegisterSystem(scene.ecs, game_systems.NewInputSystem(i))
-	ecsFramework.RegisterSystem(scene.ecs, camera.NewCameraSystem(i, scene.ecs))
-	ecsFramework.RegisterSystem(scene.ecs, player.NewPlayerSystem(i, scene.ecs))
-	ecsFramework.RegisterSystem(scene.ecs, enemy.NewSystem())
-	ecsFramework.RegisterSystem(scene.ecs, weapons.NewBulletSystem(i))
-	ecsFramework.RegisterSystem(scene.ecs, systems.NewPhysicsSystem())
-	ecsFramework.RegisterSystem(scene.ecs, environment.NewWaterSystem(i))
-	ecsFramework.RegisterSystem(scene.ecs, graphics.NewSpriteSystem(i))
-	ecsFramework.RegisterSystem(scene.ecs, graphics.NewAnimatedSpriteSystem(i))
+	scene.ecs.RegisterSystem(debug.NewDebugSystem)
+	scene.ecs.RegisterSystem(game_systems.NewInputSystem)
+	scene.ecs.RegisterSystem(camera.NewCameraSystem)
+	scene.ecs.RegisterSystem(player.NewPlayerSystem)
+	scene.ecs.RegisterSystem(enemy.NewEnemySystem)
+	scene.ecs.RegisterSystem(weapons.NewBulletSystem)
+	scene.ecs.RegisterSystem(systems.NewPhysicsSystem)
+	scene.ecs.RegisterSystem(environment.NewWaterSystem)
+	scene.ecs.RegisterSystem(graphics.NewSpriteSystem)
+	scene.ecs.RegisterSystem(graphics.NewAnimatedSpriteSystem)
 
 	return scene
 }
@@ -76,7 +72,7 @@ func (scene *gameScene) Load() error {
 	// Camera
 	virtualResolution := scene.display.VirtualResolution()
 
-	cameraEntry := scene.ecs.World.Entry(scene.ecs.World.Create(components.Camera))
+	cameraEntry := scene.ecs.World().Entry(scene.ecs.World().Create(components.Camera))
 	components.Camera.SetValue(cameraEntry, components.CameraData{
 		Camera:        kamera.NewCamera(0, 0, virtualResolution.X, virtualResolution.Y),
 		MoveSpeed:     500,
@@ -87,25 +83,25 @@ func (scene *gameScene) Load() error {
 	})
 
 	// Physics
-	spaceEntry := scene.ecs.World.Entry(scene.ecs.World.Create(physics.Space))
+	spaceEntry := scene.ecs.World().Entry(scene.ecs.World().Create(physics.Space))
 	space := cp.NewSpace()
 	physics.Space.Set(spaceEntry, space)
 
 	// Objects
-	ecsFramework.Spawn(scene.injector, scene.ecs, actors.CreatePlayer, actors.NewPlayerParams{
+	actors.PlayerFactory.Spawn(scene.injector, actors.NewPlayerParams{
 		ImageID: assets.Battleship,
 		Scale:   display.HScale(0.1),
 		Space:   space,
 	})
 
-	ecsFramework.Spawn(scene.injector, scene.ecs, actors.CreateEnemy, actors.NewEnemyParams{
+	actors.EnemyFactory.Spawn(scene.injector, actors.NewEnemyParams{
 		ImageID:  assets.Submarine,
 		Scale:    display.HScale(0.1),
 		Position: cp.Vector{X: -0.5, Y: 0.2},
 		Velocity: cp.Vector{X: 0.1},
 		Space:    space,
 	})
-	ecsFramework.Spawn(scene.injector, scene.ecs, actors.CreateEnemy, actors.NewEnemyParams{
+	actors.EnemyFactory.Spawn(scene.injector, actors.NewEnemyParams{
 		ImageID:  assets.Submarine,
 		Scale:    display.HScale(0.1),
 		Position: cp.Vector{X: 0.4, Y: 0.1},
@@ -117,9 +113,9 @@ func (scene *gameScene) Load() error {
 }
 
 func (scene *gameScene) Update() error {
-	devents.ProcessAllEvents(scene.ecs.World)
+	devents.ProcessAllEvents(scene.ecs.World())
 
-	scene.ecs.Update()
+	scene.ecs.ECS().Update()
 
 	return nil
 }
@@ -127,8 +123,8 @@ func (scene *gameScene) Update() error {
 func (scene *gameScene) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{R: 4, G: 0, B: 43, A: 255})
 
-	scene.ecs.DrawLayer(layers.Game, screen)
+	scene.ecs.ECS().DrawLayer(layers.Game, screen)
 	if scene.settingsProvider.Settings().Debug.Enabled {
-		scene.ecs.DrawLayer(layers.Debug, screen)
+		scene.ecs.ECS().DrawLayer(layers.Debug, screen)
 	}
 }

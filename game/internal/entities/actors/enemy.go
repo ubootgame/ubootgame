@@ -11,7 +11,6 @@ import (
 	"github.com/ubootgame/ubootgame/internal/components/physics"
 	"github.com/ubootgame/ubootgame/internal/layers"
 	"github.com/yohamta/donburi"
-	"github.com/yohamta/donburi/ecs"
 )
 
 var EnemyTag = donburi.NewTag().SetName("Enemy")
@@ -29,10 +28,11 @@ type NewEnemyParams struct {
 	Space              *cp.Space
 }
 
-func CreateEnemy(i *do.Injector, e *ecs.ECS, params NewEnemyParams) *donburi.Entry {
+var EnemyFactory ecsFramework.EntityFactory[NewEnemyParams] = func(i *do.Injector, params NewEnemyParams) *donburi.Entry {
 	resourceRegistry := do.MustInvoke[resources.Registry](i)
+	ecs := do.MustInvoke[ecsFramework.Service](i)
 
-	entry := Enemy.Spawn(e, layers.Game)
+	entry := Enemy.Spawn(ecs.ECS(), layers.Game)
 
 	image := resourceRegistry.LoadImage(params.ImageID)
 

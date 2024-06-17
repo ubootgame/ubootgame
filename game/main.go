@@ -6,6 +6,7 @@ import (
 	"github.com/samber/do"
 	"github.com/ubootgame/ubootgame/config"
 	"github.com/ubootgame/ubootgame/framework/cli"
+	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
 	"github.com/ubootgame/ubootgame/framework/game"
 	"github.com/ubootgame/ubootgame/framework/graphics/display"
 	"github.com/ubootgame/ubootgame/framework/input"
@@ -43,6 +44,8 @@ func main() {
 func prepareServices(injector *do.Injector) {
 	do.Provide(injector, display.NewDisplay[internal.Settings])
 	do.Provide(injector, input.NewInput)
+	do.Provide(injector, ecsFramework.NewECSService)
+
 	do.Provide(injector, func(i *do.Injector) (settings.Provider[internal.Settings], error) {
 		return settings.NewProvider[internal.Settings](i, config.DefaultSettings[internal.Settings]())
 	})

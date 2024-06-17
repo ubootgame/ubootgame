@@ -1,6 +1,7 @@
 package enemy
 
 import (
+	"github.com/samber/do"
 	"github.com/samber/lo"
 	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/components/graphics"
@@ -11,21 +12,19 @@ import (
 	"github.com/yohamta/donburi/filter"
 )
 
-type System struct {
+type enemySystem struct {
 	query *donburi.Query
 }
 
-func NewSystem() *System {
-	system := &System{query: donburi.NewQuery(filter.Contains(actors.EnemyTag))}
-
-	return system
+func NewEnemySystem(_ *do.Injector) ecsFramework.System {
+	return &enemySystem{query: donburi.NewQuery(filter.Contains(actors.EnemyTag))}
 }
 
-func (system *System) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
+func (system *enemySystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
 	return []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer]{}
 }
 
-func (system *System) Update(e *ecs.ECS) {
+func (system *enemySystem) Update(e *ecs.ECS) {
 	system.query.Each(e.World, func(entry *donburi.Entry) {
 		body := physics.Body.Get(entry)
 		sprite := graphics.Sprite.Get(entry)

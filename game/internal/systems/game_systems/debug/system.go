@@ -36,7 +36,7 @@ type debugSystem struct {
 	debugTextOptions *text.DrawOptions
 }
 
-func NewDebugSystem(i *do.Injector, e *ecs.ECS) ecsFramework.System {
+func NewDebugSystem(i *do.Injector) ecsFramework.System {
 	system := &debugSystem{
 		settingsProvider: do.MustInvoke[settings.Provider[internal.Settings]](i),
 		input:            do.MustInvoke[input.Input](i),
@@ -50,10 +50,12 @@ func NewDebugSystem(i *do.Injector, e *ecs.ECS) ecsFramework.System {
 		},
 	}
 
-	ToggleDebugEvent.Subscribe(e.World, system.ToggleDebug)
-	ToggleDrawGrid.Subscribe(e.World, system.ToggleDrawGrid)
-	ToggleDrawCollisions.Subscribe(e.World, system.ToggleDrawCollisions)
-	ToggleDrawPositions.Subscribe(e.World, system.ToggleDrawPositions)
+	e := do.MustInvoke[ecsFramework.Service](i)
+
+	ToggleDebugEvent.Subscribe(e.World(), system.ToggleDebug)
+	ToggleDrawGrid.Subscribe(e.World(), system.ToggleDrawGrid)
+	ToggleDrawCollisions.Subscribe(e.World(), system.ToggleDrawCollisions)
+	ToggleDrawPositions.Subscribe(e.World(), system.ToggleDrawPositions)
 
 	return system
 }
