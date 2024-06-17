@@ -22,14 +22,14 @@ type NewBulletParams struct {
 }
 
 var BulletFactory ecsFramework.EntityFactory[NewBulletParams] = func(i *do.Injector, params NewBulletParams) *donburi.Entry {
-	ecs := do.MustInvoke[ecsFramework.Service](i)
+	e := do.MustInvoke[*ecsFramework.ECS](i)
 
-	entry := Bullet.SpawnOnLayer(ecs.ECS(), layers.Game)
+	entry := Bullet.SpawnOnLayer(e, layers.Game)
 
 	direction := params.To.Sub(params.From)
 	velocity := direction.Normalize()
 
-	spaceEntry, _ := entities.SpaceTag.First(ecs.World())
+	spaceEntry, _ := entities.SpaceTag.First(e.World)
 	space := physics.Space.Get(spaceEntry)
 
 	body := space.AddBody(cp.NewBody(1e8, cp.MomentForBox(1e8, 0.002, 0.002)))

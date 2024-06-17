@@ -25,9 +25,9 @@ type NewCameraParams struct {
 
 var CameraFactory ecsFramework.EntityFactory[NewCameraParams] = func(i *do.Injector, params NewCameraParams) *donburi.Entry {
 	display := do.MustInvoke[display2.Display](i)
-	ecs := do.MustInvoke[ecsFramework.Service](i)
+	e := do.MustInvoke[*ecsFramework.ECS](i)
 
-	entry := Camera.Spawn(ecs.ECS())
+	entry := Camera.Spawn(e)
 
 	virtualResolution := display.VirtualResolution()
 

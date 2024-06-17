@@ -6,36 +6,18 @@ import (
 	"github.com/yohamta/donburi/ecs"
 )
 
-type Service interface {
-	ECS() *ecs.ECS
-	World() donburi.World
-	RegisterSystem(systemFn func(i *do.Injector) System)
+type ECS struct {
+	*ecs.ECS
 }
 
-type service struct {
-	injector *do.Injector
-	ecs      *ecs.ECS
+func NewECS(_ *do.Injector) (*ECS, error) {
+	return &ECS{ECS: ecs.NewECS(donburi.NewWorld())}, nil
 }
 
-func NewECSService(i *do.Injector) (Service, error) {
-	return &service{
-		injector: i,
-		ecs:      ecs.NewECS(donburi.NewWorld()),
-	}, nil
-}
-
-func (s *service) ECS() *ecs.ECS {
-	return s.ecs
-}
-
-func (s *service) World() donburi.World {
-	return s.ecs.World
-}
-
-func (s *service) RegisterSystem(systemFn func(i *do.Injector) System) {
-	system := systemFn(s.injector)
-	s.ecs.AddSystem(system.Update)
+func (e ECS) RegisterSystem(i *do.Injector, systemFn func(i *do.Injector) System) {
+	system := systemFn(i)
+	e.AddSystem(system.Update)
 	for _, layer := range system.Layers() {
-		s.ecs.AddRenderer(layer.A, layer.B)
+		e.AddRenderer(layer.A, layer.B)
 	}
 }

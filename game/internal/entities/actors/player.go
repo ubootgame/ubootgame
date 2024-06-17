@@ -29,9 +29,9 @@ type NewPlayerParams struct {
 
 var PlayerFactory ecsFramework.EntityFactory[NewPlayerParams] = func(i *do.Injector, params NewPlayerParams) *donburi.Entry {
 	resourceRegistry := do.MustInvoke[resources.Registry](i)
-	ecs := do.MustInvoke[ecsFramework.Service](i)
+	e := do.MustInvoke[*ecsFramework.ECS](i)
 
-	entry := Player.SpawnOnLayer(ecs.ECS(), layers.Game)
+	entry := Player.SpawnOnLayer(e, layers.Game)
 
 	image := resourceRegistry.LoadImage(params.ImageID)
 
@@ -40,7 +40,7 @@ var PlayerFactory ecsFramework.EntityFactory[NewPlayerParams] = func(i *do.Injec
 
 	worldSize := sprite.WorldSize()
 
-	spaceEntry, _ := entities.SpaceTag.First(ecs.World())
+	spaceEntry, _ := entities.SpaceTag.First(e.World)
 	space := physics.Space.Get(spaceEntry)
 
 	body := space.AddBody(cp.NewBody(1e9, cp.INFINITY))

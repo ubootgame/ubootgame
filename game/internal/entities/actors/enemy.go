@@ -30,9 +30,9 @@ type NewEnemyParams struct {
 
 var EnemyFactory ecsFramework.EntityFactory[NewEnemyParams] = func(i *do.Injector, params NewEnemyParams) *donburi.Entry {
 	resourceRegistry := do.MustInvoke[resources.Registry](i)
-	ecs := do.MustInvoke[ecsFramework.Service](i)
+	e := do.MustInvoke[*ecsFramework.ECS](i)
 
-	entry := Enemy.SpawnOnLayer(ecs.ECS(), layers.Game)
+	entry := Enemy.SpawnOnLayer(e, layers.Game)
 
 	image := resourceRegistry.LoadImage(params.ImageID)
 
@@ -41,7 +41,7 @@ var EnemyFactory ecsFramework.EntityFactory[NewEnemyParams] = func(i *do.Injecto
 
 	worldSize := sprite.WorldSize()
 
-	spaceEntry, _ := entities.SpaceTag.First(ecs.World())
+	spaceEntry, _ := entities.SpaceTag.First(e.World)
 	space := physics.Space.Get(spaceEntry)
 
 	body := space.AddBody(cp.NewBody(1e9, cp.MomentForBox(1e9, worldSize.X, worldSize.Y)))

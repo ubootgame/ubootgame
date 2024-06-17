@@ -34,7 +34,7 @@ type gameScene struct {
 	settingsProvider settings.Provider[internal.Settings]
 	resourceRegistry resources.Registry
 	input            input.Input
-	ecs              ecsFramework.Service
+	ecs              *ecsFramework.ECS
 }
 
 func NewGameScene(i *do.Injector) game.Scene {
@@ -43,19 +43,19 @@ func NewGameScene(i *do.Injector) game.Scene {
 		settingsProvider: do.MustInvoke[settings.Provider[internal.Settings]](i),
 		resourceRegistry: do.MustInvoke[resources.Registry](i),
 		input:            do.MustInvoke[input.Input](i),
-		ecs:              do.MustInvoke[ecsFramework.Service](i),
+		ecs:              do.MustInvoke[*ecsFramework.ECS](i),
 	}
 
-	scene.ecs.RegisterSystem(debug.NewDebugSystem)
-	scene.ecs.RegisterSystem(game_systems.NewInputSystem)
-	scene.ecs.RegisterSystem(camera.NewCameraSystem)
-	scene.ecs.RegisterSystem(player.NewPlayerSystem)
-	scene.ecs.RegisterSystem(enemy.NewEnemySystem)
-	scene.ecs.RegisterSystem(weapons.NewBulletSystem)
-	scene.ecs.RegisterSystem(systems.NewPhysicsSystem)
-	scene.ecs.RegisterSystem(environment.NewWaterSystem)
-	scene.ecs.RegisterSystem(graphics.NewSpriteSystem)
-	scene.ecs.RegisterSystem(graphics.NewAnimatedSpriteSystem)
+	scene.ecs.RegisterSystem(scene.injector, debug.NewDebugSystem)
+	scene.ecs.RegisterSystem(scene.injector, game_systems.NewInputSystem)
+	scene.ecs.RegisterSystem(scene.injector, camera.NewCameraSystem)
+	scene.ecs.RegisterSystem(scene.injector, player.NewPlayerSystem)
+	scene.ecs.RegisterSystem(scene.injector, enemy.NewEnemySystem)
+	scene.ecs.RegisterSystem(scene.injector, weapons.NewBulletSystem)
+	scene.ecs.RegisterSystem(scene.injector, systems.NewPhysicsSystem)
+	scene.ecs.RegisterSystem(scene.injector, environment.NewWaterSystem)
+	scene.ecs.RegisterSystem(scene.injector, graphics.NewSpriteSystem)
+	scene.ecs.RegisterSystem(scene.injector, graphics.NewAnimatedSpriteSystem)
 
 	return scene
 }
@@ -100,9 +100,9 @@ func (scene *gameScene) Load() error {
 }
 
 func (scene *gameScene) Update() error {
-	devents.ProcessAllEvents(scene.ecs.World())
+	devents.ProcessAllEvents(scene.ecs.World)
 
-	scene.ecs.ECS().Update()
+	scene.ecs.Update()
 
 	return nil
 }
@@ -110,8 +110,8 @@ func (scene *gameScene) Update() error {
 func (scene *gameScene) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{R: 4, G: 0, B: 43, A: 255})
 
-	scene.ecs.ECS().DrawLayer(layers.Game, screen)
+	scene.ecs.DrawLayer(layers.Game, screen)
 	if scene.settingsProvider.Settings().Debug.Enabled {
-		scene.ecs.ECS().DrawLayer(layers.Debug, screen)
+		scene.ecs.DrawLayer(layers.Debug, screen)
 	}
 }

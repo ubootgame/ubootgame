@@ -44,11 +44,11 @@ func NewPlayerSystem(i *do.Injector) ecsFramework.System {
 		input:            do.MustInvoke[input.Input](i),
 	}
 
-	e := do.MustInvoke[ecsFramework.Service](i)
+	e := do.MustInvoke[*ecsFramework.ECS](i)
 
-	MoveLeftEvent.Subscribe(e.World(), system.MoveLeft)
-	MoveRightEvent.Subscribe(e.World(), system.MoveRight)
-	ShootEvent.Subscribe(e.World(), system.Shoot)
+	MoveLeftEvent.Subscribe(e.World, system.MoveLeft)
+	MoveRightEvent.Subscribe(e.World, system.MoveRight)
+	ShootEvent.Subscribe(e.World, system.Shoot)
 
 	return system
 }

@@ -19,9 +19,9 @@ var Space = ecsFramework.NewArchetype(
 type NewSpaceParams types.Nil
 
 var SpaceFactory ecsFramework.EntityFactory[NewSpaceParams] = func(i *do.Injector, params NewSpaceParams) *donburi.Entry {
-	ecs := do.MustInvoke[ecsFramework.Service](i)
+	ecs := do.MustInvoke[*ecsFramework.ECS](i)
 
-	entry := Space.Spawn(ecs.ECS())
+	entry := Space.Spawn(ecs)
 
 	physics.Space.Set(entry, cp.NewSpace())
 

@@ -50,12 +50,12 @@ func NewDebugSystem(i *do.Injector) ecsFramework.System {
 		},
 	}
 
-	e := do.MustInvoke[ecsFramework.Service](i)
+	e := do.MustInvoke[*ecsFramework.ECS](i)
 
-	ToggleDebugEvent.Subscribe(e.World(), system.ToggleDebug)
-	ToggleDrawGrid.Subscribe(e.World(), system.ToggleDrawGrid)
-	ToggleDrawCollisions.Subscribe(e.World(), system.ToggleDrawCollisions)
-	ToggleDrawPositions.Subscribe(e.World(), system.ToggleDrawPositions)
+	ToggleDebugEvent.Subscribe(e.World, system.ToggleDebug)
+	ToggleDrawGrid.Subscribe(e.World, system.ToggleDrawGrid)
+	ToggleDrawCollisions.Subscribe(e.World, system.ToggleDrawCollisions)
+	ToggleDrawPositions.Subscribe(e.World, system.ToggleDrawPositions)
 
 	return system
 }

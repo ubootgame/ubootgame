@@ -44,7 +44,7 @@ func main() {
 func prepareServices(injector *do.Injector) {
 	do.Provide(injector, display.NewDisplay[internal.Settings])
 	do.Provide(injector, input.NewInput)
-	do.Provide(injector, ecsFramework.NewECSService)
+	do.Provide(injector, ecsFramework.NewECS)
 
 	do.Provide(injector, func(i *do.Injector) (settings.Provider[internal.Settings], error) {
 		return settings.NewProvider[internal.Settings](i, config.DefaultSettings[internal.Settings]())
