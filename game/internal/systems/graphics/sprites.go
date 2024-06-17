@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"github.com/samber/do"
 	"github.com/samber/lo"
-	"github.com/ubootgame/ubootgame/framework"
 	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
 	"github.com/ubootgame/ubootgame/framework/graphics/d2d"
+	"github.com/ubootgame/ubootgame/framework/graphics/display"
+	"github.com/ubootgame/ubootgame/framework/settings"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/components"
 	"github.com/ubootgame/ubootgame/internal/components/graphics"
@@ -22,19 +24,19 @@ import (
 	"math"
 )
 
-type SpriteSystem struct {
-	settings framework.SettingsService[internal.Settings]
-	display  framework.DisplayService
+type spriteSystem struct {
+	settingsProvider settings.Provider[internal.Settings]
+	display          display.Display
 
 	camera *components.CameraData
 
 	query *donburi.Query
 }
 
-func NewSpriteSystem(settings framework.SettingsService[internal.Settings], display framework.DisplayService) *SpriteSystem {
-	return &SpriteSystem{
-		settings: settings,
-		display:  display,
+func NewSpriteSystem(i *do.Injector) ecsFramework.System {
+	return &spriteSystem{
+		settingsProvider: do.MustInvoke[settings.Provider[internal.Settings]](i),
+		display:          do.MustInvoke[display.Display](i),
 		query: donburi.NewQuery(
 			filter.And(
 				filter.Contains(graphics.Sprite),
@@ -44,20 +46,20 @@ func NewSpriteSystem(settings framework.SettingsService[internal.Settings], disp
 	}
 }
 
-func (system *SpriteSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
+func (system *spriteSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
 	return []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer]{
 		{A: layers.Game, B: system.Draw},
 		{A: layers.Debug, B: system.DrawDebug},
 	}
 }
 
-func (system *SpriteSystem) Update(e *ecs.ECS) {
+func (system *spriteSystem) Update(e *ecs.ECS) {
 	if entry, found := components.Camera.First(e.World); found {
 		system.camera = components.Camera.Get(entry)
 	}
 }
 
-func (system *SpriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
+func (system *spriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	spriteDrawImageOptions := &ebiten.DrawImageOptions{Filter: ebiten.FilterLinear}
 
 	var (
@@ -103,8 +105,8 @@ func (system *SpriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	})
 }
 
-func (system *SpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
-	if !system.settings.Settings().Debug.DrawPositions {
+func (system *spriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
+	if !system.settingsProvider.Settings().Debug.DrawPositions {
 		return
 	}
 
@@ -134,7 +136,7 @@ func (system *SpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 				velocity.X, velocity.Y)
 		}
 
-		metrics := system.settings.Settings().Debug.FontFace.Metrics()
+		metrics := system.settingsProvider.Settings().Debug.FontFace.Metrics()
 
 		debugTextOptions := text.DrawOptions{
 			LayoutOptions: text.LayoutOptions{
@@ -153,7 +155,7 @@ func (system *SpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 
 		system.camera.Camera.ApplyCameraTransform(&debugTextOptions.GeoM)
 
-		text.Draw(screen, debugText, system.settings.Settings().Debug.FontFace, &debugTextOptions)
+		text.Draw(screen, debugText, system.settingsProvider.Settings().Debug.FontFace, &debugTextOptions)
 
 		// Center dot
 		debugDotOptions := ebiten.DrawImageOptions{

@@ -1,10 +1,10 @@
 package environment
 
 import (
-	"github.com/ubootgame/ubootgame/framework"
 	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
-	"github.com/ubootgame/ubootgame/framework/services/display"
-	"github.com/ubootgame/ubootgame/framework/services/resources"
+	"github.com/ubootgame/ubootgame/framework/graphics/display"
+	"github.com/ubootgame/ubootgame/framework/resources"
+	"github.com/ubootgame/ubootgame/framework/resources/types"
 	"github.com/ubootgame/ubootgame/internal/components/graphics"
 	"github.com/ubootgame/ubootgame/internal/layers"
 	"github.com/yohamta/donburi"
@@ -21,7 +21,7 @@ var AnimatedWater = ecsFramework.NewArchetype(
 	graphics.AnimatedSprite,
 )
 
-func CreateAnimatedWater(ecs *ecs.ECS, resources framework.ResourceService, asepriteID resources.AsepriteID, scale display.Scale, position r2.Vec) *donburi.Entry {
+func CreateAnimatedWater(ecs *ecs.ECS, resources resources.Registry, asepriteID types.AsepriteID, scale display.Scale, position r2.Vec) *donburi.Entry {
 	entry := AnimatedWater.Spawn(ecs, layers.Game)
 
 	aseprite := resources.LoadAseprite(asepriteID)

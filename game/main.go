@@ -1,18 +1,17 @@
 package main
 
 import (
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/pkg/profile"
-	"github.com/ubootgame/ubootgame/framework"
+	"github.com/samber/do"
+	"github.com/ubootgame/ubootgame/config"
 	"github.com/ubootgame/ubootgame/framework/cli"
-	"github.com/ubootgame/ubootgame/framework/services/display"
-	"github.com/ubootgame/ubootgame/framework/services/resources"
-	"github.com/ubootgame/ubootgame/framework/services/scenes"
-	"github.com/ubootgame/ubootgame/framework/services/settings"
+	"github.com/ubootgame/ubootgame/framework/game"
+	"github.com/ubootgame/ubootgame/framework/graphics/display"
+	"github.com/ubootgame/ubootgame/framework/resources"
+	"github.com/ubootgame/ubootgame/framework/settings"
 	"github.com/ubootgame/ubootgame/internal"
-	"github.com/ubootgame/ubootgame/internal/scenes/game"
-	"gonum.org/v1/gonum/spatial/r2"
+	"github.com/ubootgame/ubootgame/internal/scenes"
 	_ "image/png"
 	"log"
 	"net/http"
@@ -28,50 +27,26 @@ func main() {
 		}()
 	}
 
-	s := &settings.Settings[internal.Settings]{
-		Window: settings.Window{
-			Title:        "U-Boot",
-			ResizingMode: ebiten.WindowResizingModeEnabled,
-			DefaultSize:  r2.Vec{X: 1280, Y: 720},
-			Ratio:        1280.0 / 720.0,
-		},
-		Debug: settings.Debug{
-			Enabled:        true,
-			DrawGrid:       true,
-			DrawCollisions: true,
-			DrawPositions:  true,
-			FontScale:      1.0,
-		},
-		Graphics: settings.Graphics{
-			VSync: true,
-		},
-		Internals: settings.Internals{
-			TPS:       60,
-			GCPercent: 100,
-		},
-		Game: internal.Settings{},
-	}
+	injector := prepareServices()
 
-	settingsService := settings.NewService(s)
+	g := game.NewGame[internal.Settings](injector, scenes.Scenes)
 
-	audioContext := audio.NewContext(44100)
-	resourceService := resources.NewService(audioContext)
-
-	displayService := display.NewService[internal.Settings](settingsService)
-
-	sceneService := scenes.NewService(scenes.SceneMap{
-		"game": func() framework.Scene {
-			return game.NewScene(settingsService, resourceService, displayService)
-		},
-	})
-
-	g := framework.NewGame[internal.Settings](settingsService, sceneService, displayService)
-
-	if err := g.LoadScene("game"); err != nil {
-		panic(err)
-	}
-
-	if err := ebiten.RunGame(g); err != nil {
+	if err := g.Run("game"); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func prepareServices() *do.Injector {
+	injector := do.New()
+
+	do.Provide(injector, display.NewDisplay[internal.Settings])
+	do.Provide(injector, func(i *do.Injector) (settings.Provider[internal.Settings], error) {
+		return settings.NewProvider[internal.Settings](i, config.DefaultSettings[internal.Settings]())
+	})
+	do.Provide(injector, func(i *do.Injector) (resources.Registry, error) {
+		audioContext := audio.NewContext(44100)
+		return resources.NewRegistry(i, audioContext)
+	})
+
+	return injector
 }

@@ -2,9 +2,7 @@ package enemy
 
 import (
 	"github.com/samber/lo"
-	"github.com/ubootgame/ubootgame/framework"
 	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
-	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/components/graphics"
 	"github.com/ubootgame/ubootgame/internal/components/physics"
 	"github.com/ubootgame/ubootgame/internal/entities/actors"
@@ -14,8 +12,6 @@ import (
 )
 
 type System struct {
-	settings framework.SettingsService[internal.Settings]
-
 	query *donburi.Query
 }
 

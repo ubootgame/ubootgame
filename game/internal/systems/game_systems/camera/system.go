@@ -1,9 +1,11 @@
 package camera
 
 import (
+	"github.com/samber/do"
 	"github.com/samber/lo"
-	"github.com/ubootgame/ubootgame/framework"
 	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
+	"github.com/ubootgame/ubootgame/framework/graphics/display"
+	"github.com/ubootgame/ubootgame/framework/settings"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/components"
 	"github.com/yohamta/donburi"
@@ -12,14 +14,18 @@ import (
 	"math"
 )
 
-type System struct {
-	settings framework.SettingsService[internal.Settings]
-	display  framework.DisplayService
-	camera   *components.CameraData
+type cameraSystem struct {
+	settingsProvider settings.Provider[internal.Settings]
+	display          display.Display
+
+	camera *components.CameraData
 }
 
-func NewSystem(settings framework.SettingsService[internal.Settings], e *ecs.ECS, display framework.DisplayService) *System {
-	system := &System{settings: settings, display: display}
+func NewCameraSystem(i *do.Injector, e *ecs.ECS) ecsFramework.System {
+	system := &cameraSystem{
+		settingsProvider: do.MustInvoke[settings.Provider[internal.Settings]](i),
+		display:          do.MustInvoke[display.Display](i),
+	}
 
 	PanLeftEvent.Subscribe(e.World, system.PanLeft)
 	PanRightEvent.Subscribe(e.World, system.PanRight)
@@ -33,11 +39,11 @@ func NewSystem(settings framework.SettingsService[internal.Settings], e *ecs.ECS
 	return system
 }
 
-func (system *System) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
+func (system *cameraSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
 	return []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer]{}
 }
 
-func (system *System) Update(e *ecs.ECS) {
+func (system *cameraSystem) Update(e *ecs.ECS) {
 	if entry, found := components.Camera.First(e.World); found {
 		system.camera = components.Camera.Get(entry)
 	}
@@ -48,7 +54,7 @@ func (system *System) Update(e *ecs.ECS) {
 	}
 
 	if system.camera.Delta.X != 0 && system.camera.Delta.Y != 0 {
-		factor := system.camera.MoveSpeed / float64(system.settings.Settings().Internals.TPS) / math.Sqrt(system.camera.Delta.X*system.camera.Delta.X+system.camera.Delta.Y*system.camera.Delta.Y)
+		factor := system.camera.MoveSpeed / float64(system.settingsProvider.Settings().Internals.TPS) / math.Sqrt(system.camera.Delta.X*system.camera.Delta.X+system.camera.Delta.Y*system.camera.Delta.Y)
 		system.camera.Delta.X *= factor
 		system.camera.Delta.Y *= factor
 	}
@@ -62,34 +68,34 @@ func (system *System) Update(e *ecs.ECS) {
 	system.camera.Delta.Y = 0
 }
 
-func (system *System) PanLeft(_ donburi.World, _ types.Nil) {
-	system.camera.Delta.X = -(system.camera.MoveSpeed / float64(system.settings.Settings().Internals.TPS))
+func (system *cameraSystem) PanLeft(_ donburi.World, _ types.Nil) {
+	system.camera.Delta.X = -(system.camera.MoveSpeed / float64(system.settingsProvider.Settings().Internals.TPS))
 }
 
-func (system *System) PanRight(_ donburi.World, _ types.Nil) {
-	system.camera.Delta.X = system.camera.MoveSpeed / float64(system.settings.Settings().Internals.TPS)
+func (system *cameraSystem) PanRight(_ donburi.World, _ types.Nil) {
+	system.camera.Delta.X = system.camera.MoveSpeed / float64(system.settingsProvider.Settings().Internals.TPS)
 }
 
-func (system *System) PanUp(_ donburi.World, _ types.Nil) {
-	system.camera.Delta.Y = -(system.camera.MoveSpeed / float64(system.settings.Settings().Internals.TPS))
+func (system *cameraSystem) PanUp(_ donburi.World, _ types.Nil) {
+	system.camera.Delta.Y = -(system.camera.MoveSpeed / float64(system.settingsProvider.Settings().Internals.TPS))
 }
 
-func (system *System) PanDown(_ donburi.World, _ types.Nil) {
-	system.camera.Delta.Y = system.camera.MoveSpeed / float64(system.settings.Settings().Internals.TPS)
+func (system *cameraSystem) PanDown(_ donburi.World, _ types.Nil) {
+	system.camera.Delta.Y = system.camera.MoveSpeed / float64(system.settingsProvider.Settings().Internals.TPS)
 }
 
-func (system *System) ZoomIn(_ donburi.World, _ types.Nil) {
+func (system *cameraSystem) ZoomIn(_ donburi.World, _ types.Nil) {
 	system.camera.Camera.ZoomFactor = min(system.camera.MaxZoom, system.camera.Camera.ZoomFactor+system.camera.ZoomSpeed)
 }
 
-func (system *System) ZoomOut(_ donburi.World, _ types.Nil) {
+func (system *cameraSystem) ZoomOut(_ donburi.World, _ types.Nil) {
 	system.camera.Camera.ZoomFactor = max(system.camera.MinZoom, system.camera.Camera.ZoomFactor-system.camera.ZoomSpeed)
 }
 
-func (system *System) RotateLeft(_ donburi.World, _ types.Nil) {
+func (system *cameraSystem) RotateLeft(_ donburi.World, _ types.Nil) {
 	system.camera.Camera.SetRotation(system.camera.Camera.Rotation() - system.camera.RotationSpeed)
 }
 
-func (system *System) RotateRight(_ donburi.World, _ types.Nil) {
+func (system *cameraSystem) RotateRight(_ donburi.World, _ types.Nil) {
 	system.camera.Camera.SetRotation(system.camera.Camera.Rotation() + system.camera.RotationSpeed)
 }

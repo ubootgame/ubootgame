@@ -2,6 +2,7 @@ package weapons
 
 import (
 	"github.com/jakecoffman/cp"
+	"github.com/samber/do"
 	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
 	"github.com/ubootgame/ubootgame/internal/components/physics"
 	"github.com/ubootgame/ubootgame/internal/layers"
@@ -16,16 +17,21 @@ var Bullet = ecsFramework.NewArchetype(
 	physics.Body,
 )
 
-func CreateBullet(ecs *ecs.ECS, from, to cp.Vector, space *cp.Space) *donburi.Entry {
-	entry := Bullet.Spawn(ecs, layers.Game)
+type NewBulletParams struct {
+	From, To cp.Vector
+	Space    *cp.Space
+}
 
-	direction := to.Sub(from)
+func CreateBullet(_ *do.Injector, e *ecs.ECS, params NewBulletParams) *donburi.Entry {
+	entry := Bullet.Spawn(e, layers.Game)
+
+	direction := params.To.Sub(params.From)
 	velocity := direction.Normalize()
 
-	body := space.AddBody(cp.NewBody(1e8, cp.MomentForBox(1e8, 0.002, 0.002)))
-	body.SetPosition(from)
+	body := params.Space.AddBody(cp.NewBody(1e8, cp.MomentForBox(1e8, 0.002, 0.002)))
+	body.SetPosition(params.From)
 	body.SetVelocityVector(velocity)
-	space.AddShape(cp.NewBox(body, 0.02, 0.02, 0))
+	params.Space.AddShape(cp.NewBox(body, 0.02, 0.02, 0))
 	physics.Body.Set(entry, body)
 
 	return entry

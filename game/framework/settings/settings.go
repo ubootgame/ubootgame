@@ -6,7 +6,7 @@ import (
 	"gonum.org/v1/gonum/spatial/r2"
 )
 
-type Settings[S any] struct {
+type Settings[S interface{}] struct {
 	Debug     Debug
 	Window    Window
 	Graphics  Graphics

@@ -7,6 +7,7 @@ require (
 	github.com/jakecoffman/cp v1.2.1
 	github.com/pkg/profile v1.7.0
 	github.com/quasilyte/ebitengine-resource v0.5.0
+	github.com/samber/do v1.6.0
 	github.com/samber/lo v1.39.0
 	github.com/setanarut/kamera/v2 v2.4.1
 	github.com/solarlune/goaseprite v0.0.0-20231009060539-335986f05db8

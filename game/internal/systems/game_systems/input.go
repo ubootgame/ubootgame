@@ -3,35 +3,39 @@ package game_systems
 import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/samber/do"
 	"github.com/samber/lo"
-	"github.com/ubootgame/ubootgame/framework"
 	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
+	"github.com/ubootgame/ubootgame/framework/graphics/display"
 	"github.com/ubootgame/ubootgame/framework/input"
 	"github.com/ubootgame/ubootgame/internal/components"
 	"github.com/ubootgame/ubootgame/internal/systems/actors/player"
-	gameSystem "github.com/ubootgame/ubootgame/internal/systems/game_systems/camera"
-	debugSystem "github.com/ubootgame/ubootgame/internal/systems/game_systems/debug"
+	"github.com/ubootgame/ubootgame/internal/systems/game_systems/camera"
+	"github.com/ubootgame/ubootgame/internal/systems/game_systems/debug"
 	"github.com/yohamta/donburi/ecs"
 	"go/types"
 	"gonum.org/v1/gonum/spatial/r2"
 )
 
-type InputSystem struct {
-	display framework.DisplayService
+type inputSystem struct {
+	display display.Display
 
 	cursor *input.Cursor
 	camera *components.CameraData
 }
 
-func NewInputSystem(display framework.DisplayService, cursor *input.Cursor) *InputSystem {
-	return &InputSystem{display: display, cursor: cursor}
+func NewInputSystem(i *do.Injector, cursor *input.Cursor) ecsFramework.System {
+	return &inputSystem{
+		display: do.MustInvoke[display.Display](i),
+		cursor:  cursor,
+	}
 }
 
-func (system *InputSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
+func (system *inputSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
 	return []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer]{}
 }
 
-func (system *InputSystem) Update(e *ecs.ECS) {
+func (system *inputSystem) Update(e *ecs.ECS) {
 	if entry, found := components.Camera.First(e.World); found {
 		system.camera = components.Camera.Get(entry)
 	}
@@ -46,28 +50,28 @@ func (system *InputSystem) Update(e *ecs.ECS) {
 
 	// Camera
 	if ebiten.IsKeyPressed(ebiten.KeyA) {
-		gameSystem.PanLeftEvent.Publish(e.World, types.Nil{})
+		camera.PanLeftEvent.Publish(e.World, types.Nil{})
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyD) {
-		gameSystem.PanRightEvent.Publish(e.World, types.Nil{})
+		camera.PanRightEvent.Publish(e.World, types.Nil{})
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyW) {
-		gameSystem.PanUpEvent.Publish(e.World, types.Nil{})
+		camera.PanUpEvent.Publish(e.World, types.Nil{})
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyS) {
-		gameSystem.PanDownEvent.Publish(e.World, types.Nil{})
+		camera.PanDownEvent.Publish(e.World, types.Nil{})
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyR) {
-		gameSystem.ZoomInEvent.Publish(e.World, types.Nil{})
+		camera.ZoomInEvent.Publish(e.World, types.Nil{})
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyF) {
-		gameSystem.ZoomOutEvent.Publish(e.World, types.Nil{})
+		camera.ZoomOutEvent.Publish(e.World, types.Nil{})
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyQ) {
-		gameSystem.RotateLeftEvent.Publish(e.World, types.Nil{})
+		camera.RotateLeftEvent.Publish(e.World, types.Nil{})
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyE) {
-		gameSystem.RotateRightEvent.Publish(e.World, types.Nil{})
+		camera.RotateRightEvent.Publish(e.World, types.Nil{})
 	}
 
 	// Player
@@ -83,15 +87,15 @@ func (system *InputSystem) Update(e *ecs.ECS) {
 
 	// Debug
 	if inpututil.IsKeyJustPressed(ebiten.KeySlash) {
-		debugSystem.ToggleDebugEvent.Publish(e.World, types.Nil{})
+		debug.ToggleDebugEvent.Publish(e.World, types.Nil{})
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyF1) {
-		debugSystem.ToggleDrawGrid.Publish(e.World, types.Nil{})
+		debug.ToggleDrawGrid.Publish(e.World, types.Nil{})
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyF2) {
-		debugSystem.ToggleDrawCollisions.Publish(e.World, types.Nil{})
+		debug.ToggleDrawCollisions.Publish(e.World, types.Nil{})
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyF3) {
-		debugSystem.ToggleDrawPositions.Publish(e.World, types.Nil{})
+		debug.ToggleDrawPositions.Publish(e.World, types.Nil{})
 	}
 }

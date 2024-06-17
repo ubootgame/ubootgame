@@ -2,10 +2,11 @@ package player
 
 import (
 	"github.com/jakecoffman/cp"
+	"github.com/samber/do"
 	"github.com/samber/lo"
-	"github.com/ubootgame/ubootgame/framework"
 	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
 	"github.com/ubootgame/ubootgame/framework/input"
+	"github.com/ubootgame/ubootgame/framework/settings"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/components/graphics"
 	"github.com/ubootgame/ubootgame/internal/components/physics"
@@ -22,8 +23,10 @@ const (
 	maxSpeed     = 0.25
 )
 
-type System struct {
-	settings framework.SettingsService[internal.Settings]
+type playerSystem struct {
+	injector *do.Injector
+
+	settingsProvider settings.Provider[internal.Settings]
 
 	ecs    *ecs.ECS
 	cursor *input.Cursor
@@ -36,8 +39,12 @@ type System struct {
 	fireTick         uint64
 }
 
-func NewSystem(settings framework.SettingsService[internal.Settings], ecs *ecs.ECS, cursor *input.Cursor) *System {
-	system := &System{ecs: ecs, settings: settings, cursor: cursor}
+func NewPlayerSystem(i *do.Injector, ecs *ecs.ECS, cursor *input.Cursor) ecsFramework.System {
+	system := &playerSystem{
+		settingsProvider: do.MustInvoke[settings.Provider[internal.Settings]](i),
+		ecs:              ecs,
+		cursor:           cursor,
+	}
 
 	MoveLeftEvent.Subscribe(ecs.World, system.MoveLeft)
 	MoveRightEvent.Subscribe(ecs.World, system.MoveRight)
@@ -46,11 +53,11 @@ func NewSystem(settings framework.SettingsService[internal.Settings], ecs *ecs.E
 	return system
 }
 
-func (system *System) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
+func (system *playerSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
 	return []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer]{}
 }
 
-func (system *System) Update(e *ecs.ECS) {
+func (system *playerSystem) Update(e *ecs.ECS) {
 	if entry, found := actors.PlayerTag.First(e.World); found {
 		system.body = physics.Body.Get(entry)
 		system.sprite = graphics.Sprite.Get(entry)
@@ -78,7 +85,7 @@ func (system *System) Update(e *ecs.ECS) {
 	}
 }
 
-func (system *System) MoveLeft(_ donburi.World, _ types.Nil) {
+func (system *playerSystem) MoveLeft(_ donburi.World, _ types.Nil) {
 	velocity := system.body.Velocity()
 	velocity.X -= acceleration
 	velocity.X = max(velocity.X, -maxSpeed)
@@ -87,7 +94,7 @@ func (system *System) MoveLeft(_ donburi.World, _ types.Nil) {
 	system.moving = true
 }
 
-func (system *System) MoveRight(_ donburi.World, _ types.Nil) {
+func (system *playerSystem) MoveRight(_ donburi.World, _ types.Nil) {
 	velocity := system.body.Velocity()
 	velocity.X += acceleration
 	velocity.X = min(velocity.X, maxSpeed)
@@ -96,12 +103,16 @@ func (system *System) MoveRight(_ donburi.World, _ types.Nil) {
 	system.moving = true
 }
 
-func (system *System) Shoot(w donburi.World, _ types.Nil) {
-	if system.fireTick%uint64(system.settings.Settings().Internals.TPS/8) == 0 {
+func (system *playerSystem) Shoot(w donburi.World, _ types.Nil) {
+	if system.fireTick%uint64(system.settingsProvider.Settings().Internals.TPS/8) == 0 {
 		player, _ := actors.PlayerTag.First(w)
 		body := physics.Body.Get(player)
 		playerWorld := body.Position()
-		_ = weapons.CreateBullet(system.ecs, playerWorld, cp.Vector(system.cursor.WorldPosition), system.space)
+		ecsFramework.Spawn(system.injector, system.ecs, weapons.CreateBullet, weapons.NewBulletParams{
+			From:  playerWorld,
+			To:    cp.Vector(system.cursor.WorldPosition),
+			Space: system.space,
+		})
 	}
 	system.fireTick++
 

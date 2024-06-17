@@ -2,9 +2,10 @@ package graphics
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/samber/do"
 	"github.com/samber/lo"
-	"github.com/ubootgame/ubootgame/framework"
 	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
+	"github.com/ubootgame/ubootgame/framework/settings"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/components"
 	"github.com/ubootgame/ubootgame/internal/components/graphics"
@@ -16,8 +17,8 @@ import (
 	"image"
 )
 
-type AnimatedSpriteSystem struct {
-	settings framework.SettingsService[internal.Settings]
+type animatedSpriteSystem struct {
+	settingsProvider settings.Provider[internal.Settings]
 
 	camera *components.CameraData
 
@@ -27,34 +28,34 @@ type AnimatedSpriteSystem struct {
 	spriteDrawImageOptions *ebiten.DrawImageOptions
 }
 
-func NewAnimatedSpriteSystem(settings framework.SettingsService[internal.Settings]) *AnimatedSpriteSystem {
-	return &AnimatedSpriteSystem{
-		settings:               settings,
+func NewAnimatedSpriteSystem(i *do.Injector) ecsFramework.System {
+	return &animatedSpriteSystem{
+		settingsProvider:       do.MustInvoke[settings.Provider[internal.Settings]](i),
 		updateQuery:            donburi.NewQuery(filter.Contains(graphics.AnimatedSprite)),
 		drawQuery:              donburi.NewQuery(filter.Contains(graphics.AnimatedSprite, transform.Transform)),
 		spriteDrawImageOptions: &ebiten.DrawImageOptions{},
 	}
 }
 
-func (system *AnimatedSpriteSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
+func (system *animatedSpriteSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
 	return []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer]{
 		{A: layers.Game, B: system.Draw},
 		{A: layers.Debug, B: system.DrawDebug},
 	}
 }
 
-func (system *AnimatedSpriteSystem) Update(e *ecs.ECS) {
+func (system *animatedSpriteSystem) Update(e *ecs.ECS) {
 	if entry, found := components.Camera.First(e.World); found {
 		system.camera = components.Camera.Get(entry)
 	}
 
 	system.updateQuery.Each(e.World, func(entry *donburi.Entry) {
 		animatedSprite := graphics.AnimatedSprite.Get(entry)
-		animatedSprite.Aseprite.Player.Update(1.0 / float32(system.settings.Settings().Internals.TPS) * animatedSprite.Speed)
+		animatedSprite.Aseprite.Player.Update(1.0 / float32(system.settingsProvider.Settings().Internals.TPS) * animatedSprite.Speed)
 	})
 }
 
-func (system *AnimatedSpriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
+func (system *animatedSpriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	system.drawQuery.Each(e.World, func(entry *donburi.Entry) {
 		animatedSprite := graphics.AnimatedSprite.Get(entry)
 
@@ -75,7 +76,7 @@ func (system *AnimatedSpriteSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	})
 }
 
-func (system *AnimatedSpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
+func (system *animatedSpriteSystem) DrawDebug(e *ecs.ECS, screen *ebiten.Image) {
 	//system.drawQuery.Each(e.World, func(entry *donburi.Entry) {
 	//	worldPosition := transform.WorldPosition(entry)
 	//	spriteCenter := system.camera.WorldToScreenPosition(r2.Vec(worldPosition))

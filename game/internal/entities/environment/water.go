@@ -1,10 +1,10 @@
 package environment
 
 import (
-	"github.com/ubootgame/ubootgame/framework"
 	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
-	"github.com/ubootgame/ubootgame/framework/services/display"
-	"github.com/ubootgame/ubootgame/framework/services/resources"
+	"github.com/ubootgame/ubootgame/framework/graphics/display"
+	"github.com/ubootgame/ubootgame/framework/resources"
+	"github.com/ubootgame/ubootgame/framework/resources/types"
 	"github.com/ubootgame/ubootgame/internal/components/graphics"
 	"github.com/ubootgame/ubootgame/internal/layers"
 	"github.com/yohamta/donburi"
@@ -20,7 +20,7 @@ var Water = ecsFramework.NewArchetype(
 	graphics.Sprite,
 )
 
-func CreateWater(ecs *ecs.ECS, resources framework.ResourceService, tilesheetID resources.TilesheetID, tileName string, scale display.Scale) *donburi.Entry {
+func CreateWater(ecs *ecs.ECS, resources resources.Registry, tilesheetID types.TilesheetID, tileName string, scale display.Scale) *donburi.Entry {
 	entry := Water.Spawn(ecs, layers.Game)
 
 	//sprite := registry.LoadTile(tilesheetID, tileName)

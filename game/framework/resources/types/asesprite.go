@@ -1,4 +1,4 @@
-package resources
+package types
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
@@ -14,8 +14,9 @@ type AsepriteInfo struct {
 }
 
 type AsepriteEntry struct {
-	ImageID ImageID
-	Player  *goaseprite.Player
+	ImageID   ImageID
+	ImageInfo ImageInfo
+	Player    *goaseprite.Player
 }
 
 type Aseprite struct {
@@ -24,7 +25,7 @@ type Aseprite struct {
 	Player *goaseprite.Player
 }
 
-func LoadAseprite(info AsepriteInfo, registry *Service) (AsepriteEntry, error) {
+func LoadAseprite(info AsepriteInfo) (AsepriteEntry, error) {
 	json, _ := assets.FS.ReadFile(info.Path)
 	file := goaseprite.Read(json)
 	player := file.CreatePlayer()
@@ -33,13 +34,9 @@ func LoadAseprite(info AsepriteInfo, registry *Service) (AsepriteEntry, error) {
 	imagePath := path.Join(dir, file.ImagePath)
 	imageInfo := ImageInfo{Path: imagePath}
 
-	imageID := registry.NextImageID()
-
-	registry.RegisterImage(imageID, imageInfo)
-
 	aseprite := AsepriteEntry{
-		ImageID: imageID,
-		Player:  player,
+		ImageInfo: imageInfo,
+		Player:    player,
 	}
 
 	return aseprite, nil

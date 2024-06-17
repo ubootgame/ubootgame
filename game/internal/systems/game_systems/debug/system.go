@@ -5,11 +5,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"github.com/samber/do"
 	"github.com/samber/lo"
-	"github.com/ubootgame/ubootgame/framework"
 	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
 	"github.com/ubootgame/ubootgame/framework/graphics/d2d"
 	"github.com/ubootgame/ubootgame/framework/input"
+	"github.com/ubootgame/ubootgame/framework/settings"
 	"github.com/ubootgame/ubootgame/internal"
 	"github.com/ubootgame/ubootgame/internal/components"
 	"github.com/ubootgame/ubootgame/internal/layers"
@@ -20,8 +21,8 @@ import (
 	"strings"
 )
 
-type System struct {
-	settings framework.SettingsService[internal.Settings]
+type debugSystem struct {
+	settingsProvider settings.Provider[internal.Settings]
 
 	cursor *input.Cursor
 
@@ -36,9 +37,9 @@ type System struct {
 	debugTextOptions *text.DrawOptions
 }
 
-func NewSystem(settings framework.SettingsService[internal.Settings], e *ecs.ECS, cursor *input.Cursor) *System {
-	system := &System{
-		settings:         settings,
+func NewDebugSystem(i *do.Injector, e *ecs.ECS, cursor *input.Cursor) ecsFramework.System {
+	system := &debugSystem{
+		settingsProvider: do.MustInvoke[settings.Provider[internal.Settings]](i),
 		cursor:           cursor,
 		keys:             make([]ebiten.Key, 0),
 		memStats:         &runtime.MemStats{},
@@ -58,14 +59,14 @@ func NewSystem(settings framework.SettingsService[internal.Settings], e *ecs.ECS
 	return system
 }
 
-func (system *System) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
+func (system *debugSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
 	return []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer]{
 		{A: layers.Debug, B: system.DrawDebug},
 	}
 }
 
-func (system *System) Update(e *ecs.ECS) {
-	if !system.settings.Settings().Debug.Enabled {
+func (system *debugSystem) Update(e *ecs.ECS) {
+	if !system.settingsProvider.Settings().Debug.Enabled {
 		return
 	}
 
@@ -75,7 +76,7 @@ func (system *System) Update(e *ecs.ECS) {
 
 	system.keys = inpututil.AppendPressedKeys(system.keys[:0])
 
-	if system.ticks%uint64(system.settings.Settings().Internals.TPS*2) == 0 {
+	if system.ticks%uint64(system.settingsProvider.Settings().Internals.TPS*2) == 0 {
 		runtime.ReadMemStats(system.memStats)
 	}
 
@@ -84,30 +85,30 @@ func (system *System) Update(e *ecs.ECS) {
 	system.ticks++
 }
 
-func (system *System) DrawDebug(_ *ecs.ECS, screen *ebiten.Image) {
-	metrics := system.settings.Settings().Debug.FontFace.Metrics()
+func (system *debugSystem) DrawDebug(_ *ecs.ECS, screen *ebiten.Image) {
+	metrics := system.settingsProvider.Settings().Debug.FontFace.Metrics()
 	system.debugTextOptions.LineSpacing = metrics.HAscent + metrics.HDescent + metrics.HLineGap
 
-	text.Draw(screen, system.debugText, system.settings.Settings().Debug.FontFace, system.debugTextOptions)
+	text.Draw(screen, system.debugText, system.settingsProvider.Settings().Debug.FontFace, system.debugTextOptions)
 }
 
-func (system *System) ToggleDebug(_ donburi.World, _ types.Nil) {
-	system.settings.Settings().Debug.Enabled = !system.settings.Settings().Debug.Enabled
+func (system *debugSystem) ToggleDebug(_ donburi.World, _ types.Nil) {
+	system.settingsProvider.Settings().Debug.Enabled = !system.settingsProvider.Settings().Debug.Enabled
 }
 
-func (system *System) ToggleDrawGrid(_ donburi.World, _ types.Nil) {
-	system.settings.Settings().Debug.DrawGrid = !system.settings.Settings().Debug.DrawGrid
+func (system *debugSystem) ToggleDrawGrid(_ donburi.World, _ types.Nil) {
+	system.settingsProvider.Settings().Debug.DrawGrid = !system.settingsProvider.Settings().Debug.DrawGrid
 }
 
-func (system *System) ToggleDrawCollisions(_ donburi.World, _ types.Nil) {
-	system.settings.Settings().Debug.DrawCollisions = !system.settings.Settings().Debug.DrawCollisions
+func (system *debugSystem) ToggleDrawCollisions(_ donburi.World, _ types.Nil) {
+	system.settingsProvider.Settings().Debug.DrawCollisions = !system.settingsProvider.Settings().Debug.DrawCollisions
 }
 
-func (system *System) ToggleDrawPositions(_ donburi.World, _ types.Nil) {
-	system.settings.Settings().Debug.DrawPositions = !system.settings.Settings().Debug.DrawPositions
+func (system *debugSystem) ToggleDrawPositions(_ donburi.World, _ types.Nil) {
+	system.settingsProvider.Settings().Debug.DrawPositions = !system.settingsProvider.Settings().Debug.DrawPositions
 }
 
-func (system *System) generateDebugText() string {
+func (system *debugSystem) generateDebugText() string {
 	system.debugTextBuilder.Reset()
 
 	ms := system.memStats
@@ -136,9 +137,9 @@ Total: %s
 Sys: %s
 NextGC: %s
 NumGC: %d`,
-		system.settings.Settings().Debug.DrawGrid,
-		system.settings.Settings().Debug.DrawCollisions,
-		system.settings.Settings().Debug.DrawPositions,
+		system.settingsProvider.Settings().Debug.DrawGrid,
+		system.settingsProvider.Settings().Debug.DrawCollisions,
+		system.settingsProvider.Settings().Debug.DrawPositions,
 		ebiten.ActualFPS(),
 		ebiten.ActualTPS(),
 		ebiten.IsVsyncEnabled(),

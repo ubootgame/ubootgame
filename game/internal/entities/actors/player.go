@@ -2,10 +2,11 @@ package actors
 
 import (
 	"github.com/jakecoffman/cp"
-	"github.com/ubootgame/ubootgame/framework"
+	"github.com/samber/do"
 	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
-	"github.com/ubootgame/ubootgame/framework/services/display"
-	"github.com/ubootgame/ubootgame/framework/services/resources"
+	"github.com/ubootgame/ubootgame/framework/graphics/display"
+	"github.com/ubootgame/ubootgame/framework/resources"
+	"github.com/ubootgame/ubootgame/framework/resources/types"
 	"github.com/ubootgame/ubootgame/internal/components/graphics"
 	"github.com/ubootgame/ubootgame/internal/components/physics"
 	"github.com/ubootgame/ubootgame/internal/layers"
@@ -21,18 +22,26 @@ var Player = ecsFramework.NewArchetype(
 	physics.Body,
 )
 
-func CreatePlayer(resources framework.ResourceService, ecs *ecs.ECS, imageID resources.ImageID, scale display.Scale, space *cp.Space) *donburi.Entry {
-	entry := Player.Spawn(ecs, layers.Game)
+type NewPlayerParams struct {
+	ImageID types.ImageID
+	Scale   display.Scale
+	Space   *cp.Space
+}
 
-	image := resources.LoadImage(imageID)
+func CreatePlayer(i *do.Injector, e *ecs.ECS, params NewPlayerParams) *donburi.Entry {
+	resourceRegistry := do.MustInvoke[resources.Registry](i)
 
-	sprite := graphics.NewSprite(image, scale, false, false)
+	entry := Player.Spawn(e, layers.Game)
+
+	image := resourceRegistry.LoadImage(params.ImageID)
+
+	sprite := graphics.NewSprite(image, params.Scale, false, false)
 	graphics.Sprite.SetValue(entry, sprite)
 
 	worldSize := sprite.WorldSize()
 
-	body := space.AddBody(cp.NewBody(1e9, cp.INFINITY))
-	space.AddShape(cp.NewBox(body, worldSize.X, worldSize.Y, 0))
+	body := params.Space.AddBody(cp.NewBody(1e9, cp.INFINITY))
+	params.Space.AddShape(cp.NewBox(body, worldSize.X, worldSize.Y, 0))
 	physics.Body.Set(entry, body)
 
 	return entry

@@ -2,9 +2,10 @@ package weapons
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/samber/do"
 	"github.com/samber/lo"
-	"github.com/ubootgame/ubootgame/framework"
 	ecsFramework "github.com/ubootgame/ubootgame/framework/ecs"
+	"github.com/ubootgame/ubootgame/framework/graphics/display"
 	"github.com/ubootgame/ubootgame/internal/components"
 	"github.com/ubootgame/ubootgame/internal/components/physics"
 	"github.com/ubootgame/ubootgame/internal/entities/weapons"
@@ -16,8 +17,8 @@ import (
 	"gonum.org/v1/gonum/spatial/r2"
 )
 
-type BulletSystem struct {
-	display framework.DisplayService
+type bulletSystem struct {
+	display display.Display
 
 	camera *components.CameraData
 
@@ -28,21 +29,21 @@ type BulletSystem struct {
 	drawImageOptions *ebiten.DrawImageOptions
 }
 
-func NewBulletSystem(display framework.DisplayService) *BulletSystem {
-	return &BulletSystem{
-		display:          display,
+func NewBulletSystem(i *do.Injector) ecsFramework.System {
+	return &bulletSystem{
+		display:          do.MustInvoke[display.Display](i),
 		query:            donburi.NewQuery(filter.Contains(weapons.BulletTag)),
 		drawImageOptions: &ebiten.DrawImageOptions{},
 	}
 }
 
-func (system *BulletSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
+func (system *bulletSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
 	return []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer]{
 		{A: layers.Game, B: system.Draw},
 	}
 }
 
-func (system *BulletSystem) Update(e *ecs.ECS) {
+func (system *bulletSystem) Update(e *ecs.ECS) {
 	if entry, found := components.Camera.First(e.World); found {
 		system.camera = components.Camera.Get(entry)
 	}
@@ -61,7 +62,7 @@ func (system *BulletSystem) Update(e *ecs.ECS) {
 	})
 }
 
-func (system *BulletSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
+func (system *bulletSystem) Draw(e *ecs.ECS, screen *ebiten.Image) {
 	if system.image == nil {
 		system.image = ebiten.NewImage(2, 2)
 		system.image.Fill(colornames.White)

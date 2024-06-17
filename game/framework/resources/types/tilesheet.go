@@ -1,4 +1,4 @@
-package resources
+package types
 
 import (
 	"encoding/xml"
@@ -14,15 +14,16 @@ type TilesheetInfo struct {
 }
 
 type TilesheetEntry struct {
-	ImageID ImageID
-	Tiles   map[string]Tile
+	ImageID   ImageID
+	ImageInfo ImageInfo
+	Tiles     map[string]Tile
 }
 
 type Tile struct {
 	X, Y, Width, Height int
 }
 
-func LoadTileSheet(info TilesheetInfo, registry *Service) (TilesheetEntry, error) {
+func LoadTileSheet(info TilesheetInfo) (TilesheetEntry, error) {
 	xmlFile := lo.Must(assets.FS.ReadFile(info.Path))
 
 	var textureAtlas TextureAtlas
@@ -35,12 +36,8 @@ func LoadTileSheet(info TilesheetInfo, registry *Service) (TilesheetEntry, error
 	imagePath := path.Join(dir, textureAtlas.ImagePath)
 	imageInfo := ImageInfo{Path: imagePath}
 
-	imageID := registry.NextImageID()
-
-	registry.RegisterImage(imageID, imageInfo)
-
 	tileSheet := TilesheetEntry{
-		ImageID: imageID,
+		ImageInfo: imageInfo,
 		Tiles: lo.Associate(textureAtlas.SubTextures, func(item SubTexture) (string, Tile) {
 			return item.Name, Tile{
 				X:      item.X,

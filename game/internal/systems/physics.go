@@ -9,19 +9,19 @@ import (
 	"github.com/yohamta/donburi/ecs"
 )
 
-type PhysicsSystem struct {
+type physicsSystem struct {
 	space *cp.Space
 }
 
-func NewPhysicsSystem() *PhysicsSystem {
-	return &PhysicsSystem{}
+func NewPhysicsSystem() ecsFramework.System {
+	return &physicsSystem{}
 }
 
-func (system *PhysicsSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
+func (system *physicsSystem) Layers() []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer] {
 	return []lo.Tuple2[ecs.LayerID, ecsFramework.Renderer]{}
 }
 
-func (system *PhysicsSystem) Update(e *ecs.ECS) {
+func (system *physicsSystem) Update(e *ecs.ECS) {
 	if entry, found := physics.Space.First(e.World); found {
 		system.space = physics.Space.Get(entry)
 	}
