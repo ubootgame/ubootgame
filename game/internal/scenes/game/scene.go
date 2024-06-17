@@ -37,11 +37,10 @@ type gameScene struct {
 
 	settingsProvider settings.Provider[internal.Settings]
 	resourceRegistry resources.Registry
+	input            input.Input
 	display          display.Display
 
 	ecs *ecs.ECS
-
-	cursor *input.Cursor
 }
 
 func NewGameScene(i *do.Injector) game.Scene {
@@ -50,15 +49,15 @@ func NewGameScene(i *do.Injector) game.Scene {
 		injector:         i,
 		settingsProvider: do.MustInvoke[settings.Provider[internal.Settings]](i),
 		resourceRegistry: do.MustInvoke[resources.Registry](i),
+		input:            do.MustInvoke[input.Input](i),
 		display:          do.MustInvoke[display.Display](i),
 		ecs:              e,
-		cursor:           input.NewCursor(),
 	}
 
-	ecsFramework.RegisterSystem(scene.ecs, debug.NewDebugSystem(i, scene.ecs, scene.cursor))
-	ecsFramework.RegisterSystem(scene.ecs, game_systems.NewInputSystem(i, scene.cursor))
+	ecsFramework.RegisterSystem(scene.ecs, debug.NewDebugSystem(i, scene.ecs))
+	ecsFramework.RegisterSystem(scene.ecs, game_systems.NewInputSystem(i))
 	ecsFramework.RegisterSystem(scene.ecs, camera.NewCameraSystem(i, scene.ecs))
-	ecsFramework.RegisterSystem(scene.ecs, player.NewPlayerSystem(i, scene.ecs, scene.cursor))
+	ecsFramework.RegisterSystem(scene.ecs, player.NewPlayerSystem(i, scene.ecs))
 	ecsFramework.RegisterSystem(scene.ecs, enemy.NewSystem())
 	ecsFramework.RegisterSystem(scene.ecs, weapons.NewBulletSystem(i))
 	ecsFramework.RegisterSystem(scene.ecs, systems.NewPhysicsSystem())

@@ -23,8 +23,7 @@ import (
 
 type debugSystem struct {
 	settingsProvider settings.Provider[internal.Settings]
-
-	cursor *input.Cursor
+	input            input.Input
 
 	camera *components.CameraData
 
@@ -37,10 +36,10 @@ type debugSystem struct {
 	debugTextOptions *text.DrawOptions
 }
 
-func NewDebugSystem(i *do.Injector, e *ecs.ECS, cursor *input.Cursor) ecsFramework.System {
+func NewDebugSystem(i *do.Injector, e *ecs.ECS) ecsFramework.System {
 	system := &debugSystem{
 		settingsProvider: do.MustInvoke[settings.Provider[internal.Settings]](i),
-		cursor:           cursor,
+		input:            do.MustInvoke[input.Input](i),
 		keys:             make([]ebiten.Key, 0),
 		memStats:         &runtime.MemStats{},
 		debugTextBuilder: &strings.Builder{},
@@ -113,8 +112,9 @@ func (system *debugSystem) generateDebugText() string {
 
 	ms := system.memStats
 
-	cursorWorldPosition := system.cursor.WorldPosition
-	cursorScreenPosition := system.cursor.ScreenPosition
+	cursor := system.input.Cursor()
+	cursorWorldPosition := cursor.WorldPosition
+	cursorScreenPosition := cursor.ScreenPosition
 
 	cameraWorldPositionX, cameraWorldPositionY := system.camera.Camera.Target()
 

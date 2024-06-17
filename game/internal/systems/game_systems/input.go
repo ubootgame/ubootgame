@@ -19,15 +19,15 @@ import (
 
 type inputSystem struct {
 	display display.Display
+	input   input.Input
 
-	cursor *input.Cursor
 	camera *components.CameraData
 }
 
-func NewInputSystem(i *do.Injector, cursor *input.Cursor) ecsFramework.System {
+func NewInputSystem(i *do.Injector) ecsFramework.System {
 	return &inputSystem{
 		display: do.MustInvoke[display.Display](i),
-		cursor:  cursor,
+		input:   do.MustInvoke[input.Input](i),
 	}
 }
 
@@ -40,13 +40,15 @@ func (system *inputSystem) Update(e *ecs.ECS) {
 		system.camera = components.Camera.Get(entry)
 	}
 
+	cursor := system.input.Cursor()
+
 	screenX, screenY := ebiten.CursorPosition()
 
 	screenPosition := r2.Vec{X: float64(screenX), Y: float64(screenY)}
-	system.cursor.ScreenPosition = screenPosition
+	cursor.ScreenPosition = screenPosition
 
 	worldX, worldY := system.camera.Camera.ScreenToWorld(screenX, screenY)
-	system.cursor.WorldPosition = r2.Vec{X: worldX / system.display.VirtualResolution().X, Y: worldY / system.display.VirtualResolution().X}
+	cursor.WorldPosition = r2.Vec{X: worldX / system.display.VirtualResolution().X, Y: worldY / system.display.VirtualResolution().X}
 
 	// Camera
 	if ebiten.IsKeyPressed(ebiten.KeyA) {

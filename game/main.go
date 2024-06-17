@@ -8,6 +8,7 @@ import (
 	"github.com/ubootgame/ubootgame/framework/cli"
 	"github.com/ubootgame/ubootgame/framework/game"
 	"github.com/ubootgame/ubootgame/framework/graphics/display"
+	"github.com/ubootgame/ubootgame/framework/input"
 	"github.com/ubootgame/ubootgame/framework/resources"
 	"github.com/ubootgame/ubootgame/framework/settings"
 	"github.com/ubootgame/ubootgame/internal"
@@ -27,7 +28,10 @@ func main() {
 		}()
 	}
 
-	injector := prepareServices()
+	injector := do.New()
+	defer cleanUpServices(injector)
+
+	prepareServices(injector)
 
 	g := game.NewGame[internal.Settings](injector, scenes.Scenes)
 
@@ -36,10 +40,9 @@ func main() {
 	}
 }
 
-func prepareServices() *do.Injector {
-	injector := do.New()
-
+func prepareServices(injector *do.Injector) {
 	do.Provide(injector, display.NewDisplay[internal.Settings])
+	do.Provide(injector, input.NewInput)
 	do.Provide(injector, func(i *do.Injector) (settings.Provider[internal.Settings], error) {
 		return settings.NewProvider[internal.Settings](i, config.DefaultSettings[internal.Settings]())
 	})
@@ -47,6 +50,10 @@ func prepareServices() *do.Injector {
 		audioContext := audio.NewContext(44100)
 		return resources.NewRegistry(i, audioContext)
 	})
+}
 
-	return injector
+func cleanUpServices(injector *do.Injector) {
+	if err := injector.Shutdown(); err != nil {
+		log.Fatal(err)
+	}
 }

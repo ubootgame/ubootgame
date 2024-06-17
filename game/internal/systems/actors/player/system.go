@@ -27,9 +27,9 @@ type playerSystem struct {
 	injector *do.Injector
 
 	settingsProvider settings.Provider[internal.Settings]
+	input            input.Input
 
-	ecs    *ecs.ECS
-	cursor *input.Cursor
+	ecs *ecs.ECS
 
 	space  *cp.Space
 	body   *cp.Body
@@ -39,11 +39,11 @@ type playerSystem struct {
 	fireTick         uint64
 }
 
-func NewPlayerSystem(i *do.Injector, ecs *ecs.ECS, cursor *input.Cursor) ecsFramework.System {
+func NewPlayerSystem(i *do.Injector, ecs *ecs.ECS) ecsFramework.System {
 	system := &playerSystem{
 		settingsProvider: do.MustInvoke[settings.Provider[internal.Settings]](i),
+		input:            do.MustInvoke[input.Input](i),
 		ecs:              ecs,
-		cursor:           cursor,
 	}
 
 	MoveLeftEvent.Subscribe(ecs.World, system.MoveLeft)
@@ -110,7 +110,7 @@ func (system *playerSystem) Shoot(w donburi.World, _ types.Nil) {
 		playerWorld := body.Position()
 		ecsFramework.Spawn(system.injector, system.ecs, weapons.CreateBullet, weapons.NewBulletParams{
 			From:  playerWorld,
-			To:    cp.Vector(system.cursor.WorldPosition),
+			To:    cp.Vector(system.input.Cursor().WorldPosition),
 			Space: system.space,
 		})
 	}
